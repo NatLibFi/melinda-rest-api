@@ -1,0 +1,522 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Melinda RESTful API",    
+    "version": "1.0.0"    
+  },
+  "servers": [
+    {
+      "url": "https://rest.api.melinda.kansalliskirjasto.fi/v1",
+      "desscription": "foo"
+    }
+  ],
+  "tags": [    
+    {
+      "name": "records",
+      "description": "Creating and querying records"
+    },
+    {
+      "name": "record",
+      "description": "Operation on specific records"
+    },
+    {
+      "name": "record lock",
+      "description": "Record lock management"
+    }
+  ],
+  "paths": {
+    "/records": {
+      "post": {
+        "summary": "Create a record",
+        "tags": ["records"],
+        "parameters": [
+          {
+            "name": "noop",
+            "description": "Do not actually create the record but return the final format in which it would be uploaded",
+            "in": "query",
+            "type": "boolean",
+            "default": false
+          },
+          {
+            "name": "merge",
+            "description": "Update an existing record if there's a match between the incoming record and the datastore",
+            "in": "query",
+            "type": "boolean",
+            "default": true
+          }
+        ],
+        "requestBody": {
+          "description": "Contains a single record",
+          "required": true,
+          "content": {
+            "application/json": {              
+              "schema": {      
+                "$ref": "#/components/schemas/MarcRecord"
+              }      
+            },
+            "application/xml": {}
+          }
+        },
+        "security": [{
+          "httpBasic": []
+          }],
+          "responses": {
+            "200": {
+              "description": "The record data in the format it would have been uploaded. This response is only generated when **noop** is set to true",
+              "content": {
+                "application/json": {             
+                  "schema": {      
+                    "$ref": "#/components/schemas/MarcRecord"
+                  }
+                },
+                "application/xml": {}
+              },
+              "headers": {
+                "Record-ID": {
+                  "description": "The identifier of an existing record if **merge** was set to true and a match was found",
+                  "schema": {
+                    "type": "string"                  
+                  }
+                }
+              }
+            },
+            "201": {
+              "description": "The record was created succesfully",
+              "headers": {
+                "Record-ID": {
+                  "description": "The Record's identifier",
+                  "schema": {
+                    "type": "string"                  
+                  }
+                }
+              }
+            },
+            "204": {
+              "description": "The record data was merged with an existing record",
+              "headers": {
+                "Record-ID": {
+                  "description": "The identifier of the updated record",
+                  "schema": {
+                    "type": "string"                  
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "The record data is invalid",
+              "content": {
+                "application/json": {
+                  "schema": { "$ref": "#/components/schemas/InvalidRecordError" }
+                },
+                "application/xml": {
+                  "schema": { "$ref": "#/components/schemas/InvalidRecordError" }
+                }
+              }
+            },
+            "401": {
+              "description": "Credentials are invalid or missing"
+            },
+            "403": {
+              "description": "The credentials are not authorized for this operation"
+            },
+            "409": {
+              "description": "The record is a duplicate in the datastore and merging was explicitly disabled by the client",
+              "headers": {
+                "Record-ID": {
+                  "description": "Identifier of the existing record",
+                  "schema": {
+                    "type": "string"                  
+                  }
+                }
+              }
+            },
+            "423": {
+              "description": "The record is a duplicate in the datastore and merging was not possible because the existing record is locked",
+              "headers": {
+                "Record-ID": {
+                  "description": "Identifier of the existing record",
+                  "schema": {
+                    "type": "string"                  
+                  }
+                }
+              }
+            }
+          }
+        },
+        "get": {
+          "summary": "Query for records",
+          "tags": ["records"],
+          "parameters": [
+            {
+              "name": "id",
+              "description": "The record's identifier",
+              "in": "query",            
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "ignoreDeleted",
+              "description": "Do not retrieve the record if it's been marked as deleted",
+              "in": "query",            
+              "type": "boolean",
+              "default": true
+            },
+            {
+              "name": "resolveLinksOnDeleted",
+              "description": "Attempt to retrieve new representations of a record if it's been marked as deleted and **ignoreDeleted** is set to true",
+              "in": "query",            
+              "type": "boolean",
+              "default": true
+            },
+            {
+              "name": "includeComponents",
+              "description": "Include component records in the response",
+              "in": "query",            
+              "type": "boolean",
+              "default": false
+            }
+          ],
+          "security": [
+            {
+              "httpBasic": []
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Return found records",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/MarcRecord"
+                    }
+                  }
+                },
+                "application/xml": {}
+              }
+            },
+            "204": {
+              "description": "The search resulted in an empty set"
+            },
+            "401": {
+              "description": "Credentials are invalid or missing"
+            },
+            "403": {
+              "description": "The credentials are not authorized for this operation"
+            }
+          }
+        }
+      },
+      "/records/{id}": {      
+        "post": {
+          "summary": "Update a record",
+          "tags": ["record"],
+          "parameters": [
+            {
+              "name": "id",
+              "description": "The identifier of the record that's going to be updated",
+              "in": "path",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "noop",
+              "description": "Do not actually update but return the final format in which it would be uploaded",
+              "in": "query",
+              "type": "boolean",
+              "default": false
+            }
+          ],
+          "requestBody": {
+            "description": "Contains a single record",
+            "required": true,
+            "content": {
+              "application/json": {              
+                "schema": {      
+                  "$ref": "#/components/schemas/MarcRecord"
+                }      
+              },
+              "application/xml": {}
+            }
+          },
+          "security": [{
+            "httpBasic": []
+            }],
+            "responses": {
+              "200": {
+                "description": "The record data in the format it would have been uploaded. This response is only generated when **noop** is set to true",
+                "content": {
+                  "application/json": {
+                    "description": "Record data in JSON format",                
+                    "schema": {      
+                      "$ref": "#/components/schemas/MarcRecord"
+                    }
+                  },
+                  "application/xml": {}
+                }
+              },
+              "204": {
+                "description": "The record was succesfully updated"
+              },
+              "400": {
+                "description": "The record data is invalid",
+                "content": {
+                  "application/json": {
+                    "schema": { "$ref": "#/components/schemas/InvalidRecordError" }
+                  },
+                  "application/xml": {
+                    "schema": { "$ref": "#/components/schemas/InvalidRecordError" }
+                  }
+                }
+              },
+              "401": {
+                "description": "Credentials are invalid or missing"
+              },
+              "403": {
+                "description": "The credentials are not authorized for this operation"
+              },
+              "404": {
+                "description": "The record does not exist"
+              },
+              "423": {
+                "description": "The record is locked"
+              }
+            }
+          },
+          "get": {
+            "summary": "Retrieve a record",
+            "tags": ["record"],
+            "security": [
+              {
+                "httpBasic": []
+              }
+            ],          
+            "responses": {
+              "200": {
+                "content": {
+                  "application/json": {
+                    "schema": { "$ref": "#/components/schemas/MarcRecord" }
+                  },
+                  "application/xml": {}
+                },
+                "headers": {
+                  "Record-ID": {
+                    "description": "Identifier of the record",
+                    "schema": {
+                      "type": "string"                  
+                    }
+                  }
+                }
+              },
+              "401": {
+                "description": "Credentials are invalid or missing"
+              },
+              "403": {
+                "description": "The credentials are not authorized for this operation"
+              },
+              "404": {
+                "description": "The record does not exist"
+              }
+            }
+          }
+        },
+        "/records/{id}/lock": {      
+          "post": {
+            "summary": "Lock a record or renew the record's lock",
+            "tags": ["record lock"],
+            "responses": {
+              "201": {
+                "description": "The lock was succesfully created"
+              },
+              "204": {
+                "description": "The lock was succesfully renewed"
+              },
+              "401": {
+                "description": "Credentials are invalid or missing"
+              },
+              "403": {
+                "description": "The credentials are not authorized for this operation"
+              },
+              "404": {
+                "description": "The lock does not exist"
+              }
+            },
+            "security": [
+              {
+                "httpBasic": []
+              }
+            ]
+          },
+          "delete": {
+            "summary": "Unlock a record",
+            "tags": ["record lock"],
+            "responses": {
+              "204": {
+                "description": "The lock was succesfully deleted"
+              },
+              "401": {
+                "description": "Credentials are invalid or missing"
+              },
+              "403": {
+                "description": "The credentials are not authorized for this operation"
+              },
+              "404": {
+                "description": "The lock does not exist"
+              }
+            },
+            "security": [
+              {
+                "httpBasic": []
+              }
+            ]
+          },
+          "get": {
+            "summary": "Retrieve information about a record lock",
+            "tags": ["record lock"],
+            "responses": {
+              "200": {
+                "description": "Metadata about the lock",
+                "content": {
+                  "application/json": {
+                    "schema": { "$ref": "#/components/schemas/RecordLock" }
+                  },
+                  "application/xml": {
+                    "schema": { "$ref": "#/components/schemas/RecordLock" }
+                  }
+                }
+              },
+              "401": {
+                "description": "Credentials are invalid or missing"
+              },
+              "403": {
+                "description": "The credentials are not authorized for this operation"
+              },
+              "404": {
+                "description": "The lock does not exist"
+              }
+            },
+            "security": [
+              {
+                "httpBasic": []
+              }
+            ]
+          }
+        }
+      },
+      "components": {
+        "securitySchemes": {
+          "httpBasic": {
+            "type": "http",
+            "scheme": "basic"
+          }
+        },
+        "schemas": {
+          "InvalidRecordError": {
+            "type": "object",
+            "properties": {
+              "errors": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "xml": {
+                  "name": "error"
+                }
+              }
+            },
+            "xml": {
+              "name": "errors"
+            },
+            "example": {
+              "errors": ["Missing field 008"]
+            }
+          },
+          "RecordLock": {
+            "type": "object",
+            "properties": {
+              "expirationTime": {
+                "type": "string",
+                "format": "date-time",
+                "required": true,
+                "xml": {
+                  "attribute": true
+                }
+              }
+            },
+            "xml": {
+              "name": "lock"
+            }
+          },
+          "MarcRecord": {
+            "type": "object",
+            "properties": {
+              "leader": {
+                "type": "string"
+              },
+              "fields": {
+                "type": "array",
+                "required": true,
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "tag": {
+                            "type": "string",
+                            "required": true
+                          },
+                          "value": {
+                            "type": "string",
+                            "required": true
+                          }
+                        }                  
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "tag": {
+                            "type": "string",
+                            "required": true
+                          },
+                          "subfields": {
+                            "type": "array",
+                            "required": true,
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "code": {
+                                  "type": "string",
+                                  "required": true
+                                },
+                                "value": {
+                                  "type": "string",
+                                  "required": true
+                                }
+                              } 
+                            }                       
+                          }
+                        }
+                      }
+                    ]                
+                  }
+                }
+              }
+            },
+            "example": {
+              "fields": [{
+                "tag": "245",
+                "subfields": [
+                  {
+                    "code": "a",
+                    "value": "foo"
+                  }
+                ]               
+                }]
+              }
+            }
+          }
+        }
+      }
