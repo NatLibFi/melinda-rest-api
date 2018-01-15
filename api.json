@@ -66,12 +66,12 @@
               "content": {
                 "application/json": {
                   "schema": {
-                    "$ref": "#/components/schemas/RecordCreationReport"
+                    "$ref": "#/components/schemas/RecordModificationReport"
                   }
                 },
                 "application/xml": {
                   "schema": {
-                    "$ref": "#/components/schemas/RecordCreationReport"
+                    "$ref": "#/components/schemas/RecordModificationReport"
                   }                  
                 }
               }
@@ -89,12 +89,12 @@
               "content": {
                 "application/json": {
                   "schema": {
-                    "$ref": "#/components/schemas/RecordCreationReport"
+                    "$ref": "#/components/schemas/RecordModificationReport"
                   }
                 },
                 "application/xml": {
                   "schema": {
-                    "$ref": "#/components/schemas/RecordCreationReport"
+                    "$ref": "#/components/schemas/RecordModificationReport"
                   }                  
                 }
               }
@@ -104,12 +104,12 @@
               "content": {
                 "application/json": {
                   "schema": {
-                    "$ref": "#/components/schemas/RecordCreationReport"
+                    "$ref": "#/components/schemas/RecordModificationReport"
                   }
                 },
                 "application/xml": {
                   "schema": {
-                    "$ref": "#/components/schemas/RecordCreationReport"
+                    "$ref": "#/components/schemas/RecordModificationReport"
                   }                  
                 }
               }
@@ -124,10 +124,10 @@
               "description": "The record has a duplicate in the datastore and **unique** was set to true",
               "content": {
                 "application/json": {
-                  "$ref": "#/components/schemas/RecordCreationReport"
+                  "$ref": "#/components/schemas/RecordModificationReport"
                 },
                 "application/xml": {
-                  "$ref": "#/components/schemas/RecordCreationReport"
+                  "$ref": "#/components/schemas/RecordModificationReport"
                 }
               }
             }
@@ -154,8 +154,15 @@
               "default": false
             },
             {
-              "name": "merge",
-              "description": "Merge changes between the incoming record and the record in the datastore",
+              "name": "sync",
+              "description": "Synchronize changes between the incoming record and the record in the datastore",
+              "in": "query",
+              "type": "boolean",
+              "default": false
+            },
+            {
+              "name": "ownerAuthorization",
+              "description": "Require the credentials to have authority to change owner metadata",
               "in": "query",
               "type": "boolean",
               "default": true
@@ -178,28 +185,40 @@
             }],
             "responses": {
               "200": {
-                "description": "The record data in the format it would have been uploaded. This response is only generated when **noop** is set to true",
+                "description": "The record was updated successfully (Unless **noop** was set to true). Return final representation of the record in addition to operation metadata if **noop** was set to true",
                 "content": {
-                  "application/json": {
-                    "description": "Record data in JSON format",                
+                  "application/json": {                    
                     "schema": {
-                      "$ref": "#/components/schemas/MarcRecord"
+                      "oneOf": [
+                        {
+                          "$ref": "#/components/schemas/RecordModificationReport"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "record": {
+                              "$ref":  "#/components/schemas/MarcRecord",
+                              "required": "true"
+                            },
+                            "report": {
+                              "$ref":  "#/components/schemas/RecordModificationReport"                              
+                            }
+                          }
+                        }
+                      ]
                     }
                   },
                   "application/xml": {}
                 }
               },
-              "204": {
-                "description": "The record was succesfully updated"
-              },
               "400": {
                 "description": "The record data is invalid",
                 "content": {
                   "application/json": {
-                    "schema": { "$ref": "#/components/schemas/InvalidRecordError" }
+                    "schema": { "$ref": "#/components/schemas/RecordModificationReport" }
                   },
                   "application/xml": {
-                    "schema": { "$ref": "#/components/schemas/InvalidRecordError" }
+                    "schema": { "$ref": "#/components/schemas/RecordModificationReport" }
                   }
                 }
               },
@@ -211,6 +230,17 @@
               },
               "404": {
                 "description": "The record does not exist"
+              },
+              "409": {
+                "description": "The records could not be synchronized (The parameter **sync** was set to true)",
+                "content": {
+                  "application/json": {
+                    "$ref": "#/components/schemas/RecordModificationReport"
+                  },
+                  "application/xml": {
+                    "$ref": "#/components/schemas/RecordModificationReport"
+                  }
+                }
               },
               "423": {
                 "description": "The record is locked"
@@ -345,7 +375,7 @@
           }
         },
         "schemas": {
-          "RecordCreationReport": {
+          "RecordModificationReport": {
             "type": "object",
             "properties": {
               "messages": {
@@ -402,26 +432,6 @@
                   "duplicates": ["123456", "789100"]
                 }
               ]
-            }
-          },
-          "InvalidRecordError": {
-            "type": "object",
-            "properties": {
-              "errors": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                },
-                "xml": {
-                  "name": "error"
-                }
-              }
-            },
-            "xml": {
-              "name": "errors"
-            },
-            "example": {
-              "errors": ["Missing field 008"]
             }
           },
           "RecordLock": {
