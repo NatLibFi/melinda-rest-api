@@ -13,11 +13,11 @@
   "tags": [    
     {
       "name": "records",
-      "description": "Creating and querying records"
+      "description": "Creating new records"
     },
     {
       "name": "record",
-      "description": "Operation on specific records"
+      "description": "Operate on specific records"
     },
     {
       "name": "record lock",
@@ -32,14 +32,14 @@
         "parameters": [
           {
             "name": "noop",
-            "description": "Do not actually create the record but return the final format in which it would be uploaded",
+            "description": "Do not create the record but return the messages about the operation",
             "in": "query",
             "type": "boolean",
             "default": false
           },
           {
-            "name": "merge",
-            "description": "Update an existing record if there's a match between the incoming record and the datastore",
+            "name": "unique",
+            "description": "Do not create the record if there are duplicates in the datastore",
             "in": "query",
             "type": "boolean",
             "default": true
@@ -62,21 +62,17 @@
           }],
           "responses": {
             "200": {
-              "description": "The record data in the format it would have been uploaded. This response is only generated when **noop** is set to true",
+              "description": "The record was not actually created (The parameter **noop** was set to true)",
               "content": {
-                "application/json": {             
-                  "schema": {      
-                    "$ref": "#/components/schemas/MarcRecord"
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/RecordCreationReport"
                   }
                 },
-                "application/xml": {}
-              },
-              "headers": {
-                "Record-ID": {
-                  "description": "The identifier of an existing record if **merge** was set to true and a match was found",
+                "application/xml": {
                   "schema": {
-                    "type": "string"                  
-                  }
+                    "$ref": "#/components/schemas/RecordCreationReport"
+                  }                  
                 }
               }
             },
@@ -89,16 +85,17 @@
                     "type": "string"                  
                   }
                 }
-              }
-            },
-            "204": {
-              "description": "The record data was merged with an existing record",
-              "headers": {
-                "Record-ID": {
-                  "description": "The identifier of the updated record",
+              },
+              "content": {
+                "application/json": {
                   "schema": {
-                    "type": "string"                  
+                    "$ref": "#/components/schemas/RecordCreationReport"
                   }
+                },
+                "application/xml": {
+                  "schema": {
+                    "$ref": "#/components/schemas/RecordCreationReport"
+                  }                  
                 }
               }
             },
@@ -106,10 +103,14 @@
               "description": "The record data is invalid",
               "content": {
                 "application/json": {
-                  "schema": { "$ref": "#/components/schemas/InvalidRecordError" }
+                  "schema": {
+                    "$ref": "#/components/schemas/RecordCreationReport"
+                  }
                 },
                 "application/xml": {
-                  "schema": { "$ref": "#/components/schemas/InvalidRecordError" }
+                  "schema": {
+                    "$ref": "#/components/schemas/RecordCreationReport"
+                  }                  
                 }
               }
             },
@@ -120,97 +121,22 @@
               "description": "The credentials are not authorized for this operation"
             },
             "409": {
-              "description": "The record is a duplicate in the datastore and merging was explicitly disabled by the client",
-              "headers": {
-                "Record-ID": {
-                  "description": "Identifier of the existing record",
-                  "schema": {
-                    "type": "string"                  
-                  }
-                }
-              }
-            },
-            "423": {
-              "description": "The record is a duplicate in the datastore and merging was not possible because the existing record is locked",
-              "headers": {
-                "Record-ID": {
-                  "description": "Identifier of the existing record",
-                  "schema": {
-                    "type": "string"                  
-                  }
-                }
-              }
-            }
-          }
-        },
-        "get": {
-          "summary": "Query for records",
-          "tags": ["records"],
-          "parameters": [
-            {
-              "name": "id",
-              "description": "The record's identifier",
-              "in": "query",            
-              "type": "string",
-              "required": true
-            },
-            {
-              "name": "ignoreDeleted",
-              "description": "Do not retrieve the record if it's been marked as deleted",
-              "in": "query",            
-              "type": "boolean",
-              "default": true
-            },
-            {
-              "name": "resolveLinksOnDeleted",
-              "description": "Attempt to retrieve new representations of a record if it's been marked as deleted and **ignoreDeleted** is set to true",
-              "in": "query",            
-              "type": "boolean",
-              "default": true
-            },
-            {
-              "name": "includeComponents",
-              "description": "Include component records in the response",
-              "in": "query",            
-              "type": "boolean",
-              "default": false
-            }
-          ],
-          "security": [
-            {
-              "httpBasic": []
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Return found records",
+              "description": "The record has a duplicate in the datastore and **unique** was set to true",
               "content": {
                 "application/json": {
-                  "schema": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/MarcRecord"
-                    }
-                  }
+                  "$ref": "#/components/schemas/RecordCreationReport"
                 },
-                "application/xml": {}
+                "application/xml": {
+                  "$ref": "#/components/schemas/RecordCreationReport"
+                }
               }
-            },
-            "204": {
-              "description": "The search resulted in an empty set"
-            },
-            "401": {
-              "description": "Credentials are invalid or missing"
-            },
-            "403": {
-              "description": "The credentials are not authorized for this operation"
             }
           }
         }
       },
       "/records/{id}": {      
         "post": {
-          "summary": "Update a record",
+          "summary": "Update a record",          
           "tags": ["record"],
           "parameters": [
             {
@@ -222,10 +148,17 @@
             },
             {
               "name": "noop",
-              "description": "Do not actually update but return the final format in which it would be uploaded",
+              "description": "Do not actually do the update but return the record in the format it would be uploaded",
               "in": "query",
               "type": "boolean",
               "default": false
+            },
+            {
+              "name": "merge",
+              "description": "Merge changes between the incoming record and the record in the datastore",
+              "in": "query",
+              "type": "boolean",
+              "default": true
             }
           ],
           "requestBody": {
@@ -249,7 +182,7 @@
                 "content": {
                   "application/json": {
                     "description": "Record data in JSON format",                
-                    "schema": {      
+                    "schema": {
                       "$ref": "#/components/schemas/MarcRecord"
                     }
                   },
@@ -412,6 +345,65 @@
           }
         },
         "schemas": {
+          "RecordCreationReport": {
+            "type": "object",
+            "properties": {
+              "messages": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": ["error", "warning", "info"],
+                      "required": true,
+                      "xml": {
+                        "attribute": true
+                      }
+                    },
+                    "message": {
+                      "type": "string",
+                      "required": true,
+                      "xml": {
+                        "name": "text"
+                      }
+                    },
+                    "duplicates": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "xml": {
+                          "name": "id"
+                        }
+                      },
+                      "xml": {
+                        "wrapped": true
+                      }
+                    }
+                  }
+                },
+                "xml": {
+                  "name": "message"
+                }
+              }              
+            },
+            "xml": {
+              "name": "messages"
+            },
+            "example": {
+              "messages": [
+                {
+                  "type": "info",
+                  "message": "foobar"
+                },
+                {
+                  "type": "error",
+                  "message": "The record has duplicates in the datastore",
+                  "duplicates": ["123456", "789100"]
+                }
+              ]
+            }
+          },
           "InvalidRecordError": {
             "type": "object",
             "properties": {
