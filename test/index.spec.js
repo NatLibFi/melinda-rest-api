@@ -1,6 +1,6 @@
 /**
 *
-* @licstart  The following is the entire license notice for the JavaScript code in this file. 
+* @licstart  The following is the entire license notice for the JavaScript code in this file.
 *
 * RESTful API for Melinda
 *
@@ -26,7 +26,7 @@
 *
 */
 
-/* eslint-disable no-undef, max-nested-callbacks, no-unused-expressions */
+/* eslint-disable no-unused-vars, no-undef, max-nested-callbacks, no-unused-expressions */
 
 'use strict';
 

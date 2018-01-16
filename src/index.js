@@ -1,6 +1,6 @@
 /**
 *
-* @licstart  The following is the entire license notice for the JavaScript code in this file. 
+* @licstart  The following is the entire license notice for the JavaScript code in this file.
 *
 * RESTful API for Melinda
 *
@@ -26,6 +26,37 @@
 *
 */
 
-/* eslint-disable no-unused-vars */
+const express = require('express');
+const cookieParser = require('cookie-parser');
+const bodyParser = require('body-parser');
 
-'use strict';
+const PORT = 8080;
+
+const app = express();
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: false}));
+app.use(cookieParser());
+
+/*
+ * Routes
+ */
+app.use('/bib', require('./routes/bib'));
+app.use('/aut', require('./routes/aut'));
+
+// Catch 404
+app.use((req, res) => {
+	console.error(`Error 404 on ${req.url}.`);
+	res.status(404).send({status: 404, error: 'Not found'});
+});
+
+// Catch errors
+app.use((err, req, res) => {
+	const status = err.status || 500;
+	console.error(`Error ${status} (${err.message}) on ${req.method} ${req.url} with payload ${req.body}.`);
+	res.status(status).send({status, error: 'Server error'});
+});
+
+const server = app.listen(PORT, () => console.log(`Application started on port ${PORT}`));
+
+server.timeout = 1800000; // Half an hour
