@@ -6,8 +6,7 @@
   },
   "servers": [
     {
-      "url": "https://rest.api.melinda.kansalliskirjasto.fi/v1",
-      "desscription": "foo"
+      "url": "https://rest.api.melinda.kansalliskirjasto.fi/v1"      
     }
   ],
   "tags": [    

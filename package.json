@@ -1,0 +1,99 @@
+{
+	"name": "@natlibfi/melinda-rest-api",
+	"description": "RESTful API for Melinda",
+	"author": {
+		"name": "The National Library of Finland"
+	},
+	"keywords": [],
+	"homepage": "https://github.com/natlibfi/melinda-rest-api",
+	"bugs": {
+		"url": "https://github.com/natlibfi/melinda-rest-api/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git@github.com:natlibfi/melinda-rest-api.git"
+	},
+	"license": "AGPL-3.0+",
+	"version": "1.0.0",
+	"main": "./dist/index.js",
+	"engines": {
+		"node": ">=7"
+	},
+	"scripts": {
+		"prepublishOnly": "npm run build:transpile",
+		"lint": "xo --fix",
+		"test": "cross-env NODE_ENV=test nyc mocha --compilers js:babel-register",
+		"coverage": "nyc check-coverage",
+		"clean": "rimraf build coverage .nyc_output dist",
+		"build:transpile": "babel src --source-maps --out-dir=dist --minified",
+		"build": "npm run build:transpile && ncu",
+		"dev": "npm run clean && npm run build:transpile",
+		"dev:check": "npm run clean && npm run lint && npm test;npm run coverage;npm run dev",
+		"dev:watch": "chokidar src -c 'npm run build:transpile && node dist/index.js'",
+		"check-and-build": "npm run lint && npm test && npm run coverage && npm run build",
+		"travisci": "npm run check-and-build",
+		"publish-to-npm": "npm install && npm run lint && npm test && npm run coverage && npm publish --access=public"
+	},
+	"devDependencies": {
+		"git-scripts": "^0.2.1",
+		"npm-check-updates": "^2.13.0",
+		"rimraf": "^2.6.2",
+		"mocha": "^4.0.1",
+		"xo": "^0.18.2",
+		"istanbul": "^0.4.5",
+		"chai": "^4.1.2",
+		"nyc": "^11.3.0",
+		"cross-env": "^5.1.1",
+		"chokidar-cli": "^1.2.0",
+		"babel-cli": "^6.26.0",
+		"babel-register": "^6.26.0",
+		"babel-preset-env": "^1.6.1",
+		"babel-plugin-istanbul": "^4.1.5",
+		"nodemon": "^1.12.4",
+		"codeclimate-test-reporter": "^0.5.0"
+	},
+	"xo": {
+		"rules": {
+			"valid-jsdoc": [
+				"error"
+			],
+			"prefer-arrow-callback": [
+				"error"
+			]
+		}
+	},
+	"babel": {
+		"presets": [
+			[
+				"env",
+				{
+					"targets": {
+						"node": "7"
+					}
+				}
+			]
+		],
+		"env": {
+			"test": {
+				"plugins": [
+					"istanbul"
+				]
+			}
+		}
+	},
+	"nyc": {
+		"reporter": [
+			"lcov",
+			"html"
+		],
+		"require": [
+			"babel-register"
+		],
+		"sourceMap": false,
+		"instrument": false,
+		"lines": 100,
+		"statements": 100,
+		"functions": 100,
+		"branches": 100
+	}
+}
