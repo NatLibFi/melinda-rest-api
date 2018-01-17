@@ -26,8 +26,8 @@
 *
 */
 
-const express = require('express');
-const bib = require('../services/bib');
+import express from 'express';
+import * as bib from '../services/bib';
 
 const router = new express.Router();
 
@@ -146,4 +146,4 @@ router.get('/records/:id/lock', async (req, res) => {
 	}
 });
 
-module.exports = router;
+export default router;

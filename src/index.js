@@ -26,11 +26,13 @@
 *
 */
 
-const express = require('express');
-const cookieParser = require('cookie-parser');
-const bodyParser = require('body-parser');
-const swaggerUi = require('swagger-ui-express');
-const apiDoc = require('../api.json');
+import express from 'express';
+import cookieParser from 'cookie-parser';
+import bodyParser from 'body-parser';
+import swaggerUi from 'swagger-ui-express';
+import apiDoc from '../api';
+import aut from './routes/aut';
+import bib from './routes/bib';
 
 const PORT = 8080;
 
@@ -43,8 +45,8 @@ app.use(cookieParser());
 /*
  * Routes
  */
-app.use('/bib', require('./routes/bib'));
-app.use('/aut', require('./routes/aut'));
+app.use('/bib', bib);
+app.use('/aut', aut);
 
 app.use('/', (req, res, next) => {
 	const accepts = req.accepts('text/html', 'application/xhtml+xml', 'application/json');

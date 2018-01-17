@@ -35,7 +35,7 @@
  * @throws {Error}
  * @return {Promise}
  */
-module.exports.postAutNamesRecords = async options => {
+export const postAutNamesRecords = async options => {
   // Implement your business logic here...
   //
   // This function should return as follows:
@@ -67,7 +67,7 @@ module.exports.postAutNamesRecords = async options => {
  * @throws {Error}
  * @return {Promise}
  */
-module.exports.postAutNamesRecordsById = async options => {
+export const postAutNamesRecordsById = async options => {
   // Implement your business logic here...
   //
   // This function should return as follows:
@@ -96,7 +96,7 @@ module.exports.postAutNamesRecordsById = async options => {
  * @throws {Error}
  * @return {Promise}
  */
-module.exports.getAutNamesRecordsById = async options => {
+export const getAutNamesRecordsById = async options => {
   // Implement your business logic here...
   //
   // This function should return as follows:
@@ -125,7 +125,7 @@ module.exports.getAutNamesRecordsById = async options => {
  * @throws {Error}
  * @return {Promise}
  */
-module.exports.postAutNamesRecordsByIdLock = async options => {
+export const postAutNamesRecordsByIdLock = async options => {
   // Implement your business logic here...
   //
   // This function should return as follows:
@@ -154,7 +154,7 @@ module.exports.postAutNamesRecordsByIdLock = async options => {
  * @throws {Error}
  * @return {Promise}
  */
-module.exports.deleteAutNamesRecordsByIdLock = async options => {
+export const deleteAutNamesRecordsByIdLock = async options => {
   // Implement your business logic here...
   //
   // This function should return as follows:
@@ -183,7 +183,7 @@ module.exports.deleteAutNamesRecordsByIdLock = async options => {
  * @throws {Error}
  * @return {Promise}
  */
-module.exports.getAutNamesRecordsByIdLock = async options => {
+export const getAutNamesRecordsByIdLock = async options => {
   // Implement your business logic here...
   //
   // This function should return as follows:
@@ -214,7 +214,7 @@ module.exports.getAutNamesRecordsByIdLock = async options => {
  * @throws {Error}
  * @return {Promise}
  */
-module.exports.postAutSubjectsRecords = async options => {
+export const postAutSubjectsRecords = async options => {
   // Implement your business logic here...
   //
   // This function should return as follows:
@@ -246,7 +246,7 @@ module.exports.postAutSubjectsRecords = async options => {
  * @throws {Error}
  * @return {Promise}
  */
-module.exports.postAutSubjectsRecordsById = async options => {
+export const postAutSubjectsRecordsById = async options => {
   // Implement your business logic here...
   //
   // This function should return as follows:
@@ -275,7 +275,7 @@ module.exports.postAutSubjectsRecordsById = async options => {
  * @throws {Error}
  * @return {Promise}
  */
-module.exports.getAutSubjectsRecordsById = async options => {
+export const getAutSubjectsRecordsById = async options => {
   // Implement your business logic here...
   //
   // This function should return as follows:
@@ -304,7 +304,7 @@ module.exports.getAutSubjectsRecordsById = async options => {
  * @throws {Error}
  * @return {Promise}
  */
-module.exports.postAutSubjectsRecordsByIdLock = async options => {
+export const postAutSubjectsRecordsByIdLock = async options => {
   // Implement your business logic here...
   //
   // This function should return as follows:
@@ -333,7 +333,7 @@ module.exports.postAutSubjectsRecordsByIdLock = async options => {
  * @throws {Error}
  * @return {Promise}
  */
-module.exports.deleteAutSubjectsRecordsByIdLock = async options => {
+export const deleteAutSubjectsRecordsByIdLock = async options => {
   // Implement your business logic here...
   //
   // This function should return as follows:
@@ -362,7 +362,7 @@ module.exports.deleteAutSubjectsRecordsByIdLock = async options => {
  * @throws {Error}
  * @return {Promise}
  */
-module.exports.getAutSubjectsRecordsByIdLock = async options => {
+export const getAutSubjectsRecordsByIdLock = async options => {
   // Implement your business logic here...
   //
   // This function should return as follows:

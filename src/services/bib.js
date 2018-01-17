@@ -36,7 +36,7 @@
  * @throws {Error}
  * @return {Promise}
  */
-module.exports.postBibRecords = async options => {
+export const postBibRecords = async options => {
   // Implement your business logic here...
   //
   // This function should return as follows:
@@ -69,7 +69,7 @@ module.exports.postBibRecords = async options => {
  * @throws {Error}
  * @return {Promise}
  */
-module.exports.postBibRecordsById = async options => {
+export const postBibRecordsById = async options => {
   // Implement your business logic here...
   //
   // This function should return as follows:
@@ -98,7 +98,7 @@ module.exports.postBibRecordsById = async options => {
  * @throws {Error}
  * @return {Promise}
  */
-module.exports.getBibRecordsById = async options => {
+export const getBibRecordsById = async options => {
   // Implement your business logic here...
   //
   // This function should return as follows:
@@ -127,7 +127,7 @@ module.exports.getBibRecordsById = async options => {
  * @throws {Error}
  * @return {Promise}
  */
-module.exports.postBibRecordsByIdLock = async options => {
+export const postBibRecordsByIdLock = async options => {
   // Implement your business logic here...
   //
   // This function should return as follows:
@@ -156,7 +156,7 @@ module.exports.postBibRecordsByIdLock = async options => {
  * @throws {Error}
  * @return {Promise}
  */
-module.exports.deleteBibRecordsByIdLock = async options => {
+export const deleteBibRecordsByIdLock = async options => {
   // Implement your business logic here...
   //
   // This function should return as follows:
@@ -185,7 +185,7 @@ module.exports.deleteBibRecordsByIdLock = async options => {
  * @throws {Error}
  * @return {Promise}
  */
-module.exports.getBibRecordsByIdLock = async options => {
+export const getBibRecordsByIdLock = async options => {
   // Implement your business logic here...
   //
   // This function should return as follows:

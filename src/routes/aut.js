@@ -26,8 +26,8 @@
 *
 */
 
-const express = require('express');
-const aut = require('../services/aut');
+import express from 'express';
+import * as aut from '../services/aut';
 
 const router = new express.Router();
 
@@ -257,4 +257,4 @@ router.get('/subjects/records/:id/lock', async (req, res) => {
 	}
 });
 
-module.exports = router;
+export default router;
