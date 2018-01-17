@@ -29,6 +29,8 @@
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
+const swaggerUi = require('swagger-ui-express');
+const apiDoc = require('../api.json');
 
 const PORT = 8080;
 
@@ -43,6 +45,16 @@ app.use(cookieParser());
  */
 app.use('/bib', require('./routes/bib'));
 app.use('/aut', require('./routes/aut'));
+
+app.use('/', (req, res, next) => {
+	const accepts = req.accepts('text/html', 'application/xhtml+xml', 'application/json');
+
+	if (req.headers['content-type'] === 'application/json' || accepts === 'application/json') {
+		return res.send(apiDoc);
+	}
+
+	next();
+}, swaggerUi.serve, swaggerUi.setup(apiDoc));
 
 // Catch 404
 app.use((req, res) => {
