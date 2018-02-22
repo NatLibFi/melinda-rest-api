@@ -31,6 +31,30 @@
 'use strict';
 
 import {expect} from 'chai';
-import * as testContext from '../src/index';
+import * as testContext from '../src/services/bib';
 
-describe.skip('index');
+describe.skip('services/bib', () => {
+	it('postBibRecords', async () => {
+		const result = await testContext.postBibRecords();
+	});
+
+	it('postBibRecordsById', async () => {
+		const result = await testContext.postBibRecordsById();
+	});
+
+	it('getBibRecordsById', async () => {
+		const result = await testContext.getBibRecordsById();
+	});
+
+	it('postBibRecordsByIdLock', async () => {
+		const result = await testContext.postBibRecordsByIdLock();
+	});
+
+	it('deleteBibRecordsByIdLock', async () => {
+		const result = await testContext.deleteBibRecordsByIdLock();
+	});
+
+	it('getBibRecordsByIdLock', async () => {
+		const result = await testContext.getBibRecordsByIdLock();
+	});
+});

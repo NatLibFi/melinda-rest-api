@@ -1,6 +1,6 @@
 /**
 *
-* @licstart  The following is the entire license notice for the JavaScript code in this file. 
+* @licstart  The following is the entire license notice for the JavaScript code in this file.
 *
 * RESTful API for Melinda
 *
@@ -26,6 +26,51 @@
 *
 */
 
-/* eslint-disable no-unused-vars */
+import express from 'express';
+import cookieParser from 'cookie-parser';
+import bodyParser from 'body-parser';
+import swaggerUi from 'swagger-ui-express';
+import apiDoc from '../api';
+import aut from './routes/aut';
+import bib from './routes/bib';
 
-'use strict';
+const PORT = 8080;
+
+const app = express();
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: false}));
+app.use(cookieParser());
+
+/*
+ * Routes
+ */
+app.use('/bib', bib);
+app.use('/aut', aut);
+
+app.use('/', (req, res, next) => {
+	const accepts = req.accepts('text/html', 'application/xhtml+xml', 'application/json');
+
+	if (req.headers['content-type'] === 'application/json' || accepts === 'application/json') {
+		return res.send(apiDoc);
+	}
+
+	next();
+}, swaggerUi.serve, swaggerUi.setup(apiDoc));
+
+// Catch 404
+app.use((req, res) => {
+	console.error(`Error 404 on ${req.url}.`);
+	res.status(404).send({status: 404, error: 'Not found'});
+});
+
+// Catch errors
+app.use((err, req, res) => {
+	const status = err.status || 500;
+	console.error(`Error ${status} (${err.message}) on ${req.method} ${req.url} with payload ${req.body}.`);
+	res.status(status).send({status, error: 'Server error'});
+});
+
+const server = app.listen(PORT, () => console.log(`Application started on port ${PORT}`));
+
+server.timeout = 1800000; // Half an hour
