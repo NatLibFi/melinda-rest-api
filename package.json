@@ -62,7 +62,10 @@
 			"prefer-arrow-callback": [
 				"error"
 			]
-		}
+		},
+		"ignores": [
+			"node-zoom2/**"
+		]
 	},
 	"babel": {
 		"presets": [
@@ -100,6 +103,7 @@
 	},
 	"dependencies": {
 		"axios": "^0.18.0",
+		"@natlibfi/marc-record-converters": "^1.0.2",
 		"body-parser": "^1.18.2",
 		"cookie-parser": "^1.4.3",
 		"es6-promisify": "^6.0.0",
@@ -108,6 +112,7 @@
 		"passport": "^0.4.0",
 		"passport-http": "^0.3.0",
 		"swagger-ui-express": "^2.0.14",
-		"xml2js": "^0.4.19"
+		"xml2js": "^0.4.19",
+		"node-zoom2": "file:node-zoom2"
 	}
 }

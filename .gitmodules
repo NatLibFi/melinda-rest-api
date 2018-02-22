@@ -1,0 +1,3 @@
+[submodule "node-zoom2"]
+	path = node-zoom2
+	url = https://github.com/NatLibFi/node-zoom2.git

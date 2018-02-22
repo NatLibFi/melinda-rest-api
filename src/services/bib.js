@@ -27,6 +27,8 @@
 * for the JavaScript code in this file.
 *
 */
+import marcRecordConverters from '@natlibfi/marc-record-converters';
+import connection from '../z3950';
 
 /**
  * @param {Object} options
@@ -98,28 +100,28 @@ export const postBibRecordsById = async options => {
  * @throws {Error}
  * @return {Promise}
  */
-export const getBibRecordsById = async options => {
-  // Implement your business logic here...
-  //
-  // This function should return as follows:
-  //
-  // return {
-  //   status: 200, // Or another success code.
-  //   data: [] // Optional. You can put whatever you want here.
-  // };
-  //
-  // If an error happens during your business logic implementation,
-  // you should throw an error as follows:
-  //
-  // throw new Error({
-  //   status: 500, // Or another error code.
-  //   error: 'Server Error' // Or another error message.
-  // });
+export const getBibRecordById = options => {
+	const {recordId, format} = options;
 
-	return {
-		code: 200,
-		data: 'getBibRecordsById ok!'
-	};
+	let record;
+
+	return new Promise((resolve, reject) => {
+		connection.query('cql', `rec.id = ${recordId}`)
+			.createReadStream()
+			.on('data', r => {
+				if (format === 'json') {
+					record = marcRecordConverters.marc21slimXML.from(r.xml);
+				} else {
+					record = r.xml;
+				}
+			})
+			.on('close', () => {
+				resolve({
+					code: 200,
+					data: record
+				});
+			});
+	}).catch(err => console.log(err));
 };
 
 /**
