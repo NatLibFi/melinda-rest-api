@@ -30,20 +30,28 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import bodyParser from 'body-parser';
 import swaggerUi from 'swagger-ui-express';
+import passport from 'passport';
+
 import apiDoc from '../api';
 import aut from './routes/aut';
 import bib from './routes/bib';
+
+import initializeAuth from './auth';
 
 const PORT = 8080;
 
 const app = express();
 
+app.use(passport.initialize());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(cookieParser());
 
-/*
- * Routes
+app.use(passport.authenticate('basic'));
+
+initializeAuth();
+
+ /* Routes
  */
 app.use('/bib', bib);
 app.use('/aut', aut);
