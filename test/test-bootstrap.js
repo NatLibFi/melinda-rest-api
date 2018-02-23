@@ -2,18 +2,18 @@
 *
 * @licstart  The following is the entire license notice for the JavaScript code in this file.
 *
-* RESTful API for Melinda
+* UI for merging MARC records
 *
-* Copyright (C) 2018 University Of Helsinki (The National Library Of Finland)
+* Copyright (C) 2015-2017 University Of Helsinki (The National Library Of Finland)
 *
-* This file is part of melinda-rest-api
+* This file is part of marc-merge-ui
 *
-* melinda-rest-api program is free software: you can redistribute it and/or modify
+* marc-merge-ui program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU Affero General Public License as
 * published by the Free Software Foundation, either version 3 of the
 * License, or (at your option) any later version.
 *
-* melinda-rest-api is distributed in the hope that it will be useful,
+* marc-merge-ui is distributed in the hope that it will be useful,
 * but WITHOUT ANY WARRANTY; without even the implied warranty of
 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 * GNU Affero General Public License for more details.
@@ -26,11 +26,5 @@
 *
 */
 
-/* eslint-disable no-unused-vars, no-undef, max-nested-callbacks, no-unused-expressions */
-
-'use strict';
-
-import {expect} from 'chai';
-import * as testContext from '../src/index';
-
-describe.skip('index');
+process.env.ALEPH_URL = 'http://test-url.com';
+process.env.ALEPH_USER_LIBRARY = 'test-lib';
