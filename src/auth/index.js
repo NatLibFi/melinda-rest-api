@@ -14,7 +14,10 @@ export default () => {
 	passport.use(new BasicStrategy((username, password, done) => {
 		alephAuth(username, password)
 			.then(response => done(null, response))
-			.catch(err => done(err));
+			.catch(err => {
+				console.error(err);
+				done(err);
+			});
 	}));
 };
 
