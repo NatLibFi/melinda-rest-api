@@ -28,6 +28,7 @@
 
 import express from 'express';
 import * as bib from '../services/bib';
+import {MIMETYPES} from '../constants';
 
 const router = new express.Router();
 
@@ -78,10 +79,13 @@ router.post('/records/:id', async (req, res) => {
  * Retrieve a record
  */
 router.get('/records/:id', async (req, res) => {
-	const type = req.accepts('json', 'xml');
+	const type = req.accepts(Object.keys(MIMETYPES));
+
+	const format = MIMETYPES[type];
+
 	const options = {
 		recordId: req.params.id,
-		format: type
+		format
 	};
 
 	try {

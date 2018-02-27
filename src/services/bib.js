@@ -27,8 +27,8 @@
 * for the JavaScript code in this file.
 *
 */
-import marcRecordConverters from '@natlibfi/marc-record-converters';
 import connection from '../z3950';
+import {convertRecord} from '../record-utils';
 
 /**
  * @param {Object} options
@@ -109,16 +109,12 @@ export const getBibRecordById = options => {
 		connection.query('cql', `rec.id = ${recordId}`)
 			.createReadStream()
 			.on('data', r => {
-				if (format === 'json') {
-					record = marcRecordConverters.marc21slimXML.from(r.xml);
-				} else {
-					record = r.xml;
-				}
+				record = r.xml;
 			})
 			.on('close', () => {
 				resolve({
 					code: 200,
-					data: record
+					data: convertRecord(record, format, 'marcxml')
 				});
 			});
 	}).catch(err => console.log(err));
