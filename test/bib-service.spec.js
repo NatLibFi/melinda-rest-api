@@ -33,7 +33,8 @@ import chai, {expect} from 'chai';
 import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 import MarcRecord from 'marc-record-js';
-import {postBibRecordsById, __RewireAPI__ as RewireAPI} from '../src/services/bib';
+import {recordTo} from '../src/record-utils';
+import {postBibRecordsById, getBibRecordById, __RewireAPI__ as RewireAPI} from '../src/services/bib';
 import exampleRecord from './data/example-record';
 
 chai.use(sinonChai);
@@ -106,8 +107,27 @@ describe('services/bib', () => {
 		});
 	});
 
-	it.skip('getBibRecordsById', async () => {
-		const result = await getBibRecordById();
+	describe('getBibRecordsById', async () => {
+		it('should return record in json format', async () => {
+			mockFetchRecordById.resolves(new MarcRecord(exampleRecord));
+
+			const result = await getBibRecordById({record: '12345', format: 'json'});
+
+			const resultedRecord = result.data;
+
+			expect(resultedRecord).to.deep.equal(exampleRecord);
+		});
+
+		it('should return record in marcxml format', async () => {
+			const inputRecord = new MarcRecord(exampleRecord);
+			mockFetchRecordById.resolves(inputRecord);
+
+			const result = await getBibRecordById({record: '12345', format: 'marcxml'});
+
+			const resultedRecord = result.data;
+
+			expect(resultedRecord).to.deep.equal(recordTo(inputRecord, 'marcxml'));
+		});
 	});
 
 	it.skip('postBibRecordsByIdLock', async () => {
