@@ -26,35 +26,99 @@
 *
 */
 
-/* eslint-disable no-unused-vars, no-undef, max-nested-callbacks, no-unused-expressions */
+/* eslint-disable no-unused-vars, no-undef, max-nested-callbacks, no-unused-expressions, import/named */
 
 'use strict';
+import chai, {expect} from 'chai';
+import sinon from 'sinon';
+import sinonChai from 'sinon-chai';
+import MarcRecord from 'marc-record-js';
+import {postBibRecordsById, __RewireAPI__ as RewireAPI} from '../src/services/bib';
+import exampleRecord from './data/example-record';
 
-import {expect} from 'chai';
-import * as testContext from '../src/services/bib';
+chai.use(sinonChai);
 
-describe.skip('services/bib', () => {
-	it('postBibRecords', async () => {
-		const result = await testContext.postBibRecords();
+function replaceField(record, replacedField) {
+	const tag = replacedField.tag;
+
+	const index = record.fields.findIndex(field => field.tag === tag);
+
+	record.fields.splice(index, 1, replacedField);
+}
+
+function modifyRecord(record, modifications) {
+	modifications.forEach(([type, field]) => {
+		if (type === 'append') {
+			record.appendField(field);
+		} else if (type === 'replace') {
+			replaceField(record, field);
+		} else {
+			throw new Error('Unknown modification type');
+		}
+	});
+}
+let mockFetchRecordById;
+
+beforeEach(() => {
+	mockFetchRecordById = sinon.stub();
+	RewireAPI.__Rewire__('fetchRecordById', mockFetchRecordById);
+});
+
+afterEach(() => {
+	RewireAPI.__ResetDependency__('fetchRecordById');
+});
+
+describe('services/bib', () => {
+	it.skip('postBibRecords', async () => {
+		const result = await postBibRecords();
 	});
 
-	it('postBibRecordsById', async () => {
-		const result = await testContext.postBibRecordsById();
+	describe('postBibRecordsById', async () => {
+		it('should sync record with changes made by caretaker', async () => {
+			const originalRecord = new MarcRecord(exampleRecord);
+
+			modifyRecord(originalRecord, [
+				['replace', {tag: '005', value: '20181213114331.0'}],
+				['append', {tag: 'CAT', ind1: ' ', ind2: ' ', subfields: [{code: 'a', value: 'CARETAKER'}, {code: 'b', value: '20'}, {code: 'c', value: '20181213'}, {code: 'l', value: 'FIN01'}, {code: 'h', value: '1143'}]}]
+			]);
+
+			const inputRecord = new MarcRecord(exampleRecord);
+
+			modifyRecord(inputRecord, [
+				['replace', {tag: '700', ind1: '1', ind2: ' ', subfields: [{code: 'a', value: 'Charles Dickens.'}, {code: 't', value: 'Kaksi kaupunkia.'}, {code: '0', value: '(FIN11)000041686'}]}]
+			]);
+
+			const expectedRecord = new MarcRecord(exampleRecord);
+
+			modifyRecord(expectedRecord, [
+				['replace', {tag: '005', value: '20181213114331.0'}],
+				['replace', {tag: '700', ind1: '1', ind2: ' ', subfields: [{code: 'a', value: 'Dickens, Charles.'}, {code: 't', value: 'Kaksi kaupunkia.'}, {code: '0', value: '(FIN11)000041686'}]}],
+				['append', {tag: 'CAT', ind1: ' ', ind2: ' ', subfields: [{code: 'a', value: 'CARETAKER'}, {code: 'b', value: '20'}, {code: 'c', value: '20181213'}, {code: 'l', value: 'FIN01'}, {code: 'h', value: '1143'}]}]
+			]);
+
+			mockFetchRecordById.resolves(originalRecord);
+
+			const result = await postBibRecordsById(inputRecord.toJsonObject(), {recordId: '12345', sync: true, noop: true, format: 'json'});
+
+			const resultedRecord = result.data;
+
+			expect(resultedRecord).to.deep.equal(expectedRecord.toJsonObject());
+		});
 	});
 
-	it('getBibRecordsById', async () => {
-		const result = await testContext.getBibRecordsById();
+	it.skip('getBibRecordsById', async () => {
+		const result = await getBibRecordById();
 	});
 
-	it('postBibRecordsByIdLock', async () => {
-		const result = await testContext.postBibRecordsByIdLock();
+	it.skip('postBibRecordsByIdLock', async () => {
+		const result = await postBibRecordsByIdLock();
 	});
 
-	it('deleteBibRecordsByIdLock', async () => {
-		const result = await testContext.deleteBibRecordsByIdLock();
+	it.skip('deleteBibRecordsByIdLock', async () => {
+		const result = await deleteBibRecordsByIdLock();
 	});
 
-	it('getBibRecordsByIdLock', async () => {
-		const result = await testContext.getBibRecordsByIdLock();
+	it.skip('getBibRecordsByIdLock', async () => {
+		const result = await getBibRecordsByIdLock();
 	});
 });

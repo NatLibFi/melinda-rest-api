@@ -27,8 +27,26 @@
 * for the JavaScript code in this file.
 *
 */
+import MarcRecord from 'marc-record-js';
+import * as AuthorizedPortion from '@natlibfi/melinda-marc-record-utils/dist/authorized-portion';
 import connection from '../z3950';
-import {convertRecord} from '../record-utils';
+import {recordFrom, recordTo, findNewerCATFields, selectFirstSubfieldValue} from '../record-utils';
+import fieldOrderComparator from '../marc-field-sort';
+
+export const fetchRecordById = recordId => {
+	return new Promise((resolve, reject) => {
+		let record;
+
+		connection.query('cql', `rec.id = ${recordId}`)
+			.createReadStream()
+			.on('data', r => {
+				record = r.xml;
+			})
+			.on('close', () => {
+				resolve(recordFrom(record, 'marcxml'));
+			});
+	}).catch(err => console.log(err));
+};
 
 /**
  * @param {Object} options
@@ -71,27 +89,64 @@ export const postBibRecords = async options => {
  * @throws {Error}
  * @return {Promise}
  */
-export const postBibRecordsById = async options => {
-  // Implement your business logic here...
-  //
-  // This function should return as follows:
-  //
-  // return {
-  //   status: 200, // Or another success code.
-  //   data: [] // Optional. You can put whatever you want here.
-  // };
-  //
-  // If an error happens during your business logic implementation,
-  // you should throw an error as follows:
-  //
-  // throw new Error({
-  //   status: 500, // Or another error code.
-  //   error: 'Server Error' // Or another error message.
-  // });
+export const postBibRecordsById = async (body, options) => {
+	const {recordId, format, sync = false, noop = false} = options;
+
+	const finalizedRecord = recordFrom(body, format);
+
+	if (sync) {
+		const originalRecord = await fetchRecordById(recordId);
+
+		const newerCATFields = findNewerCATFields(originalRecord, finalizedRecord);
+
+		if (newerCATFields.length > 0) {
+			if (newerCATFields.some(field => selectFirstSubfieldValue(field, 'a') !== 'CARETAKER')) {
+				return {
+					status: 409,
+					data: 'Conflict'
+				};
+			}
+
+			newerCATFields.forEach(field => finalizedRecord.appendField(field));
+
+			const field005index = finalizedRecord.fields.findIndex(field => field.tag === '005');
+			const field005 = originalRecord.fields.find(field => field.tag === '005');
+
+			finalizedRecord.fields.splice(field005index, 1, field005);
+
+			const fieldPairs = originalRecord.fields.map(field => {
+				const subfield0 = selectFirstSubfieldValue(field, '0');
+
+				if (subfield0 === undefined) {
+					return false;
+				}
+
+				const pair = finalizedRecord.fields.find(comparedField => field.tag === comparedField.tag && subfield0 === selectFirstSubfieldValue(comparedField, '0'));
+
+				if (pair === undefined) {
+					return false;
+				}
+
+				return [
+					field,
+					pair
+				];
+			}).filter(a => a !== false);
+
+			fieldPairs.forEach(([field1, field2]) => {
+				const authorizedPortion = AuthorizedPortion.findAuthorizedPortion(AuthorizedPortion.RecordType.BIB, field1);
+				const resultingField = AuthorizedPortion.updateAuthorizedPortion(AuthorizedPortion.RecordType.BIB, field2, authorizedPortion);
+
+				finalizedRecord.fields.splice(finalizedRecord.fields.indexOf(field2), 1, resultingField);
+			});
+
+			finalizedRecord.fields.sort(fieldOrderComparator);
+		}
+	}
 
 	return {
-		code: 200,
-		data: 'postBibRecordsById ok!'
+		status: 200,
+		data: recordTo(finalizedRecord, format)
 	};
 };
 
@@ -100,24 +155,15 @@ export const postBibRecordsById = async options => {
  * @throws {Error}
  * @return {Promise}
  */
-export const getBibRecordById = options => {
-	const {recordId, format} = options;
+export const getBibRecordById = async options => {
+	const {recordId, format = 'json'} = options;
 
-	let record;
+	const record = await fetchRecordById(recordId);
 
-	return new Promise((resolve, reject) => {
-		connection.query('cql', `rec.id = ${recordId}`)
-			.createReadStream()
-			.on('data', r => {
-				record = r.xml;
-			})
-			.on('close', () => {
-				resolve({
-					code: 200,
-					data: convertRecord(record, format, 'marcxml')
-				});
-			});
-	}).catch(err => console.log(err));
+	return {
+		status: 200,
+		data: recordTo(record, format)
+	};
 };
 
 /**

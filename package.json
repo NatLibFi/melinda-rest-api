@@ -37,6 +37,7 @@
 	"devDependencies": {
 		"babel-cli": "^6.26.0",
 		"babel-plugin-istanbul": "^4.1.5",
+		"babel-plugin-rewire": "^1.1.0",
 		"babel-preset-env": "^1.6.1",
 		"babel-register": "^6.26.0",
 		"chai": "^4.1.2",
@@ -52,6 +53,8 @@
 		"npm-check-updates": "^2.13.0",
 		"nyc": "^11.3.0",
 		"rimraf": "^2.6.2",
+		"sinon": "^4.4.2",
+		"sinon-chai": "^2.14.0",
 		"xo": "^0.18.2"
 	},
 	"xo": {
@@ -81,7 +84,8 @@
 		"env": {
 			"test": {
 				"plugins": [
-					"istanbul"
+					"istanbul",
+					"rewire"
 				]
 			}
 		}
@@ -102,9 +106,11 @@
 		"branches": 100
 	},
 	"dependencies": {
+		"@natlibfi/melinda-marc-record-utils": "^1.1.1",
 		"axios": "^0.18.0",
 		"body-parser": "^1.18.2",
 		"cookie-parser": "^1.4.3",
+		"date-fns": "^1.29.0",
 		"es6-promisify": "^6.0.0",
 		"express": "^4.16.2",
 		"lodash": "^4.17.5",
