@@ -27,10 +27,14 @@
 */
 
 import express from 'express';
+import bodyParser from 'body-parser';
 import * as bib from '../services/bib';
-import {MIMETYPES} from '../constants';
+import {MIMETYPES, MIMETYPES_JSON, MIMETYPES_TEXT} from '../constants';
 
 const router = new express.Router();
+
+router.use(bodyParser.json({type: MIMETYPES_JSON}));
+router.use(bodyParser.text({type: MIMETYPES_TEXT}));
 
 /**
  * Create a record
@@ -57,15 +61,20 @@ router.post('/records', async (req, res) => {
  * Update a record
  */
 router.post('/records/:id', async (req, res) => {
+	const type = req.get('Content-Type');
+
+	const format = MIMETYPES[type];
+
 	const options = {
-		id: req.params.id,
-		noop: req.query.noop,
-		sync: req.query.sync,
-		ownerAuthorization: req.query.ownerAuthorization
+		recordId: req.params.id,
+		noop: req.query.noop === 'true',
+		sync: req.query.sync === 'true',
+		ownerAuthorization: req.query.ownerAuthorization,
+		format
 	};
 
 	try {
-		const result = await bib.postBibRecordsById(options);
+		const result = await bib.postBibRecordsById(req.body, options);
 		res.status(result.status || 200).send(result.data);
 	} catch (err) {
 		return res.status(err.status).send({

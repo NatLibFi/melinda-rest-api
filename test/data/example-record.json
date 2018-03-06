@@ -1,0 +1,304 @@
+{
+  "leader": "00000cam^a2200937^i^4500",
+  "fields": [
+    {
+      "tag": "001",
+      "value": "000248024"
+    },
+    {
+      "tag": "005",
+      "value": "20171213114331.0"
+    },
+    {
+      "tag": "008",
+      "value": "990719s1999^^^^fi^||||j||||||||||j|fin|^"
+    },
+    {
+      "tag": "020",
+      "ind1": " ",
+      "ind2": " ",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "951-32-0845-1"
+        },
+        {
+          "code": "q",
+          "value": "sidottu"
+        }
+      ]
+    },
+    {
+      "tag": "035",
+      "ind1": " ",
+      "ind2": " ",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "(FI-MELINDA)000248024"
+        }
+      ]
+    },
+    {
+      "tag": "040",
+      "ind1": " ",
+      "ind2": " ",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "FI-NL"
+        }
+      ]
+    },
+    {
+      "tag": "041",
+      "ind1": "1",
+      "ind2": " ",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "fin"
+        },
+        {
+          "code": "h",
+          "value": "eng"
+        }
+      ]
+    },
+    {
+      "tag": "042",
+      "ind1": " ",
+      "ind2": " ",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "finb"
+        }
+      ]
+    },
+    {
+      "tag": "080",
+      "ind1": " ",
+      "ind2": " ",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "820"
+        },
+        {
+          "code": "x",
+          "value": "-3"
+        },
+        {
+          "code": "9",
+          "value": "FENNI<KEEP>"
+        }
+      ]
+    },
+    {
+      "tag": "080",
+      "ind1": " ",
+      "ind2": " ",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "820"
+        },
+        {
+          "code": "x",
+          "value": "-32"
+        },
+        {
+          "code": "x",
+          "value": "=945.41"
+        }
+      ]
+    },
+    {
+      "tag": "084",
+      "ind1": " ",
+      "ind2": " ",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "84.2"
+        },
+        {
+          "code": "2",
+          "value": "ykl"
+        },
+        {
+          "code": "9",
+          "value": "FENNI<KEEP>"
+        }
+      ]
+    },
+    {
+      "tag": "130",
+      "ind1": "0",
+      "ind2": " ",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "To be read at dusk."
+        }
+      ]
+    },
+    {
+      "tag": "245",
+      "ind1": "1",
+      "ind2": "0",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "Böö! :"
+        },
+        {
+          "code": "b",
+          "value": "maailman parhaita kummitustarinoita /"
+        },
+        {
+          "code": "c",
+          "value": "Charles Dickens ... [ja muita] ; ruotsinkielestä suomentanut Taija Kuula."
+        }
+      ]
+    },
+    {
+      "tag": "260",
+      "ind1": " ",
+      "ind2": " ",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "[Helsinki] :"
+        },
+        {
+          "code": "b",
+          "value": "Helsinki Media,"
+        },
+        {
+          "code": "c",
+          "value": "1999."
+        }
+      ]
+    },
+    {
+      "tag": "300",
+      "ind1": " ",
+      "ind2": " ",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "109 s. ;"
+        },
+        {
+          "code": "c",
+          "value": "21 cm"
+        }
+      ]
+    },
+    {
+      "tag": "336",
+      "ind1": " ",
+      "ind2": " ",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "teksti"
+        },
+        {
+          "code": "b",
+          "value": "txt"
+        },
+        {
+          "code": "2",
+          "value": "rdacontent"
+        }
+      ]
+    },
+    {
+      "tag": "337",
+      "ind1": " ",
+      "ind2": " ",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "käytettävissä ilman laitetta"
+        },
+        {
+          "code": "b",
+          "value": "n"
+        },
+        {
+          "code": "2",
+          "value": "rdamedia"
+        }
+      ]
+    },
+    {
+      "tag": "338",
+      "ind1": " ",
+      "ind2": " ",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "nide"
+        },
+        {
+          "code": "b",
+          "value": "nc"
+        },
+        {
+          "code": "2",
+          "value": "rdacarrier"
+        }
+      ]
+    },
+    {
+      "tag": "700",
+      "ind1": "1",
+      "ind2": " ",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "Dickens, Charles."
+        },
+        {
+          "code": "t",
+          "value": "Hämärätarinoita."
+        },
+        {
+          "code": "0",
+          "value": "(FIN11)000041686"
+        }
+      ]
+    },
+    {
+      "tag": "CAT",
+      "ind1": " ",
+      "ind2": " ",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "LOAD-FIX"
+        },
+        {
+          "code": "b",
+          "value": "30"
+        },
+        {
+          "code": "c",
+          "value": "20171213"
+        },
+        {
+          "code": "l",
+          "value": "FIN01"
+        },
+        {
+          "code": "h",
+          "value": "1143"
+        }
+      ]
+    }
+  ]
+}
