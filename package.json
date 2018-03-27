@@ -113,6 +113,7 @@
 		"date-fns": "^1.29.0",
 		"es6-promisify": "^6.0.0",
 		"express": "^4.16.2",
+		"ioredis": "^3.2.2",
 		"lodash": "^4.17.5",
 		"marc-record-js": "^0.3.2",
 		"marc-record-serializers": "^1.4.0",

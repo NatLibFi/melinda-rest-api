@@ -70,6 +70,7 @@ router.post('/records/:id', async (req, res) => {
 		noop: req.query.noop === 'true',
 		sync: req.query.sync === 'true',
 		ownerAuthorization: req.query.ownerAuthorization,
+		user: req.user,
 		format
 	};
 
@@ -114,16 +115,17 @@ router.get('/records/:id', async (req, res) => {
  */
 router.post('/records/:id/lock', async (req, res) => {
 	const options = {
+		recordId: req.params.id,
+		user: req.user
 	};
 
 	try {
 		const result = await bib.postBibRecordsByIdLock(options);
+
 		res.status(result.status || 200).send(result.data);
 	} catch (err) {
-		return res.status(err.status).send({
-			status: err.status,
-			error: err.error
-		});
+		console.log(err);
+		return res.status(err.status || 500).send(err.message);
 	}
 });
 
@@ -132,6 +134,8 @@ router.post('/records/:id/lock', async (req, res) => {
  */
 router.delete('/records/:id/lock', async (req, res) => {
 	const options = {
+		recordId: req.params.id,
+		user: req.user
 	};
 
 	try {
@@ -150,16 +154,15 @@ router.delete('/records/:id/lock', async (req, res) => {
  */
 router.get('/records/:id/lock', async (req, res) => {
 	const options = {
+		recordId: req.params.id,
+		user: req.user
 	};
 
 	try {
 		const result = await bib.getBibRecordsByIdLock(options);
 		res.status(result.status || 200).send(result.data);
 	} catch (err) {
-		return res.status(err.status).send({
-			status: err.status,
-			error: err.error
-		});
+		return res.status(err.status || 500).send(err);
 	}
 });
 
