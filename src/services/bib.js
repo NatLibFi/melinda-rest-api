@@ -40,7 +40,7 @@ import {recordFrom, recordTo, findNewerCATFields, selectFirstSubfieldValue} from
 import fieldOrderComparator from '../marc-field-sort';
 
 const redisPrefix = readEnvironmentVariable('REDIS_PREFIX', 'melinda-rest-api', false);
-const lockDuration = readEnvironmentVariable('LOCK_DURATION', 300, false);
+const lockDuration = readEnvironmentVariable('LOCK_DURATION', 3600, false);
 
 const redis = new IORedis({
 	keyPrefix: redisPrefix ? redisPrefix + ':' : ''
