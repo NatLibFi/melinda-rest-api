@@ -1,15 +1,15 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "Melinda RESTful API",    
-    "version": "1.0.0"    
+    "title": "Melinda RESTful API",
+    "version": "1.0.0"
   },
   "servers": [
     {
-      "url": "https://rest.api.melinda.kansalliskirjasto.fi/v1"      
+      "url": "https://rest.api.melinda.kansalliskirjasto.fi/v1"
     }
   ],
-  "tags": [    
+  "tags": [
     {
       "name": "/bib",
       "description": "Operate on bibliographic records"
@@ -55,10 +55,10 @@
           "description": "Contains a single record",
           "required": true,
           "content": {
-            "application/json": {              
-              "schema": {      
+            "application/json": {
+              "schema": {
                 "$ref": "#/components/schemas/MarcRecord"
-              }      
+              }
             },
             "application/xml": {}
           }
@@ -78,7 +78,7 @@
                 "application/xml": {
                   "schema": {
                     "$ref": "#/components/schemas/RecordModificationReport"
-                  }                  
+                  }
                 }
               }
             },
@@ -88,7 +88,7 @@
                 "Record-ID": {
                   "description": "The Record's identifier",
                   "schema": {
-                    "type": "string"                  
+                    "type": "string"
                   }
                 }
               },
@@ -101,7 +101,7 @@
                 "application/xml": {
                   "schema": {
                     "$ref": "#/components/schemas/RecordModificationReport"
-                  }                  
+                  }
                 }
               }
             },
@@ -116,7 +116,7 @@
                 "application/xml": {
                   "schema": {
                     "$ref": "#/components/schemas/RecordModificationReport"
-                  }                  
+                  }
                 }
               }
             },
@@ -140,9 +140,9 @@
           }
         }
       },
-      "/bib/records/{id}": {      
+      "/bib/records/{id}": {
         "post": {
-          "summary": "Update a record",          
+          "summary": "Update a record",
           "tags": ["/bib"],
           "parameters": [
             {
@@ -178,10 +178,10 @@
             "description": "Contains a single record",
             "required": true,
             "content": {
-              "application/json": {              
-                "schema": {      
+              "application/json": {
+                "schema": {
                   "$ref": "#/components/schemas/MarcRecord"
-                }      
+                }
               },
               "application/xml": {}
             }
@@ -193,7 +193,7 @@
               "200": {
                 "description": "The record was updated successfully (Unless **noop** was set to true). Return final representation of the record in addition to operation metadata if **noop** was set to true",
                 "content": {
-                  "application/json": {                    
+                  "application/json": {
                     "schema": {
                       "oneOf": [
                         {
@@ -207,7 +207,7 @@
                               "required": "true"
                             },
                             "report": {
-                              "$ref":  "#/components/schemas/RecordModificationReport"                              
+                              "$ref":  "#/components/schemas/RecordModificationReport"
                             }
                           }
                         }
@@ -260,7 +260,7 @@
               {
                 "httpBasic": []
               }
-            ],          
+            ],
             "responses": {
               "200": {
                 "content": {
@@ -273,7 +273,7 @@
                   "Record-ID": {
                     "description": "Identifier of the record",
                     "schema": {
-                      "type": "string"                  
+                      "type": "string"
                     }
                   }
                 }
@@ -290,7 +290,7 @@
             }
           }
         },
-        "/bib/records/{id}/lock": {      
+        "/bib/records/{id}/lock": {
           "post": {
             "summary": "Lock a record or renew the record's lock",
             "tags": ["/bib"],
@@ -309,6 +309,9 @@
               },
               "404": {
                 "description": "The lock does not exist"
+              },
+              "409": {
+                "description": "Creating or updating a lock failed because the lock is held by another user"
               }
             },
             "security": [
@@ -319,6 +322,7 @@
           },
           "delete": {
             "summary": "Unlock a record",
+            "description": "Unlock a record. Unlocking a record can be done by any user even if the lock is currently held by another user",
             "tags": ["/bib"],
             "responses": {
               "204": {
@@ -396,10 +400,10 @@
               "description": "Contains a single record",
               "required": true,
               "content": {
-                "application/json": {              
-                  "schema": {      
+                "application/json": {
+                  "schema": {
                     "$ref": "#/components/schemas/MarcRecord"
-                  }      
+                  }
                 },
                 "application/xml": {}
               }
@@ -419,7 +423,7 @@
                     "application/xml": {
                       "schema": {
                         "$ref": "#/components/schemas/RecordModificationReport"
-                      }                  
+                      }
                     }
                   }
                 },
@@ -429,7 +433,7 @@
                     "Record-ID": {
                       "description": "The Record's identifier",
                       "schema": {
-                        "type": "string"                  
+                        "type": "string"
                       }
                     }
                   },
@@ -442,7 +446,7 @@
                     "application/xml": {
                       "schema": {
                         "$ref": "#/components/schemas/RecordModificationReport"
-                      }                  
+                      }
                     }
                   }
                 },
@@ -457,7 +461,7 @@
                     "application/xml": {
                       "schema": {
                         "$ref": "#/components/schemas/RecordModificationReport"
-                      }                  
+                      }
                     }
                   }
                 },
@@ -481,9 +485,9 @@
               }
             }
           },
-          "/aut/names/records/{id}": {      
+          "/aut/names/records/{id}": {
             "post": {
-              "summary": "Update a record",          
+              "summary": "Update a record",
               "tags": ["/aut/names"],
               "parameters": [
                 {
@@ -512,10 +516,10 @@
                 "description": "Contains a single record",
                 "required": true,
                 "content": {
-                  "application/json": {              
-                    "schema": {      
+                  "application/json": {
+                    "schema": {
                       "$ref": "#/components/schemas/MarcRecord"
-                    }      
+                    }
                   },
                   "application/xml": {}
                 }
@@ -527,7 +531,7 @@
                   "200": {
                     "description": "The record was updated successfully (Unless **noop** was set to true). Return final representation of the record in addition to operation metadata if **noop** was set to true",
                     "content": {
-                      "application/json": {                    
+                      "application/json": {
                         "schema": {
                           "oneOf": [
                             {
@@ -541,7 +545,7 @@
                                   "required": "true"
                                 },
                                 "report": {
-                                  "$ref":  "#/components/schemas/RecordModificationReport"                              
+                                  "$ref":  "#/components/schemas/RecordModificationReport"
                                 }
                               }
                             }
@@ -594,7 +598,7 @@
                   {
                     "httpBasic": []
                   }
-                ],          
+                ],
                 "responses": {
                   "200": {
                     "content": {
@@ -607,7 +611,7 @@
                       "Record-ID": {
                         "description": "Identifier of the record",
                         "schema": {
-                          "type": "string"                  
+                          "type": "string"
                         }
                       }
                     }
@@ -624,7 +628,7 @@
                 }
               }
             },
-            "/aut/names/records/{id}/lock": {      
+            "/aut/names/records/{id}/lock": {
               "post": {
                 "summary": "Lock a record or renew the record's lock",
                 "tags": ["/aut/names"],
@@ -653,6 +657,7 @@
               },
               "delete": {
                 "summary": "Unlock a record",
+                "description": "Unlock a record. Unlocking a record can be done by any user even if the lock is currently held by another user",
                 "tags": ["/aut/names"],
                 "responses": {
                   "204": {
@@ -730,10 +735,10 @@
                   "description": "Contains a single record",
                   "required": true,
                   "content": {
-                    "application/json": {              
-                      "schema": {      
+                    "application/json": {
+                      "schema": {
                         "$ref": "#/components/schemas/MarcRecord"
-                      }      
+                      }
                     },
                     "application/xml": {}
                   }
@@ -753,7 +758,7 @@
                         "application/xml": {
                           "schema": {
                             "$ref": "#/components/schemas/RecordModificationReport"
-                          }                  
+                          }
                         }
                       }
                     },
@@ -763,7 +768,7 @@
                         "Record-ID": {
                           "description": "The Record's identifier",
                           "schema": {
-                            "type": "string"                  
+                            "type": "string"
                           }
                         }
                       },
@@ -776,7 +781,7 @@
                         "application/xml": {
                           "schema": {
                             "$ref": "#/components/schemas/RecordModificationReport"
-                          }                  
+                          }
                         }
                       }
                     },
@@ -791,7 +796,7 @@
                         "application/xml": {
                           "schema": {
                             "$ref": "#/components/schemas/RecordModificationReport"
-                          }                  
+                          }
                         }
                       }
                     },
@@ -815,9 +820,9 @@
                   }
                 }
               },
-              "/aut/subjects/records/{id}": {      
+              "/aut/subjects/records/{id}": {
                 "post": {
-                  "summary": "Update a record",          
+                  "summary": "Update a record",
                   "tags": ["/aut/subjects"],
                   "parameters": [
                     {
@@ -846,10 +851,10 @@
                     "description": "Contains a single record",
                     "required": true,
                     "content": {
-                      "application/json": {              
-                        "schema": {      
+                      "application/json": {
+                        "schema": {
                           "$ref": "#/components/schemas/MarcRecord"
-                        }      
+                        }
                       },
                       "application/xml": {}
                     }
@@ -861,7 +866,7 @@
                       "200": {
                         "description": "The record was updated successfully (Unless **noop** was set to true). Return final representation of the record in addition to operation metadata if **noop** was set to true",
                         "content": {
-                          "application/json": {                    
+                          "application/json": {
                             "schema": {
                               "oneOf": [
                                 {
@@ -875,7 +880,7 @@
                                       "required": "true"
                                     },
                                     "report": {
-                                      "$ref":  "#/components/schemas/RecordModificationReport"                              
+                                      "$ref":  "#/components/schemas/RecordModificationReport"
                                     }
                                   }
                                 }
@@ -928,7 +933,7 @@
                       {
                         "httpBasic": []
                       }
-                    ],          
+                    ],
                     "responses": {
                       "200": {
                         "content": {
@@ -941,7 +946,7 @@
                           "Record-ID": {
                             "description": "Identifier of the record",
                             "schema": {
-                              "type": "string"                  
+                              "type": "string"
                             }
                           }
                         }
@@ -958,7 +963,7 @@
                     }
                   }
                 },
-                "/aut/subjects/records/{id}/lock": {      
+                "/aut/subjects/records/{id}/lock": {
                   "post": {
                     "summary": "Lock a record or renew the record's lock",
                     "tags": ["/aut/subjects"],
@@ -977,6 +982,9 @@
                       },
                       "404": {
                         "description": "The lock does not exist"
+                      },
+                      "409": {
+                        "description": "Creating or updating a lock failed because the lock is held by another user"
                       }
                     },
                     "security": [
@@ -1047,7 +1055,7 @@
                     "type": "http",
                     "scheme": "basic"
                   }
-                },        
+                },
                 "schemas": {
                   "RecordModificationReport": {
                     "type": "object",
@@ -1089,7 +1097,7 @@
                         "xml": {
                           "name": "message"
                         }
-                      }              
+                      }
                     },
                     "xml": {
                       "name": "messages"
@@ -1111,6 +1119,11 @@
                   "RecordLock": {
                     "type": "object",
                     "properties": {
+                      "username": {
+                        "description": "User who holds the lock",
+                        "type": "string",
+                        "required": true
+                      },
                       "expirationTime": {
                         "type": "string",
                         "format": "date-time",
@@ -1148,7 +1161,7 @@
                                     "type": "string",
                                     "required": true
                                   }
-                                }                  
+                                }
                               },
                               {
                                 "type": "object",
@@ -1171,16 +1184,16 @@
                                           "type": "string",
                                           "required": true
                                         }
-                                      } 
-                                    }                       
+                                      }
+                                    }
                                   }
                                 }
                               }
-                            ]                
+                            ]
                           }
                         }
                       }
-                    },        
+                    },
                     "example": {
                       "fields": [{
                         "tag": "245",
@@ -1189,7 +1202,7 @@
                             "code": "a",
                             "value": "foo"
                           }
-                        ]               
+                        ]
                         }]
                       }
                     }
