@@ -30,18 +30,14 @@
 
 import zoom from 'node-zoom2';
 import IORedis from 'ioredis';
-import {readEnvironmentVariable} from '../utils';
+import {DB_HOST, DB_NAME_BIB, REDIS_PREFIX} from '../config';
 import * as recordService from './record';
 
-const DB_HOST = readEnvironmentVariable('DB_HOST');
-const DB_NAME = readEnvironmentVariable('DB_NAME_BIB');
+const connection = zoom.connection(`${DB_HOST}/${DB_NAME_BIB}`).set('elementSetName', 'X');
 
-const connection = zoom.connection(`${DB_HOST}/${DB_NAME}`).set('elementSetName', 'X');
-
-const redisPrefix = readEnvironmentVariable('REDIS_PREFIX', 'melinda-rest-api', false);
 
 const redis = new IORedis({
-	keyPrefix: redisPrefix ? redisPrefix + ':bib:' : 'bib:'
+	keyPrefix: REDIS_PREFIX ? REDIS_PREFIX + ':bib:' : 'bib:'
 });
 
 /**

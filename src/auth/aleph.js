@@ -2,15 +2,12 @@ import axios from 'axios';
 import {promisify} from 'es6-promisify';
 import xml2js from 'xml2js';
 import get from 'lodash/get';
-import {readEnvironmentVariable} from '../utils';
+import {ALEPH_URL, ALEPH_USER_LIBRARY} from '../config';
 
 const parseXMLStringToJSON = promisify(xml2js.parseString);
 
-const alephUrl = readEnvironmentVariable('ALEPH_URL');
-const alephUserLibrary = readEnvironmentVariable('ALEPH_USER_LIBRARY');
-
 export default (username, password) => {
-	const requestUrl = `${alephUrl}/X?op=user-auth&library=${alephUserLibrary}&staff_user=${username}&staff_pass=${password}`;
+	const requestUrl = `${ALEPH_URL}/X?op=user-auth&library=${ALEPH_USER_LIBRARY}&staff_user=${username}&staff_pass=${password}`;
 
 	return axios(requestUrl)
 		.then(response => response.data)

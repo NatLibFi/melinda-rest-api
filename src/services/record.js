@@ -33,11 +33,9 @@ import dateAddSeconds from 'date-fns/add_seconds';
 import dateParse from 'date-fns/parse';
 import dateFormat from 'date-fns/format';
 import dateIsFuture from 'date-fns/is_future';
-import {readEnvironmentVariable} from '../utils';
 import {recordFrom, recordTo, findNewerCATFields, selectFirstSubfieldValue} from '../record-utils';
 import fieldOrderComparator from '../marc-field-sort';
-
-const lockDuration = readEnvironmentVariable('LOCK_DURATION', 3600, false);
+import {LOCK_DURATION} from '../config';
 
 export const getRecordLock = async (redis, recordId) => {
 	const lock = await redis.hgetall('lock:' + recordId);
@@ -239,7 +237,7 @@ export const postRecordsByIdLock = async (connection, redis, options) => {
 			};
 		}
 
-		const expiresAt = dateAddSeconds(Date.now(), lockDuration);
+		const expiresAt = dateAddSeconds(Date.now(), LOCK_DURATION);
 
 		const result = await redis.multi()
 			.hmset('lock:' + recordId, {
