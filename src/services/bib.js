@@ -46,7 +46,7 @@ const redis = new IORedis({
 	keyPrefix: redisPrefix ? redisPrefix + ':' : ''
 });
 
-export const getRecordLock = async (recordId) => {
+export const getRecordLock = async recordId => {
 	const lock = await redis.hgetall('lock:' + recordId);
 
 	const lockExists = Object.getOwnPropertyNames(lock).length > 0 && dateIsFuture(lock.expiresAt);
@@ -259,7 +259,6 @@ export const postBibRecordsByIdLock = async options => {
 			status: 201,
 			data: 'The lock was succesfully created'
 		};
-
 	} catch (err) {
 		console.error(err);
 		throw new Error('Internal Server Error');
