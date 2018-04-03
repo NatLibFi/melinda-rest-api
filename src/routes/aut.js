@@ -49,10 +49,7 @@ router.post('/names/records', async (req, res) => {
 		const result = await aut.postAutNamesRecords(options);
 		res.status(result.status || 200).send(result.data);
 	} catch (err) {
-		return res.status(err.status).send({
-			status: err.status,
-			error: err.error
-		});
+		return res.status(err.status || 500).send(err.message);
 	}
 });
 
@@ -76,10 +73,7 @@ router.post('/names/records/:id', async (req, res) => {
 		const result = await aut.postAutNamesRecordsById(req.body, options);
 		res.status(result.status || 200).send(result.data);
 	} catch (err) {
-		return res.status(err.status).send({
-			status: err.status,
-			error: err.error
-		});
+		return res.status(err.status || 500).send(err.message);
 	}
 });
 
@@ -100,10 +94,7 @@ router.get('/names/records/:id', async (req, res) => {
 		const result = await aut.getAutNamesRecordsById(options);
 		res.status(result.status || 200).send(result.data);
 	} catch (err) {
-		return res.status(err.status).send({
-			status: err.status,
-			error: err.error
-		});
+		return res.status(err.status || 500).send(err.message);
 	}
 });
 
@@ -120,10 +111,7 @@ router.post('/names/records/:id/lock', async (req, res) => {
 		const result = await aut.postAutNamesRecordsByIdLock(options);
 		res.status(result.status || 200).send(result.data);
 	} catch (err) {
-		return res.status(err.status).send({
-			status: err.status,
-			error: err.error
-		});
+		return res.status(err.status || 500).send(err.message);
 	}
 });
 
@@ -140,10 +128,7 @@ router.delete('/names/records/:id/lock', async (req, res) => {
 		const result = await aut.deleteAutNamesRecordsByIdLock(options);
 		res.status(result.status || 200).send(result.data);
 	} catch (err) {
-		return res.status(err.status).send({
-			status: err.status,
-			error: err.error
-		});
+		return res.status(err.status || 500).send(err.message);
 	}
 });
 
@@ -160,10 +145,7 @@ router.get('/names/records/:id/lock', async (req, res) => {
 		const result = await aut.getAutNamesRecordsByIdLock(options);
 		res.status(result.status || 200).send(result.data);
 	} catch (err) {
-		return res.status(err.status).send({
-			status: err.status,
-			error: err.error
-		});
+		return res.status(err.status || 500).send(err.message);
 	}
 });
 
@@ -180,10 +162,7 @@ router.post('/subjects/records', async (req, res) => {
 		const result = await aut.postAutSubjectsRecords(options);
 		res.status(result.status || 200).send(result.data);
 	} catch (err) {
-		return res.status(err.status).send({
-			status: err.status,
-			error: err.error
-		});
+		return res.status(err.status || 500).send(err.message);
 	}
 });
 
@@ -207,10 +186,7 @@ router.post('/subjects/records/:id', async (req, res) => {
 		const result = await aut.postAutSubjectsRecordsById(req.body, options);
 		res.status(result.status || 200).send(result.data);
 	} catch (err) {
-		return res.status(err.status).send({
-			status: err.status,
-			error: err.error
-		});
+		return res.status(err.status || 500).send(err.message);
 	}
 });
 
@@ -231,10 +207,7 @@ router.get('/subjects/records/:id', async (req, res) => {
 		const result = await aut.getAutSubjectsRecordsById(options);
 		res.status(result.status || 200).send(result.data);
 	} catch (err) {
-		return res.status(err.status).send({
-			status: err.status,
-			error: err.error
-		});
+		return res.status(err.status || 500).send(err.message);
 	}
 });
 
@@ -251,10 +224,7 @@ router.post('/subjects/records/:id/lock', async (req, res) => {
 		const result = await aut.postAutSubjectsRecordsByIdLock(options);
 		res.status(result.status || 200).send(result.data);
 	} catch (err) {
-		return res.status(err.status).send({
-			status: err.status,
-			error: err.error
-		});
+		return res.status(err.status || 500).send(err.message);
 	}
 });
 
@@ -271,10 +241,7 @@ router.delete('/subjects/records/:id/lock', async (req, res) => {
 		const result = await aut.deleteAutSubjectsRecordsByIdLock(options);
 		res.status(result.status || 200).send(result.data);
 	} catch (err) {
-		return res.status(err.status).send({
-			status: err.status,
-			error: err.error
-		});
+		return res.status(err.status || 500).send(err.message);
 	}
 });
 
@@ -291,10 +258,7 @@ router.get('/subjects/records/:id/lock', async (req, res) => {
 		const result = await aut.getAutSubjectsRecordsByIdLock(options);
 		res.status(result.status || 200).send(result.data);
 	} catch (err) {
-		return res.status(err.status).send({
-			status: err.status,
-			error: err.error
-		});
+		return res.status(err.status || 500).send(err.message);
 	}
 });
 
