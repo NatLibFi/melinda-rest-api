@@ -29,11 +29,36 @@
 */
 import MarcRecord from 'marc-record-js';
 import * as AuthorizedPortion from '@natlibfi/melinda-marc-record-utils/dist/authorized-portion';
+import IORedis from 'ioredis';
+import dateAddSeconds from 'date-fns/add_seconds';
+import dateParse from 'date-fns/parse';
+import dateFormat from 'date-fns/format';
+import dateIsFuture from 'date-fns/is_future';
+import {readEnvironmentVariable} from '../utils';
 import connection from '../z3950';
 import {recordFrom, recordTo, findNewerCATFields, selectFirstSubfieldValue} from '../record-utils';
 import fieldOrderComparator from '../marc-field-sort';
 
-export const fetchRecordById = recordId => {
+const redisPrefix = readEnvironmentVariable('REDIS_PREFIX', 'melinda-rest-api', false);
+const lockDuration = readEnvironmentVariable('LOCK_DURATION', 3600, false);
+
+const redis = new IORedis({
+	keyPrefix: redisPrefix ? redisPrefix + ':' : ''
+});
+
+export const getRecordLock = async recordId => {
+	const lock = await redis.hgetall('lock:' + recordId);
+
+	const lockExists = Object.getOwnPropertyNames(lock).length > 0 && dateIsFuture(lock.expiresAt);
+
+	if (!lockExists) {
+		return false;
+	}
+
+	return lock;
+};
+
+export const fetchRecordById = (recordId, verifyIfExists = false) => {
 	return new Promise((resolve, reject) => {
 		let record;
 
@@ -43,9 +68,20 @@ export const fetchRecordById = recordId => {
 				record = r.xml;
 			})
 			.on('close', () => {
+				if (verifyIfExists) {
+					if (record) {
+						return resolve(true);
+					}
+					return resolve(false);
+				}
+
+				if (!record) {
+					throw new Error('Record Not Found');
+				}
+
 				resolve(recordFrom(record, 'marcxml'));
 			});
-	}).catch(err => console.log(err));
+	});
 };
 
 /**
@@ -91,6 +127,15 @@ export const postBibRecords = async options => {
  */
 export const postBibRecordsById = async (body, options) => {
 	const {recordId, format, sync = false, noop = false} = options;
+
+	const lock = await getRecordLock(recordId);
+
+	if (lock && lock.user !== lock.userName) {
+		return {
+			status: 409,
+			data: 'Conflict'
+		};
+	}
 
 	const finalizedRecord = recordFrom(body, format);
 
@@ -172,27 +217,52 @@ export const getBibRecordById = async options => {
  * @return {Promise}
  */
 export const postBibRecordsByIdLock = async options => {
-  // Implement your business logic here...
-  //
-  // This function should return as follows:
-  //
-  // return {
-  //   status: 200, // Or another success code.
-  //   data: [] // Optional. You can put whatever you want here.
-  // };
-  //
-  // If an error happens during your business logic implementation,
-  // you should throw an error as follows:
-  //
-  // throw new Error({
-  //   status: 500, // Or another error code.
-  //   error: 'Server Error' // Or another error message.
-  // });
+	try {
+		const {recordId, user} = options;
 
-	return {
-		code: 200,
-		data: 'postBibRecordsByIdLock ok!'
-	};
+		const recordExists = await fetchRecordById(recordId, true);
+
+		if (!recordExists) {
+			return {
+				status: 404,
+				data: 'Not Found'
+			};
+		}
+
+		const lock = await getRecordLock(recordId);
+
+		if (lock && lock.user !== user.userName) {
+			return {
+				status: 409,
+				data: 'Creating or updating a lock failed because the lock is held by another user'
+			};
+		}
+
+		const expiresAt = dateAddSeconds(Date.now(), lockDuration);
+
+		const result = await redis.multi()
+			.hmset('lock:' + recordId, {
+				user: user.userName,
+				expiresAt: dateFormat(expiresAt)
+			})
+			.expireat('lock:' + recordId, dateFormat(expiresAt, 'X'))
+			.exec();
+
+		if (lock) {
+			return {
+				status: 204,
+				data: 'The lock was succesfully renewed'
+			};
+		}
+
+		return {
+			status: 201,
+			data: 'The lock was succesfully created'
+		};
+	} catch (err) {
+		console.error(err);
+		throw new Error('Internal Server Error');
+	}
 };
 
 /**
@@ -201,27 +271,28 @@ export const postBibRecordsByIdLock = async options => {
  * @return {Promise}
  */
 export const deleteBibRecordsByIdLock = async options => {
-  // Implement your business logic here...
-  //
-  // This function should return as follows:
-  //
-  // return {
-  //   status: 200, // Or another success code.
-  //   data: [] // Optional. You can put whatever you want here.
-  // };
-  //
-  // If an error happens during your business logic implementation,
-  // you should throw an error as follows:
-  //
-  // throw new Error({
-  //   status: 500, // Or another error code.
-  //   error: 'Server Error' // Or another error message.
-  // });
+	try {
+		const {recordId, user} = options;
 
-	return {
-		code: 200,
-		data: 'deleteBibRecordsByIdLock ok!'
-	};
+		const lock = await getRecordLock(recordId);
+
+		if (!lock) {
+			return {
+				status: 404,
+				data: 'Not Found'
+			};
+		}
+
+		const result = await redis.del('lock:' + recordId);
+
+		return {
+			status: 204,
+			data: 'The lock was succesfully deleted'
+		};
+	} catch (err) {
+		console.error(err);
+		throw new Error('Internal Server Error');
+	}
 };
 
 /**
@@ -230,26 +301,24 @@ export const deleteBibRecordsByIdLock = async options => {
  * @return {Promise}
  */
 export const getBibRecordsByIdLock = async options => {
-  // Implement your business logic here...
-  //
-  // This function should return as follows:
-  //
-  // return {
-  //   status: 200, // Or another success code.
-  //   data: [] // Optional. You can put whatever you want here.
-  // };
-  //
-  // If an error happens during your business logic implementation,
-  // you should throw an error as follows:
-  //
-  // throw new Error({
-  //   status: 500, // Or another error code.
-  //   error: 'Server Error' // Or another error message.
-  // });
+	try {
+		const {recordId, user} = options;
 
-	return {
-		code: 200,
-		data: 'getBibRecordsByIdLock ok!'
-	};
+		const lock = await getRecordLock(recordId);
+
+		if (!lock) {
+			return {
+				status: 404,
+				data: 'Not Found'
+			};
+		}
+
+		return {
+			status: 200,
+			data: lock
+		};
+	} catch (err) {
+		console.error(err);
+		throw new Error('Internal Server Error');
+	}
 };
-

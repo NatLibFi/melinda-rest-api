@@ -33,8 +33,11 @@ import chai, {expect} from 'chai';
 import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 import MarcRecord from 'marc-record-js';
+import dateFormat from 'date-fns/format';
+import IORedisMock from 'ioredis-mock';
 import {recordTo} from '../src/record-utils';
-import {postBibRecordsById, getBibRecordById, __RewireAPI__ as RewireAPI} from '../src/services/bib';
+import {postBibRecordsById, getBibRecordById, postBibRecordsByIdLock, deleteBibRecordsByIdLock, getBibRecordsByIdLock, __RewireAPI__ as RewireAPI, getRecordLock} from '../src/services/bib';
+
 import exampleRecord from './data/example-record';
 
 chai.use(sinonChai);
@@ -59,14 +62,32 @@ function modifyRecord(record, modifications) {
 	});
 }
 let mockFetchRecordById;
+let mockGetRecordLock;
+let mockRedis;
+
+const lockInputData = {
+	recordId: 1,
+	user: {
+		userName: 'test'
+	}
+};
+
+const dateExample = new Date('2018-01-01T00:00:00+02:00');
+const dateExample2 = new Date('2018-01-01T01:00:00+02:00');
 
 beforeEach(() => {
 	mockFetchRecordById = sinon.stub();
 	RewireAPI.__Rewire__('fetchRecordById', mockFetchRecordById);
+	mockGetRecordLock = sinon.stub();
+	RewireAPI.__Rewire__('getRecordLock', mockGetRecordLock);
+	mockRedis = new IORedisMock();
+	RewireAPI.__Rewire__('redis', mockRedis);
 });
 
 afterEach(() => {
 	RewireAPI.__ResetDependency__('fetchRecordById');
+	RewireAPI.__ResetDependency__('getRecordLock');
+	RewireAPI.__ResetDependency__('redis');
 });
 
 describe('services/bib', () => {
@@ -130,15 +151,179 @@ describe('services/bib', () => {
 		});
 	});
 
-	it.skip('postBibRecordsByIdLock', async () => {
-		const result = await postBibRecordsByIdLock();
+	describe('postBibRecordsByIdLock', async () => {
+		it('should return 201', async () => {
+			const clock = sinon.useFakeTimers(dateExample.getTime());
+
+			mockFetchRecordById.resolves(true);
+			mockGetRecordLock.resolves(false);
+
+			const result = await postBibRecordsByIdLock(lockInputData);
+			const lock = await mockRedis.hgetall('lock:1');
+
+			expect(result).to.deep.equal({
+				status: 201,
+				data: 'The lock was succesfully created'
+			});
+
+			expect(lock).to.deep.equal({
+				user: 'test',
+				expiresAt: '2018-01-01T01:00:00.000+02:00'
+			});
+
+			clock.restore();
+		});
+
+		it('should return 204', async () => {
+			const clock = sinon.useFakeTimers(dateExample.getTime());
+
+			mockFetchRecordById.resolves(true);
+			mockGetRecordLock.resolves({
+				user: 'test',
+				expiresAt: dateFormat(Date.now())
+			});
+
+			const result = await postBibRecordsByIdLock(lockInputData);
+			const lock = await mockRedis.hgetall('lock:1');
+
+			expect(result).to.deep.equal({
+				status: 204,
+				data: 'The lock was succesfully renewed'
+			});
+
+			expect(lock).to.deep.equal({
+				user: 'test',
+				expiresAt: '2018-01-01T01:00:00.000+02:00'
+			});
+
+			clock.restore();
+		});
+
+		it('should return 404', async () => {
+			mockFetchRecordById.resolves(false);
+
+			const result = await postBibRecordsByIdLock(lockInputData);
+
+			expect(result).to.deep.equal({
+				status: 404,
+				data: 'Not Found'
+			});
+		});
+
+		it('should return 409', async () => {
+			mockFetchRecordById.resolves(true);
+			mockGetRecordLock.resolves({
+				user: 'wrong_user',
+				expiresAt: dateFormat(Date.now())
+			});
+
+			const result = await postBibRecordsByIdLock(lockInputData);
+
+			expect(result).to.deep.equal({
+				status: 409,
+				data: 'Creating or updating a lock failed because the lock is held by another user'
+			});
+		});
 	});
 
-	it.skip('deleteBibRecordsByIdLock', async () => {
-		const result = await deleteBibRecordsByIdLock();
+	describe('deleteBibRecordsByIdLock', async () => {
+		it('should return 204', async () => {
+			mockGetRecordLock.resolves({
+				user: 'test',
+				expiresAt: dateFormat(Date.now())
+			});
+
+			const result = await deleteBibRecordsByIdLock(lockInputData);
+			const lock = await mockRedis.hgetall('lock:1');
+
+			expect(result).to.deep.equal({
+				status: 204,
+				data: 'The lock was succesfully deleted'
+			});
+
+			expect(lock).to.be.empty;
+		});
+
+		it('should return 404', async () => {
+			mockFetchRecordById.resolves(false);
+
+			const result = await deleteBibRecordsByIdLock(lockInputData);
+
+			expect(result).to.deep.equal({
+				status: 404,
+				data: 'Not Found'
+			});
+		});
 	});
 
-	it.skip('getBibRecordsByIdLock', async () => {
-		const result = await getBibRecordsByIdLock();
+	describe('getBibRecordsByIdLock', async () => {
+		it('should return 204', async () => {
+			mockGetRecordLock.resolves({
+				user: 'test',
+				expiresAt: dateFormat(dateExample)
+			});
+
+			const result = await getBibRecordsByIdLock(lockInputData);
+
+			expect(result).to.deep.equal({
+				status: 200,
+				data: {
+					user: 'test',
+					expiresAt: '2018-01-01T00:00:00.000+02:00'
+				}
+			});
+		});
+
+		it('should return 404', async () => {
+			mockFetchRecordById.resolves(false);
+
+			const result = await getBibRecordsByIdLock(lockInputData);
+
+			expect(result).to.deep.equal({
+				status: 404,
+				data: 'Not Found'
+			});
+		});
+	});
+
+	describe('getRecordLock', () => {
+		it('should return lock', async () => {
+			const clock = sinon.useFakeTimers(dateExample.getTime());
+
+			mockRedis.hmset('lock:1', {
+				user: 'test',
+				expiresAt: dateFormat(dateExample2)
+			});
+
+			const result = await getRecordLock(1);
+
+			expect(result).to.deep.equal({
+				user: 'test',
+				expiresAt: '2018-01-01T01:00:00.000+02:00'
+			});
+
+			clock.restore();
+		});
+
+		it('should return false as lock has expired', async () => {
+			const clock = sinon.useFakeTimers(dateExample2.getTime());
+
+			mockRedis.hmset('lock:1', {
+				user: 'test',
+				expiresAt: dateFormat(dateExample)
+			});
+
+			const result = await getRecordLock(1);
+
+			expect(result).to.be.false;
+
+			clock.restore();
+		});
+
+		it('should return false as lock does not exist', async () => {
+			const result = await getRecordLock(1);
+
+			expect(result).to.be.false;
+		});
 	});
 });
