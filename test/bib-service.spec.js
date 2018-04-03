@@ -78,7 +78,6 @@ describe('services/bib', () => {
 	});
 
 	it('getBibRecordById', async () => {
-
 		const result = await getBibRecordById(options);
 
 		expect(recordService.getRecordById).to.have.been.calledWith(connection, options);

@@ -35,7 +35,6 @@ import * as recordService from './record';
 
 const connection = zoom.connection(`${DB_HOST}/${DB_NAME_BIB}`).set('elementSetName', 'X');
 
-
 const redis = new IORedis({
 	keyPrefix: REDIS_PREFIX ? REDIS_PREFIX + ':bib:' : 'bib:'
 });

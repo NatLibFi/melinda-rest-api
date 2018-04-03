@@ -46,7 +46,7 @@ import {
 	deleteAutSubjectsRecordsByIdLock,
 	getAutSubjectsRecordsByIdLock,
 	__RewireAPI__ as RewireAPI
-} from '../src/services/bib';
+} from '../src/services/aut';
 
 chai.use(sinonChai);
 
@@ -60,13 +60,15 @@ const recordService = {
 };
 
 const options = 'options';
-const connection = 'connection';
+const connectionNames = 'connectionNames';
+const connectionSubjects = 'connectionSubjects';
 const redis = 'redis';
 const body = 'body';
 
 beforeEach(() => {
 	RewireAPI.__Rewire__('recordService', recordService);
-	RewireAPI.__Rewire__('connection', connection);
+	RewireAPI.__Rewire__('connectionNames', connectionNames);
+	RewireAPI.__Rewire__('connectionSubjects', connectionSubjects);
 	RewireAPI.__Rewire__('redis', redis);
 });
 
@@ -76,88 +78,88 @@ afterEach(() => {
 	RewireAPI.__ResetDependency__('redis');
 });
 
-describe.skip('services/aut', () => {
+describe('services/aut', () => {
 	it('postAutNamesRecords', async () => {
 		const result = await postAutNamesRecords(options);
 
-		expect(recordService.postRecords).to.have.been.calledWith(connection, options);
+		expect(recordService.postRecords).to.have.been.calledWith(connectionNames, options);
 		expect(result).to.equal('postRecords');
 	});
 
 	it('postAutNamesRecordsById', async () => {
 		const result = await postAutNamesRecordsById(body, options);
 
-		expect(recordService.postRecordsById).to.have.been.calledWith(connection, redis, body, options);
+		expect(recordService.postRecordsById).to.have.been.calledWith(connectionNames, redis, body, options);
 		expect(result).to.equal('postRecordsById');
 	});
 
 	it('getAutNamesRecordsById', async () => {
 		const result = await getAutNamesRecordsById(options);
 
-		expect(recordService.getRecordById).to.have.been.calledWith(connection, options);
+		expect(recordService.getRecordById).to.have.been.calledWith(connectionNames, options);
 		expect(result).to.equal('getRecordById');
 	});
 
 	it('postAutNamesRecordsByIdLock', async () => {
 		const result = await postAutNamesRecordsByIdLock(options);
 
-		expect(recordService.postRecordsByIdLock).to.have.been.calledWith(connection, redis, options);
+		expect(recordService.postRecordsByIdLock).to.have.been.calledWith(connectionNames, redis, options);
 		expect(result).to.equal('postRecordsByIdLock');
 	});
 
 	it('deleteAutNamesRecordsByIdLock', async () => {
 		const result = await deleteAutNamesRecordsByIdLock(options);
 
-		expect(recordService.deleteRecordsByIdLock).to.have.been.calledWith(connection, redis, options);
+		expect(recordService.deleteRecordsByIdLock).to.have.been.calledWith(connectionNames, redis, options);
 		expect(result).to.equal('deleteRecordsByIdLock');
 	});
 
 	it('getAutNamesRecordsByIdLock', async () => {
 		const result = await getAutNamesRecordsByIdLock(options);
 
-		expect(recordService.getRecordsByIdLock).to.have.been.calledWith(connection, redis, options);
+		expect(recordService.getRecordsByIdLock).to.have.been.calledWith(connectionNames, redis, options);
 		expect(result).to.equal('getRecordsByIdLock');
 	});
 
 	it('postAutSubjectsRecords', async () => {
 		const result = await postAutSubjectsRecords(options);
 
-		expect(recordService.postRecords).to.have.been.calledWith(connection, options);
+		expect(recordService.postRecords).to.have.been.calledWith(connectionSubjects, options);
 		expect(result).to.equal('postRecords');
 	});
 
 	it('postAutSubjectsRecordsById', async () => {
 		const result = await postAutSubjectsRecordsById(body, options);
 
-		expect(recordService.postRecordsById).to.have.been.calledWith(connection, redis, body, options);
+		expect(recordService.postRecordsById).to.have.been.calledWith(connectionSubjects, redis, body, options);
 		expect(result).to.equal('postRecordsById');
 	});
 
 	it('getAutSubjectsRecordsById', async () => {
 		const result = await getAutSubjectsRecordsById(options);
 
-		expect(recordService.getRecordById).to.have.been.calledWith(connection, options);
+		expect(recordService.getRecordById).to.have.been.calledWith(connectionSubjects, options);
 		expect(result).to.equal('getRecordById');
 	});
 
 	it('postAutSubjectsRecordsByIdLock', async () => {
 		const result = await postAutSubjectsRecordsByIdLock(options);
 
-		expect(recordService.postRecordsByIdLock).to.have.been.calledWith(connection, redis, options);
+		expect(recordService.postRecordsByIdLock).to.have.been.calledWith(connectionSubjects, redis, options);
 		expect(result).to.equal('postRecordsByIdLock');
 	});
 
 	it('deleteAutSubjectsRecordsByIdLock', async () => {
 		const result = await deleteAutSubjectsRecordsByIdLock(options);
 
-		expect(recordService.deleteRecordsByIdLock).to.have.been.calledWith(connection, redis, options);
+		expect(recordService.deleteRecordsByIdLock).to.have.been.calledWith(connectionSubjects, redis, options);
 		expect(result).to.equal('deleteRecordsByIdLock');
 	});
 
 	it('getAutSubjectsRecordsByIdLock', async () => {
 		const result = await getAutSubjectsRecordsByIdLock(options);
 
-		expect(recordService.getRecordsByIdLock).to.have.been.calledWith(connection, redis, options);
+		expect(recordService.getRecordsByIdLock).to.have.been.calledWith(connectionSubjects, redis, options);
 		expect(result).to.equal('getRecordsByIdLock');
 	});
 });
