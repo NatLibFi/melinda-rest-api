@@ -26,59 +26,138 @@
 *
 */
 
-/* eslint-disable no-unused-vars, no-undef, max-nested-callbacks, no-unused-expressions */
+/* eslint-disable no-unused-vars, no-undef, max-nested-callbacks, no-unused-expressions, import/named */
 
 'use strict';
+import chai, {expect} from 'chai';
+import sinon from 'sinon';
+import sinonChai from 'sinon-chai';
+import {
+	postAutNamesRecords,
+	postAutNamesRecordsById,
+	getAutNamesRecordsById,
+	postAutNamesRecordsByIdLock,
+	deleteAutNamesRecordsByIdLock,
+	getAutNamesRecordsByIdLock,
+	postAutSubjectsRecords,
+	postAutSubjectsRecordsById,
+	getAutSubjectsRecordsById,
+	postAutSubjectsRecordsByIdLock,
+	deleteAutSubjectsRecordsByIdLock,
+	getAutSubjectsRecordsByIdLock,
+	__RewireAPI__ as RewireAPI
+} from '../src/services/bib';
 
-import {expect} from 'chai';
-import * as testContext from '../src/services/aut';
+chai.use(sinonChai);
+
+const recordService = {
+	postRecords: sinon.stub().returns('postRecords'),
+	postRecordsById: sinon.stub().returns('postRecordsById'),
+	getRecordById: sinon.stub().returns('getRecordById'),
+	postRecordsByIdLock: sinon.stub().returns('postRecordsByIdLock'),
+	deleteRecordsByIdLock: sinon.stub().returns('deleteRecordsByIdLock'),
+	getRecordsByIdLock: sinon.stub().returns('getRecordsByIdLock')
+};
+
+const options = 'options';
+const connection = 'connection';
+const redis = 'redis';
+const body = 'body';
+
+beforeEach(() => {
+	RewireAPI.__Rewire__('recordService', recordService);
+	RewireAPI.__Rewire__('connection', connection);
+	RewireAPI.__Rewire__('redis', redis);
+});
+
+afterEach(() => {
+	RewireAPI.__ResetDependency__('recordService');
+	RewireAPI.__ResetDependency__('connection');
+	RewireAPI.__ResetDependency__('redis');
+});
 
 describe.skip('services/aut', () => {
 	it('postAutNamesRecords', async () => {
-		const result = await testContext.postAutNamesRecords();
+		const result = await postAutNamesRecords(options);
+
+		expect(recordService.postRecords).to.have.been.calledWith(connection, options);
+		expect(result).to.equal('postRecords');
 	});
 
 	it('postAutNamesRecordsById', async () => {
-		const result = await testContext.postAutNamesRecordsById();
+		const result = await postAutNamesRecordsById(body, options);
+
+		expect(recordService.postRecordsById).to.have.been.calledWith(connection, redis, body, options);
+		expect(result).to.equal('postRecordsById');
 	});
 
 	it('getAutNamesRecordsById', async () => {
-		const result = await testContext.getAutNamesRecordsById();
+		const result = await getAutNamesRecordsById(options);
+
+		expect(recordService.getRecordById).to.have.been.calledWith(connection, options);
+		expect(result).to.equal('getRecordById');
 	});
 
 	it('postAutNamesRecordsByIdLock', async () => {
-		const result = await testContext.postAutNamesRecordsByIdLock();
+		const result = await postAutNamesRecordsByIdLock(options);
+
+		expect(recordService.postRecordsByIdLock).to.have.been.calledWith(connection, redis, options);
+		expect(result).to.equal('postRecordsByIdLock');
 	});
 
 	it('deleteAutNamesRecordsByIdLock', async () => {
-		const result = await testContext.deleteAutNamesRecordsByIdLock();
+		const result = await deleteAutNamesRecordsByIdLock(options);
+
+		expect(recordService.deleteRecordsByIdLock).to.have.been.calledWith(connection, redis, options);
+		expect(result).to.equal('deleteRecordsByIdLock');
 	});
 
 	it('getAutNamesRecordsByIdLock', async () => {
-		const result = await testContext.getAutNamesRecordsByIdLock();
+		const result = await getAutNamesRecordsByIdLock(options);
+
+		expect(recordService.getRecordsByIdLock).to.have.been.calledWith(connection, redis, options);
+		expect(result).to.equal('getRecordsByIdLock');
 	});
 
 	it('postAutSubjectsRecords', async () => {
-		const result = await testContext.postAutSubjectsRecords();
+		const result = await postAutSubjectsRecords(options);
+
+		expect(recordService.postRecords).to.have.been.calledWith(connection, options);
+		expect(result).to.equal('postRecords');
 	});
 
 	it('postAutSubjectsRecordsById', async () => {
-		const result = await testContext.postAutSubjectsRecordsById();
+		const result = await postAutSubjectsRecordsById(body, options);
+
+		expect(recordService.postRecordsById).to.have.been.calledWith(connection, redis, body, options);
+		expect(result).to.equal('postRecordsById');
 	});
 
 	it('getAutSubjectsRecordsById', async () => {
-		const result = await testContext.getAutSubjectsRecordsById();
+		const result = await getAutSubjectsRecordsById(options);
+
+		expect(recordService.getRecordById).to.have.been.calledWith(connection, options);
+		expect(result).to.equal('getRecordById');
 	});
 
 	it('postAutSubjectsRecordsByIdLock', async () => {
-		const result = await testContext.postAutSubjectsRecordsByIdLock();
+		const result = await postAutSubjectsRecordsByIdLock(options);
+
+		expect(recordService.postRecordsByIdLock).to.have.been.calledWith(connection, redis, options);
+		expect(result).to.equal('postRecordsByIdLock');
 	});
 
 	it('deleteAutSubjectsRecordsByIdLock', async () => {
-		const result = await testContext.deleteAutSubjectsRecordsByIdLock();
+		const result = await deleteAutSubjectsRecordsByIdLock(options);
+
+		expect(recordService.deleteRecordsByIdLock).to.have.been.calledWith(connection, redis, options);
+		expect(result).to.equal('deleteRecordsByIdLock');
 	});
 
 	it('getAutSubjectsRecordsByIdLock', async () => {
-		const result = await testContext.getAutSubjectsRecordsByIdLock();
+		const result = await getAutSubjectsRecordsByIdLock(options);
+
+		expect(recordService.getRecordsByIdLock).to.have.been.calledWith(connection, redis, options);
+		expect(result).to.equal('getRecordsByIdLock');
 	});
 });
