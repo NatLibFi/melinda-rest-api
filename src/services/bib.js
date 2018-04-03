@@ -44,9 +44,53 @@ const redis = new IORedis({
 	keyPrefix: redisPrefix ? redisPrefix + ':bib:' : 'bib:'
 });
 
+/**
+ * @param {Object} options
+ * @param {Boolean} options.noop Do not create the record but return the messages about the operation
+ * @param {Boolean} options.unique Do not create the record if there are duplicates in the datastore
+ * @param {Boolean} options.ownerAuthorization Require the credentials to have authority to change owner metadata
+ * @throws {Error}
+ * @return {Promise}
+ */
 export const postBibRecords = async options => recordService.postRecords(connection, options);
+
+/**
+ * @param {String} body The body of record to be updated
+ * @param {Object} options
+ * @param {String} options.recordId The identifier of the record that's going to be updated
+ * @param {String} options.format Format used to serialize and unserialize record
+ * @param {Boolean} options.noop Do not actually do the update but return the record in the format it would be uploaded
+ * @param {Boolean} options.sync Synchronize changes between the incoming record and the record in the datastore
+ * @param {Boolean} options.ownerAuthorization Require the credentials to have authority to change owner metadata
+ * @throws {Error}
+ * @return {Promise}
+ */
 export const postBibRecordsById = async (body, options) => recordService.postRecordsById(connection, redis, body, options);
+
+/**
+ * @param {Object} options
+ * @throws {Error}
+ * @return {Promise}
+ */
 export const getBibRecordById = async options => recordService.getRecordById(connection, options);
+
+/**
+ * @param {Object} options
+ * @throws {Error}
+ * @return {Promise}
+ */
 export const postBibRecordsByIdLock = async options => recordService.postRecordsByIdLock(connection, redis, options);
+
+/**
+ * @param {Object} options
+ * @throws {Error}
+ * @return {Promise}
+ */
 export const deleteBibRecordsByIdLock = async options => recordService.deleteRecordsByIdLock(connection, redis, options);
+
+/**
+ * @param {Object} options
+ * @throws {Error}
+ * @return {Promise}
+ */
 export const getBibRecordsByIdLock = async options => recordService.getRecordsByIdLock(connection, redis, options);

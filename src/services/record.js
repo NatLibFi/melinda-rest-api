@@ -113,8 +113,10 @@ export const postRecords = async (connection, options) => {
 /**
  * @param {Object} connection node-zoom2 connection
  * @param {Object} redis ioredis connection
+ * @param {String} body The body of record to be updated
  * @param {Object} options
- * @param {String} options.id The identifier of the record that&#x27;s going to be updated
+ * @param {String} options.recordId The identifier of the record that's going to be updated
+ * @param {String} options.format Format used to serialize and unserialize record
  * @param {Boolean} options.noop Do not actually do the update but return the record in the format it would be uploaded
  * @param {Boolean} options.sync Synchronize changes between the incoming record and the record in the datastore
  * @param {Boolean} options.ownerAuthorization Require the credentials to have authority to change owner metadata
