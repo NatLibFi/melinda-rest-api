@@ -34,9 +34,11 @@ import {readEnvironmentVariable} from '../utils';
 import * as recordService from './record';
 
 const DB_HOST = readEnvironmentVariable('DB_HOST');
-const DB_NAME = readEnvironmentVariable('DB_NAME_AUT');
+const DB_NAME_NAMES = readEnvironmentVariable('DB_NAME_AUT_NAMES');
+const DB_NAME_SUBJECTS = readEnvironmentVariable('DB_NAME_AUT_SUBJECTS');
 
-const connection = zoom.connection(`${DB_HOST}/${DB_NAME}`).set('elementSetName', 'X');
+const connectionNames = zoom.connection(`${DB_HOST}/${DB_NAME_NAMES}`).set('elementSetName', 'X');
+const connectionSubjects = zoom.connection(`${DB_HOST}/${DB_NAME_SUBJECTS}`).set('elementSetName', 'X');
 
 const redisPrefix = readEnvironmentVariable('REDIS_PREFIX', 'melinda-rest-api', false);
 
@@ -51,7 +53,7 @@ const redis = new IORedis({
  * @throws {Error}
  * @return {Promise}
  */
-export const postAutNamesRecords = async options => recordService.postRecords(connection, options);
+export const postAutNamesRecords = async options => recordService.postRecords(connectionNames, options);
 
 /**
  * @param {Object} options
@@ -61,35 +63,35 @@ export const postAutNamesRecords = async options => recordService.postRecords(co
  * @throws {Error}
  * @return {Promise}
  */
-export const postAutNamesRecordsById = async (body, options) => recordService.postRecordsById(connection, redis, body, options);
+export const postAutNamesRecordsById = async (body, options) => recordService.postRecordsById(connectionNames, redis, body, options);
 
 /**
  * @param {Object} options
  * @throws {Error}
  * @return {Promise}
  */
-export const getAutNamesRecordsById = async options => recordService.getRecordById(connection, options);
+export const getAutNamesRecordsById = async options => recordService.getRecordById(connectionNames, options);
 
 /**
  * @param {Object} options
  * @throws {Error}
  * @return {Promise}
  */
-export const postAutNamesRecordsByIdLock = async options => recordService.postRecordsByIdLock(connection, redis, options);
+export const postAutNamesRecordsByIdLock = async options => recordService.postRecordsByIdLock(connectionNames, redis, options);
 
 /**
  * @param {Object} options
  * @throws {Error}
  * @return {Promise}
  */
-export const deleteAutNamesRecordsByIdLock = async options => recordService.deleteRecordsByIdLock(connection, redis, options);
+export const deleteAutNamesRecordsByIdLock = async options => recordService.deleteRecordsByIdLock(connectionNames, redis, options);
 
 /**
  * @param {Object} options
  * @throws {Error}
  * @return {Promise}
  */
-export const getAutNamesRecordsByIdLock = async options => recordService.getRecordsByIdLock(connection, redis, options);
+export const getAutNamesRecordsByIdLock = async options => recordService.getRecordsByIdLock(connectionNames, redis, options);
 
 /**
  * @param {Object} options
@@ -98,7 +100,7 @@ export const getAutNamesRecordsByIdLock = async options => recordService.getReco
  * @throws {Error}
  * @return {Promise}
  */
-export const postAutSubjectsRecords = async options => recordService.postRecords(connection, options);
+export const postAutSubjectsRecords = async options => recordService.postRecords(connectionSubjects, options);
 
 /**
  * @param {Object} options
@@ -108,33 +110,33 @@ export const postAutSubjectsRecords = async options => recordService.postRecords
  * @throws {Error}
  * @return {Promise}
  */
-export const postAutSubjectsRecordsById = async (body, options) => recordService.postRecordsById(connection, redis, body, options);
+export const postAutSubjectsRecordsById = async (body, options) => recordService.postRecordsById(connectionSubjects, redis, body, options);
 
 /**
  * @param {Object} options
  * @throws {Error}
  * @return {Promise}
  */
-export const getAutSubjectsRecordsById = async options => recordService.getRecordById(connection, options);
+export const getAutSubjectsRecordsById = async options => recordService.getRecordById(connectionSubjects, options);
 
 /**
  * @param {Object} options
  * @throws {Error}
  * @return {Promise}
  */
-export const postAutSubjectsRecordsByIdLock = async options => recordService.postRecordsByIdLock(connection, redis, options);
+export const postAutSubjectsRecordsByIdLock = async options => recordService.postRecordsByIdLock(connectionSubjects, redis, options);
 
 /**
  * @param {Object} options
  * @throws {Error}
  * @return {Promise}
  */
-export const deleteAutSubjectsRecordsByIdLock = async options => recordService.deleteRecordsByIdLock(connection, redis, options);
+export const deleteAutSubjectsRecordsByIdLock = async options => recordService.deleteRecordsByIdLock(connectionSubjects, redis, options);
 
 /**
  * @param {Object} options
  * @throws {Error}
  * @return {Promise}
  */
-export const getAutSubjectsRecordsByIdLock = async options => recordService.getRecordsByIdLock(connection, redis, options);
+export const getAutSubjectsRecordsByIdLock = async options => recordService.getRecordsByIdLock(connectionSubjects, redis, options);
 
