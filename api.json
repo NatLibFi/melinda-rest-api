@@ -647,6 +647,9 @@
                   },
                   "404": {
                     "description": "The lock does not exist"
+                  },
+                  "409": {
+                    "description": "Creating or updating a lock failed because the lock is held by another user"
                   }
                 },
                 "security": [
@@ -995,6 +998,7 @@
                   },
                   "delete": {
                     "summary": "Unlock a record",
+                    "description": "Unlock a record. Unlocking a record can be done by any user even if the lock is currently held by another user",
                     "tags": ["/aut/subjects"],
                     "responses": {
                       "204": {
