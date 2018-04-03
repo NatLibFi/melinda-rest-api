@@ -233,8 +233,8 @@ export const postBibRecordsByIdLock = async options => {
 
 		if (lock && lock.user !== user.userName) {
 			return {
-				status: 403,
-				data: 'Forbidden'
+				status: 409,
+				data: 'Creating or updating a lock failed because the lock is held by another user'
 			};
 		}
 
@@ -248,10 +248,18 @@ export const postBibRecordsByIdLock = async options => {
 			.expireat('lock:' + recordId, dateFormat(expiresAt, 'X'))
 			.exec();
 
+		if (lock) {
+			return {
+				status: 204,
+				data: 'The lock was succesfully renewed'
+			};
+		}
+
 		return {
-			status: lock ? 204 : 201,
-			data: 'ok'
+			status: 201,
+			data: 'The lock was succesfully created'
 		};
+
 	} catch (err) {
 		console.error(err);
 		throw new Error('Internal Server Error');
@@ -279,8 +287,8 @@ export const deleteBibRecordsByIdLock = async options => {
 		const result = await redis.del('lock:' + recordId);
 
 		return {
-			status: 200,
-			data: 'ok'
+			status: 204,
+			data: 'The lock was succesfully deleted'
 		};
 	} catch (err) {
 		console.error(err);
