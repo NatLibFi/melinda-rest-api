@@ -27,9 +27,14 @@
 */
 
 import express from 'express';
+import bodyParser from 'body-parser';
 import * as aut from '../services/aut';
+import {MIMETYPES, MIMETYPES_JSON, MIMETYPES_TEXT} from '../constants';
 
 const router = new express.Router();
+
+router.use(bodyParser.json({type: MIMETYPES_JSON}));
+router.use(bodyParser.text({type: MIMETYPES_TEXT}));
 
 /**
  * Create a record
@@ -55,14 +60,20 @@ router.post('/names/records', async (req, res) => {
  * Update a record
  */
 router.post('/names/records/:id', async (req, res) => {
+	const type = req.get('Content-Type');
+
+	const format = MIMETYPES[type];
+
 	const options = {
-		id: req.params.id,
-		noop: req.query.noop,
-		sync: req.query.sync
+		recordId: req.params.id,
+		noop: req.query.noop === 'true',
+		sync: req.query.sync === 'true',
+		user: req.user,
+		format
 	};
 
 	try {
-		const result = await aut.postAutNamesRecordsById(options);
+		const result = await aut.postAutNamesRecordsById(req.body, options);
 		res.status(result.status || 200).send(result.data);
 	} catch (err) {
 		return res.status(err.status).send({
@@ -76,7 +87,13 @@ router.post('/names/records/:id', async (req, res) => {
  * Retrieve a record
  */
 router.get('/names/records/:id', async (req, res) => {
+	const type = req.accepts(Object.keys(MIMETYPES));
+
+	const format = MIMETYPES[type];
+
 	const options = {
+		recordId: req.params.id,
+		format
 	};
 
 	try {
@@ -95,6 +112,8 @@ router.get('/names/records/:id', async (req, res) => {
  */
 router.post('/names/records/:id/lock', async (req, res) => {
 	const options = {
+		recordId: req.params.id,
+		user: req.user
 	};
 
 	try {
@@ -113,6 +132,8 @@ router.post('/names/records/:id/lock', async (req, res) => {
  */
 router.delete('/names/records/:id/lock', async (req, res) => {
 	const options = {
+		recordId: req.params.id,
+		user: req.user
 	};
 
 	try {
@@ -131,6 +152,8 @@ router.delete('/names/records/:id/lock', async (req, res) => {
  */
 router.get('/names/records/:id/lock', async (req, res) => {
 	const options = {
+		recordId: req.params.id,
+		user: req.user
 	};
 
 	try {
@@ -168,14 +191,20 @@ router.post('/subjects/records', async (req, res) => {
  * Update a record
  */
 router.post('/subjects/records/:id', async (req, res) => {
+	const type = req.get('Content-Type');
+
+	const format = MIMETYPES[type];
+
 	const options = {
-		id: req.params.id,
-		noop: req.query.noop,
-		sync: req.query.sync
+		recordId: req.params.id,
+		noop: req.query.noop === 'true',
+		sync: req.query.sync === 'true',
+		user: req.user,
+		format
 	};
 
 	try {
-		const result = await aut.postAutSubjectsRecordsById(options);
+		const result = await aut.postAutSubjectsRecordsById(req.body, options);
 		res.status(result.status || 200).send(result.data);
 	} catch (err) {
 		return res.status(err.status).send({
@@ -189,7 +218,13 @@ router.post('/subjects/records/:id', async (req, res) => {
  * Retrieve a record
  */
 router.get('/subjects/records/:id', async (req, res) => {
+	const type = req.accepts(Object.keys(MIMETYPES));
+
+	const format = MIMETYPES[type];
+
 	const options = {
+		recordId: req.params.id,
+		format
 	};
 
 	try {
@@ -208,6 +243,8 @@ router.get('/subjects/records/:id', async (req, res) => {
  */
 router.post('/subjects/records/:id/lock', async (req, res) => {
 	const options = {
+		recordId: req.params.id,
+		user: req.user
 	};
 
 	try {
@@ -226,6 +263,8 @@ router.post('/subjects/records/:id/lock', async (req, res) => {
  */
 router.delete('/subjects/records/:id/lock', async (req, res) => {
 	const options = {
+		recordId: req.params.id,
+		user: req.user
 	};
 
 	try {
@@ -244,6 +283,8 @@ router.delete('/subjects/records/:id/lock', async (req, res) => {
  */
 router.get('/subjects/records/:id/lock', async (req, res) => {
 	const options = {
+		recordId: req.params.id,
+		user: req.user
 	};
 
 	try {
