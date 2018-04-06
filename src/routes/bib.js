@@ -66,6 +66,7 @@ router.post('/records/:id', async (req, res) => {
 		recordId: req.params.id,
 		noop: req.query.noop === 'true',
 		sync: req.query.sync === 'true',
+		ownerAuthorization: req.query.ownerAuthorization == 'true',
 		user: req.user,
 		format
 	};

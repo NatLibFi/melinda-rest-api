@@ -11,3 +11,8 @@ export const REDIS_PREFIX = readEnvironmentVariable('REDIS_PREFIX', 'melinda-res
 
 export const ALEPH_URL = readEnvironmentVariable('ALEPH_URL');
 export const ALEPH_USER_LIBRARY = readEnvironmentVariable('ALEPH_USER_LIBRARY');
+
+export const AUTH_DB_HOST = readEnvironmentVariable('AUTH_DB_HOST');
+export const AUTH_DB_USER = readEnvironmentVariable('AUTH_DB_USER');
+export const AUTH_DB_PASS = readEnvironmentVariable('AUTH_DB_PASS');
+export const AUTH_DB_NAME = readEnvironmentVariable('AUTH_DB_NAME');
