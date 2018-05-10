@@ -93,27 +93,33 @@ export const fetchRecordById = (recordId, verifyIfExists = false) => {
  * @return {Promise}
  */
 export const postBibRecords = async options => {
-  // Implement your business logic here...
-  //
-  // This function should return as follows:
-  //
-  // return {
-  //   status: 200, // Or another success code.
-  //   data: [] // Optional. You can put whatever you want here.
-  // };
-  //
-  // If an error happens during your business logic implementation,
-  // you should throw an error as follows:
-  //
-  // throw new Error({
-  //   status: 500, // Or another error code.
-  //   error: 'Server Error' // Or another error message.
-  // });
+	return new Promise((resolve, reject) => {
+		connection
+			.updateRecord({
+				record: options.record,
+				action: "recordInsert"
+			}, (error, data) => {
+				if(error) {
+					reject({
+						error: error.toString(),
+						status: 500
+					});
+					return;
+				}
 
-	return {
-		code: 200,
-		data: 'postBibRecords ok!'
-	};
+				// Find all lines that contain 'Record id:' and select last and extract record id
+				const recordIdLines = data.apdu.split('\n').filter(line => line.indexOf('Record Id:') > -1);
+				const recordId = recordIdLines[recordIdLines.length - 1].match(/Record Id: (\d+)/)[1];
+
+				resolve({
+					data: {
+						recordId,
+						data
+					}
+				});
+			})
+	});
+
 };
 
 /**
