@@ -27,11 +27,18 @@
 * for the JavaScript code in this file.
 *
 */
-
+import mysql from 'mysql2/promise';
 import zoom from 'node-zoom2';
 import IORedis from 'ioredis';
-import {DB_HOST, DB_NAME_BIB, REDIS_PREFIX} from '../config';
+import {DB_HOST, DB_NAME_BIB, REDIS_PREFIX, AUTH_DB_HOST, AUTH_DB_USER, AUTH_DB_PASS,AUTH_DB_NAME} from '../config';
 import * as recordService from './record';
+
+const mysqlConnection = mysql.createConnection({
+	host: AUTH_DB_HOST,
+	user: AUTH_DB_USER,
+	password: AUTH_DB_PASS,
+	database: AUTH_DB_NAME
+});
 
 const connection = zoom.connection(`${DB_HOST}/${DB_NAME_BIB}`).set('elementSetName', 'X');
 
@@ -60,7 +67,7 @@ export const postBibRecords = async options => recordService.postRecords(connect
  * @throws {Error}
  * @return {Promise}
  */
-export const postBibRecordsById = async (body, options) => recordService.postRecordsById(connection, redis, body, options);
+export const postBibRecordsById = async (body, options) => recordService.postRecordsById(connection, await mysqlConnection, redis, body, options);
 
 /**
  * @param {Object} options

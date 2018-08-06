@@ -27,6 +27,7 @@
 * for the JavaScript code in this file.
 *
 */
+import mysql from 'mysql2/promise';
 import MarcRecord from 'marc-record-js';
 import * as AuthorizedPortion from '@natlibfi/melinda-marc-record-utils/dist/authorized-portion';
 import dateAddSeconds from 'date-fns/add_seconds';
@@ -121,12 +122,12 @@ export const postRecords = async (connection, options) => {
  * @throws {Error}
  * @return {Promise}
  */
-export const postRecordsById = async (connection, redis, body, options) => {
-	const {recordId, format, sync = false, noop = false} = options;
+export const postRecordsById = async (connection, mysqlConnection, redis, body, options) => {
+	const {recordId, format, user, sync = false, noop = false, ownerAuthorization = false} = options;
 
 	const lock = await getRecordLock(redis, recordId);
 
-	if (lock && lock.user !== lock.userName) {
+	if (lock && lock.user !== user.userName) {
 		return {
 			status: 409,
 			data: 'Conflict'
@@ -182,6 +183,30 @@ export const postRecordsById = async (connection, redis, body, options) => {
 			});
 
 			finalizedRecord.fields.sort(fieldOrderComparator);
+		}
+	}
+
+	if (ownerAuthorization) {
+		const lowFields = finalizedRecord.fields.filter(field => field.tag === 'LOW');
+		if (lowFields) {
+			try {
+				const [rows] = await mysqlConnection.execute('SELECT own FROM permissions WHERE user = ?', [user.userName]);
+
+				const ownLows = rows.map(row => row.own);
+
+				const unauthorizedLows = lowFields.some(field => ownLows.indexOf(selectFirstSubfieldValue(field, 'a')) !== 0);
+
+				if (unauthorizedLows) {
+					return {
+						status: 403,
+						data: 'The credentials are not authorized for this operation'
+					};
+				}
+			} catch (err) {
+				console.error(err);
+
+				throw new Error('Internal Server Error');
+			}
 		}
 	}
 
