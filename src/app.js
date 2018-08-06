@@ -49,7 +49,7 @@ app.use(passport.authenticate('basic'));
 
 initializeAuth();
 
- /* Routes
+/* Routes
  */
 app.use('/bib', bib);
 app.use('/aut', aut);

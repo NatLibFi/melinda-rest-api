@@ -119,7 +119,7 @@ describe('services/record', () => {
 
 			mockFetchRecordById.resolves(originalRecord);
 
-			const result = await postRecordsById(connection, redis, inputRecord.toJsonObject(), {recordId: '12345', sync: true, noop: true, format: 'json'});
+			const result = await postRecordsById(connection, redis, process.env.ALEPH_OWN_AUTH_API_URL, inputRecord.toJsonObject(), {recordId: '12345', sync: true, noop: true, format: 'json'});
 
 			const resultedRecord = result.data;
 

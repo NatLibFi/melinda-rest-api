@@ -21,21 +21,42 @@
 	},
 	"scripts": {
 		"prepublishOnly": "npm run build:transpile",
-		"lint": "xo --fix",
-		"test": "cross-env NODE_ENV=test nyc mocha --require ./test/test-bootstrap.js --compilers js:babel-register",
+		"check-deps": "npm-check;exit 0",
+		"lint": "eslint --fix src",
+		"test:unit": "cross-env NODE_ENV=test nyc mocha --require ./test/test-bootstrap.js --compilers js:babel-register",
+		"test": "npm run lint && npm run test:unit",
 		"coverage": "nyc check-coverage",
 		"clean": "rimraf build coverage .nyc_output dist",
 		"build:transpile": "babel src --source-maps --out-dir=dist --minified",
-		"build": "npm run build:transpile && ncu",
+		"build": "npm run build:transpile && npm run check-deps",
 		"dev": "nodemon --exec babel-node src/index.js",
-		"dev:check": "npm run clean && npm run lint && npm test;npm run coverage;npm run dev",
-		"dev:watch": "chokidar src -c 'npm run build:transpile && node dist/index.js'",
-		"check-and-build": "npm run lint && npm test && npm run coverage && npm run build",
-		"travisci": "npm run check-and-build",
-		"publish-to-npm": "npm install && npm run lint && npm test && npm run coverage && npm publish --access=public"
+		"watch:test": "cross-env DEBUG=1 NODE_ENV=debug nodemon --watch src --exec 'npm test && babel-node src/index.js'",
+		"watch:build": "cross-env DEBUG=1 NODE_ENV=debug nodemon --watch src --exec 'babel-node src/index.js'",
+		"publish-to-npm": "npm install && npm test && npm run coverage && npm publish --access=public"
+	},
+	"dependencies": {
+		"@natlibfi/melinda-marc-record-utils": "^1.1.1",
+		"@natlibfi/marc-record-validate": "^2.0.0",
+		"@natlibfi/marc-record-validators-melinda": "^2.0.0",
+		"marc-record-js": "https://github.com/natlibfi-arlehiko/marc-record-js",
+		"marc-record-serializers": "https://github.com/natlibfi/marc-record-serializers#feature-to-aleph-sequential",
+		"node-zoom2": "https://github.com/natlibfi-arlehiko/node-zoom2#fix-yaz4-build",
+		"axios": "0.x.x",
+		"body-parser": "^1.18.2",
+		"cookie-parser": "^1.4.3",
+		"date-fns": "^1.29.0",
+		"es6-promisify": "^6.0.0",
+		"express": "^4.16.2",
+		"ioredis": "^3.2.2",
+		"lodash": "^4.17.5",
+		"passport": "0.x.0",
+		"passport-http": "0.x.0",
+		"swagger-ui-express": "^2.0.14",
+		"xml2js": "0.x.x"
 	},
 	"devDependencies": {
 		"babel-cli": "^6.26.0",
+		"babel-eslint": "^8.2.6",
 		"babel-plugin-istanbul": "^4.1.5",
 		"babel-plugin-rewire": "^1.1.0",
 		"babel-preset-env": "^1.6.1",
@@ -43,33 +64,36 @@
 		"chai": "^4.1.2",
 		"chai-http": "^3.0.0",
 		"chokidar-cli": "^1.2.0",
-		"codeclimate-test-reporter": "^0.5.0",
+		"codeclimate-test-reporter": "0.x.x",
 		"cross-env": "^5.1.1",
-		"git-scripts": "^0.2.1",
+		"eslint": "^5.3.0",
+		"eslint-config-xo": "0.x.x",
+		"eslint-plugin-import": "^2.13.0",
 		"ioredis-mock": "^3.7.0",
-		"istanbul": "^0.4.5",
+		"istanbul": "0.x.x",
 		"mocha": "^4.0.1",
 		"nock": "^9.1.9",
 		"nodemon": "^1.14.11",
-		"npm-check-updates": "^2.13.0",
+		"npm-check": "^5.8.0",
 		"nyc": "^11.3.0",
 		"rimraf": "^2.6.2",
 		"sinon": "^4.4.2",
-		"sinon-chai": "^2.14.0",
-		"xo": "^0.18.2"
+		"sinon-chai": "^2.14.0"
 	},
-	"xo": {
+	"eslintConfig": {
+		"parser": "babel-eslint",
+		"plugins": [
+			"import"
+		],
+		"extends": [
+			"xo",
+			"plugin:import/errors"
+		],
 		"rules": {
-			"valid-jsdoc": [
-				"error"
-			],
 			"prefer-arrow-callback": [
 				"error"
 			]
-		},
-		"ignores": [
-			"node-zoom2/**"
-		]
+		}
 	},
 	"babel": {
 		"presets": [
@@ -101,28 +125,9 @@
 		],
 		"sourceMap": false,
 		"instrument": false,
-		"lines": 100,
-		"statements": 100,
-		"functions": 100,
-		"branches": 100
-	},
-	"dependencies": {
-		"@natlibfi/melinda-marc-record-utils": "^1.1.1",
-		"axios": "^0.18.0",
-		"body-parser": "^1.18.2",
-		"cookie-parser": "^1.4.3",
-		"date-fns": "^1.29.0",
-		"es6-promisify": "^6.0.0",
-		"express": "^4.16.2",
-		"ioredis": "^3.2.2",
-		"lodash": "^4.17.5",
-		"marc-record-js": "^0.3.2",
-		"marc-record-serializers": "^1.4.0",
-		"mysql2": "^1.5.3",
-		"node-zoom2": "file:node-zoom2",
-		"passport": "^0.4.0",
-		"passport-http": "^0.3.0",
-		"swagger-ui-express": "^2.0.14",
-		"xml2js": "^0.4.19"
+		"lines": 80,
+		"statements": 80,
+		"functions": 80,
+		"branches": 80
 	}
 }

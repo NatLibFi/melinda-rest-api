@@ -73,7 +73,7 @@ describe('services/bib', () => {
 	it('postBibRecordsById', async () => {
 		const result = await postBibRecordsById(body, options);
 
-		expect(recordService.postRecordsById).to.have.been.calledWith(connection, redis, body, options);
+		expect(recordService.postRecordsById).to.have.been.calledWith(connection, redis, process.env.ALEPH_OWN_AUTH_API_URL, body, options);
 		expect(result).to.equal('postRecordsById');
 	});
 

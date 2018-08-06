@@ -20,7 +20,7 @@ export default (username, password) => {
 				const name = json['user-auth'].z66[0]['z66-name'][0];
 				const department = json['user-auth'].z66[0]['z66-department'][0];
 				const email = json['user-auth'].z66[0]['z66-email'][0];
-				return {userName: username, userLibrary, name, department, email};
+				return {userName: username, userLibrary, name, department, email, password};
 			}
 			return false;
 		});

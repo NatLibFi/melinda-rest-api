@@ -114,10 +114,25 @@ const dictionarySortIndex = {
 	bella: '5'
 };
 
-function sortByIndexterms(fieldA, fieldB) {
+function sortByIndexterms(fieldA, fieldB) { // eslint-disable-line complexity
 	const indexTermFields = [
-		'600', '610', '611', '630', '648', '650', '651', '652',
-		'653', '654', '655', '656', '657', '658', '659', '662'];
+		'600',
+		'610',
+		'611',
+		'630',
+		'648',
+		'650',
+		'651',
+		'652',
+		'653',
+		'654',
+		'655',
+		'656',
+		'657',
+		'658',
+		'659',
+		'662'
+	];
 
 	if (fieldA.tag === fieldB.tag && _.includes(indexTermFields, fieldA.tag)) {
 		if (fieldA.ind2 > fieldB.ind2) {
@@ -195,7 +210,7 @@ function sortByIndexterms(fieldA, fieldB) {
 	return 0;
 }
 
-function sortBy264(fieldA, fieldB) {
+function sortBy264(fieldA, fieldB) { // eslint-disable-line complexity
 	if (fieldA.tag === '264' && fieldB.tag === '264') {
 		if (fieldA.ind2 > fieldB.ind2) {
 			return 1;

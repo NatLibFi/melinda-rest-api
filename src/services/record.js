@@ -1,4 +1,4 @@
-/* eslint-disable no-unused-vars, valid-jsdoc */
+/* eslint-disable no-unused-vars, valid-jsdoc, import/default */
 
 /**
 *
@@ -27,7 +27,8 @@
 * for the JavaScript code in this file.
 *
 */
-import mysql from 'mysql2/promise';
+import axios from 'axios';
+import passport from 'passport';
 import MarcRecord from 'marc-record-js';
 import * as AuthorizedPortion from '@natlibfi/melinda-marc-record-utils/dist/authorized-portion';
 import dateAddSeconds from 'date-fns/add_seconds';
@@ -36,6 +37,7 @@ import dateFormat from 'date-fns/format';
 import dateIsFuture from 'date-fns/is_future';
 import {recordFrom, recordTo, findNewerCATFields, selectFirstSubfieldValue} from '../record-utils';
 import fieldOrderComparator from '../marc-field-sort';
+import validate from '../marc-record-validate';
 import {LOCK_DURATION} from '../config';
 
 export const getRecordLock = async (redis, recordId) => {
@@ -55,24 +57,24 @@ export const fetchRecordById = (connection, recordId, verifyIfExists = false) =>
 		let record;
 
 		connection.query('cql', `rec.id = ${recordId}`)
-		.createReadStream()
-		.on('data', r => {
-			record = r.xml;
-		})
-		.on('close', () => {
-			if (verifyIfExists) {
-				if (record) {
-					return resolve(true);
+			.createReadStream()
+			.on('data', r => {
+				record = r.xml;
+			})
+			.on('close', () => {
+				if (verifyIfExists) {
+					if (record) {
+						return resolve(true);
+					}
+					return resolve(false);
 				}
-				return resolve(false);
-			}
 
-			if (!record) {
-				throw new Error('Record Not Found');
-			}
+				if (!record) {
+					throw new Error('Record Not Found');
+				}
 
-			resolve(recordFrom(record, 'marcxml'));
-		});
+				resolve(recordFrom(record, 'marcxml'));
+			});
 	});
 };
 
@@ -88,36 +90,37 @@ export const fetchRecordById = (connection, recordId, verifyIfExists = false) =>
 export const postRecords = async (connection, options) => {
 	return new Promise((resolve, reject) => {
 		connection
-		.updateRecord({
-			record: options.record,
-			action: "recordInsert"
-		}, (error, data) => {
-			if(error) {
-				reject({
-					error: error.toString(),
-					status: 500
-				});
-				return;
-			}
-			
-			// Find all lines that contain 'Record id:' and select last and extract record id
-			const recordIdLines = data.apdu.split('\n').filter(line => line.indexOf('Record Id:') > -1);
-			const recordId = recordIdLines[recordIdLines.length - 1].match(/Record Id: (\d+)/)[1];
-
-			resolve({
-				code: 200,
-				data: {
-					recordId,
-					data
+			.updateRecord({
+				record: options.record,
+				action: 'recordInsert'
+			}, (error, data) => {
+				if (error) {
+					reject(Object.assign(new Error(), {
+						error: error.toString(),
+						status: 500
+					}));
+					return;
 				}
+
+				// Find all lines that contain 'Record id:' and select last and extract record id
+				const recordIdLines = data.apdu.split('\n').filter(line => line.indexOf('Record Id:') > -1);
+				const recordId = recordIdLines[recordIdLines.length - 1].match(/Record Id: (\d+)/)[1];
+
+				resolve({
+					code: 200,
+					data: {
+						recordId,
+						data
+					}
+				});
 			});
-		})
 	});
 };
 
 /**
 * @param {Object} connection node-zoom2 connection
 * @param {Object} redis ioredis connection
+* @param {String} ownAuthApiUrl URL to aleph-own-auth-api
 * @param {String} body The body of record to be updated
 * @param {Object} options
 * @param {String} options.recordId The identifier of the record that's going to be updated
@@ -128,7 +131,7 @@ export const postRecords = async (connection, options) => {
 * @throws {Error}
 * @return {Promise}
 */
-export const postRecordsById = async (connection, mysqlConnection, redis, body, options) => {
+export const postRecordsById = async (connection, redis, ownAuthApiUrl, body, options) => {
 	const {recordId, format, user, sync = false, noop = false, ownerAuthorization = false} = options;
 
 	const lock = await getRecordLock(redis, recordId);
@@ -196,10 +199,7 @@ export const postRecordsById = async (connection, mysqlConnection, redis, body, 
 		const lowFields = finalizedRecord.fields.filter(field => field.tag === 'LOW');
 		if (lowFields) {
 			try {
-				const [rows] = await mysqlConnection.execute('SELECT own FROM permissions WHERE user = ?', [user.userName]);
-
-				const ownLows = rows.map(row => row.own);
-
+				const ownLows = await fetchUserLowPermissions(user);
 				const unauthorizedLows = lowFields.some(field => ownLows.indexOf(selectFirstSubfieldValue(field, 'a')) !== 0);
 
 				if (unauthorizedLows) {
@@ -220,6 +220,18 @@ export const postRecordsById = async (connection, mysqlConnection, redis, body, 
 		status: 200,
 		data: recordTo(finalizedRecord, format)
 	};
+
+	async function fetchUserLowPermissions(user) {
+		const response = await axios({
+			url: ownAuthApiUrl,
+			auth: {
+				username: user.userName,
+				password: user.password
+			}
+		});
+
+		return response.data;
+	}
 };
 
 /**
@@ -271,12 +283,12 @@ export const postRecordsByIdLock = async (connection, redis, options) => {
 		const expiresAt = dateAddSeconds(Date.now(), LOCK_DURATION);
 
 		const result = await redis.multi()
-		.hmset('lock:' + recordId, {
-			user: user.userName,
-			expiresAt: dateFormat(expiresAt)
-		})
-		.expireat('lock:' + recordId, dateFormat(expiresAt, 'X'))
-		.exec();
+			.hmset('lock:' + recordId, {
+				user: user.userName,
+				expiresAt: dateFormat(expiresAt)
+			})
+			.expireat('lock:' + recordId, dateFormat(expiresAt, 'X'))
+			.exec();
 
 		if (lock) {
 			return {
