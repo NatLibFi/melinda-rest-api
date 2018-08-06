@@ -55,73 +55,79 @@ export const fetchRecordById = (connection, recordId, verifyIfExists = false) =>
 		let record;
 
 		connection.query('cql', `rec.id = ${recordId}`)
-			.createReadStream()
-			.on('data', r => {
-				record = r.xml;
-			})
-			.on('close', () => {
-				if (verifyIfExists) {
-					if (record) {
-						return resolve(true);
-					}
-					return resolve(false);
+		.createReadStream()
+		.on('data', r => {
+			record = r.xml;
+		})
+		.on('close', () => {
+			if (verifyIfExists) {
+				if (record) {
+					return resolve(true);
 				}
+				return resolve(false);
+			}
 
-				if (!record) {
-					throw new Error('Record Not Found');
-				}
+			if (!record) {
+				throw new Error('Record Not Found');
+			}
 
-				resolve(recordFrom(record, 'marcxml'));
-			});
+			resolve(recordFrom(record, 'marcxml'));
+		});
 	});
 };
 
 /**
- * @param {Object} connection node-zoom2 connection
- * @param {Object} options
- * @param {Boolean} options.noop Do not create the record but return the messages about the operation
- * @param {Boolean} options.unique Do not create the record if there are duplicates in the datastore
- * @param {Boolean} options.ownerAuthorization Require the credentials to have authority to change owner metadata
- * @throws {Error}
- * @return {Promise}
- */
+* @param {Object} connection node-zoom2 connection
+* @param {Object} options
+* @param {Boolean} options.noop Do not create the record but return the messages about the operation
+* @param {Boolean} options.unique Do not create the record if there are duplicates in the datastore
+* @param {Boolean} options.ownerAuthorization Require the credentials to have authority to change owner metadata
+* @throws {Error}
+* @return {Promise}
+*/
 export const postRecords = async (connection, options) => {
-  // Implement your business logic here...
-  //
-  // This function should return as follows:
-  //
-  // return {
-  //   status: 200, // Or another success code.
-  //   data: [] // Optional. You can put whatever you want here.
-  // };
-  //
-  // If an error happens during your business logic implementation,
-  // you should throw an error as follows:
-  //
-  // throw new Error({
-  //   status: 500, // Or another error code.
-  //   error: 'Server Error' // Or another error message.
-  // });
+	return new Promise((resolve, reject) => {
+		connection
+		.updateRecord({
+			record: options.record,
+			action: "recordInsert"
+		}, (error, data) => {
+			if(error) {
+				reject({
+					error: error.toString(),
+					status: 500
+				});
+				return;
+			}
+			
+			// Find all lines that contain 'Record id:' and select last and extract record id
+			const recordIdLines = data.apdu.split('\n').filter(line => line.indexOf('Record Id:') > -1);
+			const recordId = recordIdLines[recordIdLines.length - 1].match(/Record Id: (\d+)/)[1];
 
-	return {
-		code: 200,
-		data: 'postRecords ok!'
-	};
+			resolve({
+				code: 200,
+				data: {
+					recordId,
+					data
+				}
+			});
+		})
+	});
 };
 
 /**
- * @param {Object} connection node-zoom2 connection
- * @param {Object} redis ioredis connection
- * @param {String} body The body of record to be updated
- * @param {Object} options
- * @param {String} options.recordId The identifier of the record that's going to be updated
- * @param {String} options.format Format used to serialize and unserialize record
- * @param {Boolean} options.noop Do not actually do the update but return the record in the format it would be uploaded
- * @param {Boolean} options.sync Synchronize changes between the incoming record and the record in the datastore
- * @param {Boolean} options.ownerAuthorization Require the credentials to have authority to change owner metadata
- * @throws {Error}
- * @return {Promise}
- */
+* @param {Object} connection node-zoom2 connection
+* @param {Object} redis ioredis connection
+* @param {String} body The body of record to be updated
+* @param {Object} options
+* @param {String} options.recordId The identifier of the record that's going to be updated
+* @param {String} options.format Format used to serialize and unserialize record
+* @param {Boolean} options.noop Do not actually do the update but return the record in the format it would be uploaded
+* @param {Boolean} options.sync Synchronize changes between the incoming record and the record in the datastore
+* @param {Boolean} options.ownerAuthorization Require the credentials to have authority to change owner metadata
+* @throws {Error}
+* @return {Promise}
+*/
 export const postRecordsById = async (connection, mysqlConnection, redis, body, options) => {
 	const {recordId, format, user, sync = false, noop = false, ownerAuthorization = false} = options;
 
@@ -217,11 +223,11 @@ export const postRecordsById = async (connection, mysqlConnection, redis, body, 
 };
 
 /**
- * @param {Object} connection node-zoom2 connection
- * @param {Object} options
- * @throws {Error}
- * @return {Promise}
- */
+* @param {Object} connection node-zoom2 connection
+* @param {Object} options
+* @throws {Error}
+* @return {Promise}
+*/
 export const getRecordById = async (connection, options) => {
 	const {recordId, format = 'json'} = options;
 
@@ -234,12 +240,12 @@ export const getRecordById = async (connection, options) => {
 };
 
 /**
- * @param {Object} connection node-zoom2 connection
- * @param {Object} redis ioredis connection
- * @param {Object} options
- * @throws {Error}
- * @return {Promise}
- */
+* @param {Object} connection node-zoom2 connection
+* @param {Object} redis ioredis connection
+* @param {Object} options
+* @throws {Error}
+* @return {Promise}
+*/
 export const postRecordsByIdLock = async (connection, redis, options) => {
 	try {
 		const {recordId, user} = options;
@@ -265,12 +271,12 @@ export const postRecordsByIdLock = async (connection, redis, options) => {
 		const expiresAt = dateAddSeconds(Date.now(), LOCK_DURATION);
 
 		const result = await redis.multi()
-			.hmset('lock:' + recordId, {
-				user: user.userName,
-				expiresAt: dateFormat(expiresAt)
-			})
-			.expireat('lock:' + recordId, dateFormat(expiresAt, 'X'))
-			.exec();
+		.hmset('lock:' + recordId, {
+			user: user.userName,
+			expiresAt: dateFormat(expiresAt)
+		})
+		.expireat('lock:' + recordId, dateFormat(expiresAt, 'X'))
+		.exec();
 
 		if (lock) {
 			return {
@@ -290,12 +296,12 @@ export const postRecordsByIdLock = async (connection, redis, options) => {
 };
 
 /**
- * @param {Object} connection node-zoom2 connection
- * @param {Object} redis ioredis connection
- * @param {Object} options
- * @throws {Error}
- * @return {Promise}
- */
+* @param {Object} connection node-zoom2 connection
+* @param {Object} redis ioredis connection
+* @param {Object} options
+* @throws {Error}
+* @return {Promise}
+*/
 export const deleteRecordsByIdLock = async (connection, redis, options) => {
 	try {
 		const {recordId, user} = options;
@@ -322,12 +328,12 @@ export const deleteRecordsByIdLock = async (connection, redis, options) => {
 };
 
 /**
- * @param {Object} connection node-zoom2 connection
- * @param {Object} redis ioredis connection
- * @param {Object} options
- * @throws {Error}
- * @return {Promise}
- */
+* @param {Object} connection node-zoom2 connection
+* @param {Object} redis ioredis connection
+* @param {Object} options
+* @throws {Error}
+* @return {Promise}
+*/
 export const getRecordsByIdLock = async (connection, redis, options) => {
 	try {
 		const {recordId, user} = options;

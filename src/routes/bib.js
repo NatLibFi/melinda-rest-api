@@ -43,7 +43,8 @@ router.post('/records', async (req, res) => {
 	const options = {
 		noop: req.query.noop,
 		unique: req.query.unique,
-		ownerAuthorization: req.query.ownerAuthorization
+		ownerAuthorization: req.query.ownerAuthorization,
+		record: req.body.record
 	};
 
 	try {
