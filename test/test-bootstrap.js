@@ -29,4 +29,6 @@
 process.env.ALEPH_URL = 'http://test-url.com';
 process.env.ALEPH_USER_LIBRARY = 'test-lib';
 process.env.DB_HOST = 'DB_HOST';
-process.env.DB_NAME = 'DB_NAME';
+process.env.DB_NAME_BIB = 'DB_NAME_BIB';
+process.env.DB_NAME_AUT_NAMES = 'DB_NAME_AUT_NAMES';
+process.env.DB_NAME_AUT_SUBJECTS = 'DB_NAME_AUT_SUBJECTS';

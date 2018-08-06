@@ -27,9 +27,14 @@
 */
 
 import express from 'express';
+import bodyParser from 'body-parser';
 import * as aut from '../services/aut';
+import {MIMETYPES, MIMETYPES_JSON, MIMETYPES_TEXT} from '../constants';
 
 const router = new express.Router();
+
+router.use(bodyParser.json({type: MIMETYPES_JSON}));
+router.use(bodyParser.text({type: MIMETYPES_TEXT}));
 
 /**
  * Create a record
@@ -44,10 +49,7 @@ router.post('/names/records', async (req, res) => {
 		const result = await aut.postAutNamesRecords(options);
 		res.status(result.status || 200).send(result.data);
 	} catch (err) {
-		return res.status(err.status).send({
-			status: err.status,
-			error: err.error
-		});
+		return res.status(err.status || 500).send(err.message);
 	}
 });
 
@@ -55,20 +57,23 @@ router.post('/names/records', async (req, res) => {
  * Update a record
  */
 router.post('/names/records/:id', async (req, res) => {
+	const type = req.get('Content-Type');
+
+	const format = MIMETYPES[type];
+
 	const options = {
-		id: req.params.id,
-		noop: req.query.noop,
-		sync: req.query.sync
+		recordId: req.params.id,
+		noop: req.query.noop === 'true',
+		sync: req.query.sync === 'true',
+		user: req.user,
+		format
 	};
 
 	try {
-		const result = await aut.postAutNamesRecordsById(options);
+		const result = await aut.postAutNamesRecordsById(req.body, options);
 		res.status(result.status || 200).send(result.data);
 	} catch (err) {
-		return res.status(err.status).send({
-			status: err.status,
-			error: err.error
-		});
+		return res.status(err.status || 500).send(err.message);
 	}
 });
 
@@ -76,17 +81,20 @@ router.post('/names/records/:id', async (req, res) => {
  * Retrieve a record
  */
 router.get('/names/records/:id', async (req, res) => {
+	const type = req.accepts(Object.keys(MIMETYPES));
+
+	const format = MIMETYPES[type];
+
 	const options = {
+		recordId: req.params.id,
+		format
 	};
 
 	try {
 		const result = await aut.getAutNamesRecordsById(options);
 		res.status(result.status || 200).send(result.data);
 	} catch (err) {
-		return res.status(err.status).send({
-			status: err.status,
-			error: err.error
-		});
+		return res.status(err.status || 500).send(err.message);
 	}
 });
 
@@ -95,16 +103,15 @@ router.get('/names/records/:id', async (req, res) => {
  */
 router.post('/names/records/:id/lock', async (req, res) => {
 	const options = {
+		recordId: req.params.id,
+		user: req.user
 	};
 
 	try {
 		const result = await aut.postAutNamesRecordsByIdLock(options);
 		res.status(result.status || 200).send(result.data);
 	} catch (err) {
-		return res.status(err.status).send({
-			status: err.status,
-			error: err.error
-		});
+		return res.status(err.status || 500).send(err.message);
 	}
 });
 
@@ -113,16 +120,15 @@ router.post('/names/records/:id/lock', async (req, res) => {
  */
 router.delete('/names/records/:id/lock', async (req, res) => {
 	const options = {
+		recordId: req.params.id,
+		user: req.user
 	};
 
 	try {
 		const result = await aut.deleteAutNamesRecordsByIdLock(options);
 		res.status(result.status || 200).send(result.data);
 	} catch (err) {
-		return res.status(err.status).send({
-			status: err.status,
-			error: err.error
-		});
+		return res.status(err.status || 500).send(err.message);
 	}
 });
 
@@ -131,16 +137,15 @@ router.delete('/names/records/:id/lock', async (req, res) => {
  */
 router.get('/names/records/:id/lock', async (req, res) => {
 	const options = {
+		recordId: req.params.id,
+		user: req.user
 	};
 
 	try {
 		const result = await aut.getAutNamesRecordsByIdLock(options);
 		res.status(result.status || 200).send(result.data);
 	} catch (err) {
-		return res.status(err.status).send({
-			status: err.status,
-			error: err.error
-		});
+		return res.status(err.status || 500).send(err.message);
 	}
 });
 
@@ -157,10 +162,7 @@ router.post('/subjects/records', async (req, res) => {
 		const result = await aut.postAutSubjectsRecords(options);
 		res.status(result.status || 200).send(result.data);
 	} catch (err) {
-		return res.status(err.status).send({
-			status: err.status,
-			error: err.error
-		});
+		return res.status(err.status || 500).send(err.message);
 	}
 });
 
@@ -168,20 +170,23 @@ router.post('/subjects/records', async (req, res) => {
  * Update a record
  */
 router.post('/subjects/records/:id', async (req, res) => {
+	const type = req.get('Content-Type');
+
+	const format = MIMETYPES[type];
+
 	const options = {
-		id: req.params.id,
-		noop: req.query.noop,
-		sync: req.query.sync
+		recordId: req.params.id,
+		noop: req.query.noop === 'true',
+		sync: req.query.sync === 'true',
+		user: req.user,
+		format
 	};
 
 	try {
-		const result = await aut.postAutSubjectsRecordsById(options);
+		const result = await aut.postAutSubjectsRecordsById(req.body, options);
 		res.status(result.status || 200).send(result.data);
 	} catch (err) {
-		return res.status(err.status).send({
-			status: err.status,
-			error: err.error
-		});
+		return res.status(err.status || 500).send(err.message);
 	}
 });
 
@@ -189,17 +194,20 @@ router.post('/subjects/records/:id', async (req, res) => {
  * Retrieve a record
  */
 router.get('/subjects/records/:id', async (req, res) => {
+	const type = req.accepts(Object.keys(MIMETYPES));
+
+	const format = MIMETYPES[type];
+
 	const options = {
+		recordId: req.params.id,
+		format
 	};
 
 	try {
 		const result = await aut.getAutSubjectsRecordsById(options);
 		res.status(result.status || 200).send(result.data);
 	} catch (err) {
-		return res.status(err.status).send({
-			status: err.status,
-			error: err.error
-		});
+		return res.status(err.status || 500).send(err.message);
 	}
 });
 
@@ -208,16 +216,15 @@ router.get('/subjects/records/:id', async (req, res) => {
  */
 router.post('/subjects/records/:id/lock', async (req, res) => {
 	const options = {
+		recordId: req.params.id,
+		user: req.user
 	};
 
 	try {
 		const result = await aut.postAutSubjectsRecordsByIdLock(options);
 		res.status(result.status || 200).send(result.data);
 	} catch (err) {
-		return res.status(err.status).send({
-			status: err.status,
-			error: err.error
-		});
+		return res.status(err.status || 500).send(err.message);
 	}
 });
 
@@ -226,16 +233,15 @@ router.post('/subjects/records/:id/lock', async (req, res) => {
  */
 router.delete('/subjects/records/:id/lock', async (req, res) => {
 	const options = {
+		recordId: req.params.id,
+		user: req.user
 	};
 
 	try {
 		const result = await aut.deleteAutSubjectsRecordsByIdLock(options);
 		res.status(result.status || 200).send(result.data);
 	} catch (err) {
-		return res.status(err.status).send({
-			status: err.status,
-			error: err.error
-		});
+		return res.status(err.status || 500).send(err.message);
 	}
 });
 
@@ -244,16 +250,15 @@ router.delete('/subjects/records/:id/lock', async (req, res) => {
  */
 router.get('/subjects/records/:id/lock', async (req, res) => {
 	const options = {
+		recordId: req.params.id,
+		user: req.user
 	};
 
 	try {
 		const result = await aut.getAutSubjectsRecordsByIdLock(options);
 		res.status(result.status || 200).send(result.data);
 	} catch (err) {
-		return res.status(err.status).send({
-			status: err.status,
-			error: err.error
-		});
+		return res.status(err.status || 500).send(err.message);
 	}
 });
 

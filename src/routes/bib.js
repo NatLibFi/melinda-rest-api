@@ -51,10 +51,7 @@ router.post('/records', async (req, res) => {
 		const result = await bib.postBibRecords(options);
 		res.status(result.status || 200).send(result.data);
 	} catch (err) {
-		return res.status(err.status).send({
-			status: err.status,
-			error: err.error
-		});
+		return res.status(err.status || 500).send(err.message);
 	}
 });
 
@@ -70,7 +67,7 @@ router.post('/records/:id', async (req, res) => {
 		recordId: req.params.id,
 		noop: req.query.noop === 'true',
 		sync: req.query.sync === 'true',
-		ownerAuthorization: req.query.ownerAuthorization,
+		ownerAuthorization: req.query.ownerAuthorization == 'true',
 		user: req.user,
 		format
 	};
@@ -79,10 +76,7 @@ router.post('/records/:id', async (req, res) => {
 		const result = await bib.postBibRecordsById(req.body, options);
 		res.status(result.status || 200).send(result.data);
 	} catch (err) {
-		return res.status(err.status).send({
-			status: err.status,
-			error: err.error
-		});
+		return res.status(err.status || 500).send(err.message);
 	}
 });
 
@@ -104,10 +98,7 @@ router.get('/records/:id', async (req, res) => {
 
 		res.type(type).status(result.status || 200).send(result.data);
 	} catch (err) {
-		return res.status(err.status).send({
-			status: err.status,
-			error: err.error
-		});
+		return res.status(err.status || 500).send(err.message);
 	}
 });
 
@@ -143,10 +134,7 @@ router.delete('/records/:id/lock', async (req, res) => {
 		const result = await bib.deleteBibRecordsByIdLock(options);
 		res.status(result.status || 200).send(result.data);
 	} catch (err) {
-		return res.status(err.status).send({
-			status: err.status,
-			error: err.error
-		});
+		return res.status(err.status || 500).send(err.message);
 	}
 });
 
@@ -163,7 +151,7 @@ router.get('/records/:id/lock', async (req, res) => {
 		const result = await bib.getBibRecordsByIdLock(options);
 		res.status(result.status || 200).send(result.data);
 	} catch (err) {
-		return res.status(err.status || 500).send(err);
+		return res.status(err.status || 500).send(err.message);
 	}
 });
 

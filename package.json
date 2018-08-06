@@ -118,6 +118,7 @@
 		"lodash": "^4.17.5",
 		"marc-record-js": "^0.3.2",
 		"marc-record-serializers": "^1.4.0",
+		"mysql2": "^1.5.3",
 		"node-zoom2": "file:node-zoom2",
 		"passport": "^0.4.0",
 		"passport-http": "^0.3.0",
