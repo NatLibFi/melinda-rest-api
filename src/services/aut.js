@@ -28,6 +28,18 @@
 *
 */
 
+import zoom from 'node-zoom2';
+import IORedis from 'ioredis';
+import {DB_HOST, DB_NAME_AUT_NAMES, DB_NAME_AUT_SUBJECTS, REDIS_PREFIX} from '../config';
+import * as recordService from './record';
+
+const connectionNames = zoom.connection(`${DB_HOST}/${DB_NAME_AUT_NAMES}`).set('elementSetName', 'X');
+const connectionSubjects = zoom.connection(`${DB_HOST}/${DB_NAME_AUT_SUBJECTS}`).set('elementSetName', 'X');
+
+const redis = new IORedis({
+	keyPrefix: REDIS_PREFIX ? REDIS_PREFIX + ':aut:' : 'aut:'
+});
+
 /**
  * @param {Object} options
  * @param {Boolean} options.noop Do not create the record but return the messages about the operation
@@ -35,29 +47,7 @@
  * @throws {Error}
  * @return {Promise}
  */
-export const postAutNamesRecords = async options => {
-  // Implement your business logic here...
-  //
-  // This function should return as follows:
-  //
-  // return {
-  //   status: 200, // Or another success code.
-  //   data: [] // Optional. You can put whatever you want here.
-  // };
-  //
-  // If an error happens during your business logic implementation,
-  // you should throw an error as follows:
-  //
-  // throw new Error({
-  //   status: 500, // Or another error code.
-  //   error: 'Server Error' // Or another error message.
-  // });
-
-	return {
-		code: 200,
-		data: 'postAutNamesRecords ok!'
-	};
-};
+export const postAutNamesRecords = async options => recordService.postRecords(connectionNames, options);
 
 /**
  * @param {Object} options
@@ -67,145 +57,35 @@ export const postAutNamesRecords = async options => {
  * @throws {Error}
  * @return {Promise}
  */
-export const postAutNamesRecordsById = async options => {
-  // Implement your business logic here...
-  //
-  // This function should return as follows:
-  //
-  // return {
-  //   status: 200, // Or another success code.
-  //   data: [] // Optional. You can put whatever you want here.
-  // };
-  //
-  // If an error happens during your business logic implementation,
-  // you should throw an error as follows:
-  //
-  // throw new Error({
-  //   status: 500, // Or another error code.
-  //   error: 'Server Error' // Or another error message.
-  // });
-
-	return {
-		code: 200,
-		data: 'postAutNamesRecordsById ok!'
-	};
-};
+export const postAutNamesRecordsById = async (body, options) => recordService.postRecordsById(connectionNames, redis, body, options);
 
 /**
  * @param {Object} options
  * @throws {Error}
  * @return {Promise}
  */
-export const getAutNamesRecordsById = async options => {
-  // Implement your business logic here...
-  //
-  // This function should return as follows:
-  //
-  // return {
-  //   status: 200, // Or another success code.
-  //   data: [] // Optional. You can put whatever you want here.
-  // };
-  //
-  // If an error happens during your business logic implementation,
-  // you should throw an error as follows:
-  //
-  // throw new Error({
-  //   status: 500, // Or another error code.
-  //   error: 'Server Error' // Or another error message.
-  // });
-
-	return {
-		code: 200,
-		data: 'getAutNamesRecordsById ok!'
-	};
-};
+export const getAutNamesRecordsById = async options => recordService.getRecordById(connectionNames, options);
 
 /**
  * @param {Object} options
  * @throws {Error}
  * @return {Promise}
  */
-export const postAutNamesRecordsByIdLock = async options => {
-  // Implement your business logic here...
-  //
-  // This function should return as follows:
-  //
-  // return {
-  //   status: 200, // Or another success code.
-  //   data: [] // Optional. You can put whatever you want here.
-  // };
-  //
-  // If an error happens during your business logic implementation,
-  // you should throw an error as follows:
-  //
-  // throw new Error({
-  //   status: 500, // Or another error code.
-  //   error: 'Server Error' // Or another error message.
-  // });
-
-	return {
-		code: 200,
-		data: 'postAutNamesRecordsByIdLock ok!'
-	};
-};
+export const postAutNamesRecordsByIdLock = async options => recordService.postRecordsByIdLock(connectionNames, redis, options);
 
 /**
  * @param {Object} options
  * @throws {Error}
  * @return {Promise}
  */
-export const deleteAutNamesRecordsByIdLock = async options => {
-  // Implement your business logic here...
-  //
-  // This function should return as follows:
-  //
-  // return {
-  //   status: 200, // Or another success code.
-  //   data: [] // Optional. You can put whatever you want here.
-  // };
-  //
-  // If an error happens during your business logic implementation,
-  // you should throw an error as follows:
-  //
-  // throw new Error({
-  //   status: 500, // Or another error code.
-  //   error: 'Server Error' // Or another error message.
-  // });
-
-	return {
-		code: 200,
-		data: 'deleteAutNamesRecordsByIdLock ok!'
-	};
-};
+export const deleteAutNamesRecordsByIdLock = async options => recordService.deleteRecordsByIdLock(connectionNames, redis, options);
 
 /**
  * @param {Object} options
  * @throws {Error}
  * @return {Promise}
  */
-export const getAutNamesRecordsByIdLock = async options => {
-  // Implement your business logic here...
-  //
-  // This function should return as follows:
-  //
-  // return {
-  //   status: 200, // Or another success code.
-  //   data: [] // Optional. You can put whatever you want here.
-  // };
-  //
-  // If an error happens during your business logic implementation,
-  // you should throw an error as follows:
-  //
-  // throw new Error({
-  //   status: 500, // Or another error code.
-  //   error: 'Server Error' // Or another error message.
-  // });
-
-	return {
-		code: 200,
-		data: 'getAutNamesRecordsByIdLock ok!'
-	};
-};
+export const getAutNamesRecordsByIdLock = async options => recordService.getRecordsByIdLock(connectionNames, redis, options);
 
 /**
  * @param {Object} options
@@ -214,29 +94,7 @@ export const getAutNamesRecordsByIdLock = async options => {
  * @throws {Error}
  * @return {Promise}
  */
-export const postAutSubjectsRecords = async options => {
-  // Implement your business logic here...
-  //
-  // This function should return as follows:
-  //
-  // return {
-  //   status: 200, // Or another success code.
-  //   data: [] // Optional. You can put whatever you want here.
-  // };
-  //
-  // If an error happens during your business logic implementation,
-  // you should throw an error as follows:
-  //
-  // throw new Error({
-  //   status: 500, // Or another error code.
-  //   error: 'Server Error' // Or another error message.
-  // });
-
-	return {
-		code: 200,
-		data: 'postAutSubjectsRecords ok!'
-	};
-};
+export const postAutSubjectsRecords = async options => recordService.postRecords(connectionSubjects, options);
 
 /**
  * @param {Object} options
@@ -246,143 +104,33 @@ export const postAutSubjectsRecords = async options => {
  * @throws {Error}
  * @return {Promise}
  */
-export const postAutSubjectsRecordsById = async options => {
-  // Implement your business logic here...
-  //
-  // This function should return as follows:
-  //
-  // return {
-  //   status: 200, // Or another success code.
-  //   data: [] // Optional. You can put whatever you want here.
-  // };
-  //
-  // If an error happens during your business logic implementation,
-  // you should throw an error as follows:
-  //
-  // throw new Error({
-  //   status: 500, // Or another error code.
-  //   error: 'Server Error' // Or another error message.
-  // });
-
-	return {
-		code: 200,
-		data: 'postAutSubjectsRecordsById ok!'
-	};
-};
+export const postAutSubjectsRecordsById = async (body, options) => recordService.postRecordsById(connectionSubjects, redis, body, options);
 
 /**
  * @param {Object} options
  * @throws {Error}
  * @return {Promise}
  */
-export const getAutSubjectsRecordsById = async options => {
-  // Implement your business logic here...
-  //
-  // This function should return as follows:
-  //
-  // return {
-  //   status: 200, // Or another success code.
-  //   data: [] // Optional. You can put whatever you want here.
-  // };
-  //
-  // If an error happens during your business logic implementation,
-  // you should throw an error as follows:
-  //
-  // throw new Error({
-  //   status: 500, // Or another error code.
-  //   error: 'Server Error' // Or another error message.
-  // });
-
-	return {
-		code: 200,
-		data: 'getAutSubjectsRecordsById ok!'
-	};
-};
+export const getAutSubjectsRecordsById = async options => recordService.getRecordById(connectionSubjects, options);
 
 /**
  * @param {Object} options
  * @throws {Error}
  * @return {Promise}
  */
-export const postAutSubjectsRecordsByIdLock = async options => {
-  // Implement your business logic here...
-  //
-  // This function should return as follows:
-  //
-  // return {
-  //   status: 200, // Or another success code.
-  //   data: [] // Optional. You can put whatever you want here.
-  // };
-  //
-  // If an error happens during your business logic implementation,
-  // you should throw an error as follows:
-  //
-  // throw new Error({
-  //   status: 500, // Or another error code.
-  //   error: 'Server Error' // Or another error message.
-  // });
-
-	return {
-		code: 200,
-		data: 'postAutSubjectsRecordsByIdLock ok!'
-	};
-};
+export const postAutSubjectsRecordsByIdLock = async options => recordService.postRecordsByIdLock(connectionSubjects, redis, options);
 
 /**
  * @param {Object} options
  * @throws {Error}
  * @return {Promise}
  */
-export const deleteAutSubjectsRecordsByIdLock = async options => {
-  // Implement your business logic here...
-  //
-  // This function should return as follows:
-  //
-  // return {
-  //   status: 200, // Or another success code.
-  //   data: [] // Optional. You can put whatever you want here.
-  // };
-  //
-  // If an error happens during your business logic implementation,
-  // you should throw an error as follows:
-  //
-  // throw new Error({
-  //   status: 500, // Or another error code.
-  //   error: 'Server Error' // Or another error message.
-  // });
-
-	return {
-		code: 200,
-		data: 'deleteAutSubjectsRecordsByIdLock ok!'
-	};
-};
+export const deleteAutSubjectsRecordsByIdLock = async options => recordService.deleteRecordsByIdLock(connectionSubjects, redis, options);
 
 /**
  * @param {Object} options
  * @throws {Error}
  * @return {Promise}
  */
-export const getAutSubjectsRecordsByIdLock = async options => {
-  // Implement your business logic here...
-  //
-  // This function should return as follows:
-  //
-  // return {
-  //   status: 200, // Or another success code.
-  //   data: [] // Optional. You can put whatever you want here.
-  // };
-  //
-  // If an error happens during your business logic implementation,
-  // you should throw an error as follows:
-  //
-  // throw new Error({
-  //   status: 500, // Or another error code.
-  //   error: 'Server Error' // Or another error message.
-  // });
-
-	return {
-		code: 200,
-		data: 'getAutSubjectsRecordsByIdLock ok!'
-	};
-};
+export const getAutSubjectsRecordsByIdLock = async options => recordService.getRecordsByIdLock(connectionSubjects, redis, options);
 
