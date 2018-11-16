@@ -1,5 +1,5 @@
 {
-  "openapi": "3.0.0",
+  "swagger": "2.0",
   "info": {
     "title": "Melinda RESTful API",
     "version": "1.0.0"
@@ -31,7 +31,7 @@
         "parameters": [
           {
             "name": "noop",
-            "description": "Do not create the record but return the messages about the operation",
+            "description": "Do not create the record",
             "in": "query",
             "type": "boolean",
             "default": false
@@ -42,13 +42,6 @@
             "in": "query",
             "type": "boolean",
             "default": true
-          },
-          {
-            "name": "ownerAuthorization",
-            "description": "Require the credentials to have authority to change owner metadata",
-            "in": "query",
-            "type": "boolean",
-            "default": true
           }
         ],
         "requestBody": {
@@ -56,11 +49,13 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/MarcRecord"
-              }
+              "schema": { "$ref": "#/components/schemas/MarcRecord" }
             },
-            "application/xml": {}
+            "application/xml": {},
+            "application/marc+xml": {},
+            "application/vnd.oai.marcxml": {},
+            "application/vnd.exlibris.alephsequential": {},
+            "application/marc": {}
           }
         },
         "security": [{
@@ -71,11 +66,6 @@
               "description": "The record was not actually created (The parameter **noop** was set to true)",
               "content": {
                 "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/RecordModificationReport"
-                  }
-                },
-                "application/xml": {
                   "schema": {
                     "$ref": "#/components/schemas/RecordModificationReport"
                   }
@@ -97,11 +87,6 @@
                   "schema": {
                     "$ref": "#/components/schemas/RecordModificationReport"
                   }
-                },
-                "application/xml": {
-                  "schema": {
-                    "$ref": "#/components/schemas/RecordModificationReport"
-                  }
                 }
               }
             },
@@ -109,11 +94,6 @@
               "description": "The record data is invalid",
               "content": {
                 "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/RecordModificationReport"
-                  }
-                },
-                "application/xml": {
                   "schema": {
                     "$ref": "#/components/schemas/RecordModificationReport"
                   }
@@ -127,15 +107,7 @@
               "description": "The credentials are not authorized for this operation"
             },
             "409": {
-              "description": "The record has a duplicate in the datastore and **unique** was set to true",
-              "content": {
-                "application/json": {
-                  "$ref": "#/components/schemas/RecordModificationReport"
-                },
-                "application/xml": {
-                  "$ref": "#/components/schemas/RecordModificationReport"
-                }
-              }
+              "description": "The record has a duplicate in the datastore and **unique** was set to true"
             }
           }
         }
@@ -154,24 +126,10 @@
             },
             {
               "name": "noop",
-              "description": "Do not actually do the update but return the record in the format it would be uploaded",
+              "description": "Do not actually do the update the record",
               "in": "query",
               "type": "boolean",
               "default": false
-            },
-            {
-              "name": "sync",
-              "description": "Synchronize changes between the incoming record and the record in the datastore",
-              "in": "query",
-              "type": "boolean",
-              "default": false
-            },
-            {
-              "name": "ownerAuthorization",
-              "description": "Require the credentials to have authority to change owner metadata",
-              "in": "query",
-              "type": "boolean",
-              "default": true
             }
           ],
           "requestBody": {
@@ -179,11 +137,13 @@
             "required": true,
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MarcRecord"
-                }
+                "schema": { "$ref": "#/components/schemas/MarcRecord" }
               },
-              "application/xml": {}
+              "application/xml": {},
+              "application/marc+xml": {},
+              "application/vnd.oai.marcxml": {},
+              "application/vnd.exlibris.alephsequential": {},
+              "application/marc": {}
             }
           },
           "security": [{
@@ -191,7 +151,7 @@
             }],
             "responses": {
               "200": {
-                "description": "The record was updated successfully (Unless **noop** was set to true). Return final representation of the record in addition to operation metadata if **noop** was set to true",
+                "description": "The record was updated successfully (Unless **noop** was set to true)",
                 "content": {
                   "application/json": {
                     "schema": {
@@ -213,17 +173,13 @@
                         }
                       ]
                     }
-                  },
-                  "application/xml": {}
+                  }
                 }
               },
               "400": {
                 "description": "The record data is invalid",
                 "content": {
                   "application/json": {
-                    "schema": { "$ref": "#/components/schemas/RecordModificationReport" }
-                  },
-                  "application/xml": {
                     "schema": { "$ref": "#/components/schemas/RecordModificationReport" }
                   }
                 }
@@ -238,18 +194,7 @@
                 "description": "The record does not exist"
               },
               "409": {
-                "description": "The records could not be synchronized (The parameter **sync** was set to true)",
-                "content": {
-                  "application/json": {
-                    "$ref": "#/components/schemas/RecordModificationReport"
-                  },
-                  "application/xml": {
-                    "$ref": "#/components/schemas/RecordModificationReport"
-                  }
-                }
-              },
-              "423": {
-                "description": "The record is locked"
+                "description": "Record has changed in datastore and changes could not be synchronized"
               }
             }
           },
@@ -267,7 +212,11 @@
                   "application/json": {
                     "schema": { "$ref": "#/components/schemas/MarcRecord" }
                   },
-                  "application/xml": {}
+                  "application/xml": {},
+                  "application/marc+xml": {},
+                  "application/vnd.oai.marcxml": {},
+                  "application/vnd.exlibris.alephsequential": {},
+                  "application/marc": {}
                 },
                 "headers": {
                   "Record-ID": {
@@ -288,92 +237,6 @@
                 "description": "The record does not exist"
               }
             }
-          }
-        },
-        "/bib/records/{id}/lock": {
-          "post": {
-            "summary": "Lock a record or renew the record's lock",
-            "tags": ["/bib"],
-            "responses": {
-              "201": {
-                "description": "The lock was succesfully created"
-              },
-              "204": {
-                "description": "The lock was succesfully renewed"
-              },
-              "401": {
-                "description": "Credentials are invalid or missing"
-              },
-              "403": {
-                "description": "The credentials are not authorized for this operation"
-              },
-              "404": {
-                "description": "The lock does not exist"
-              },
-              "409": {
-                "description": "Creating or updating a lock failed because the lock is held by another user"
-              }
-            },
-            "security": [
-              {
-                "httpBasic": []
-              }
-            ]
-          },
-          "delete": {
-            "summary": "Unlock a record",
-            "description": "Unlock a record. Unlocking a record can be done by any user even if the lock is currently held by another user",
-            "tags": ["/bib"],
-            "responses": {
-              "204": {
-                "description": "The lock was succesfully deleted"
-              },
-              "401": {
-                "description": "Credentials are invalid or missing"
-              },
-              "403": {
-                "description": "The credentials are not authorized for this operation"
-              },
-              "404": {
-                "description": "The lock does not exist"
-              }
-            },
-            "security": [
-              {
-                "httpBasic": []
-              }
-            ]
-          },
-          "get": {
-            "summary": "Retrieve information about a record lock",
-            "tags": ["/bib"],
-            "responses": {
-              "200": {
-                "description": "Metadata about the lock",
-                "content": {
-                  "application/json": {
-                    "schema": { "$ref": "#/components/schemas/RecordLock" }
-                  },
-                  "application/xml": {
-                    "schema": { "$ref": "#/components/schemas/RecordLock" }
-                  }
-                }
-              },
-              "401": {
-                "description": "Credentials are invalid or missing"
-              },
-              "403": {
-                "description": "The credentials are not authorized for this operation"
-              },
-              "404": {
-                "description": "The lock does not exist"
-              }
-            },
-            "security": [
-              {
-                "httpBasic": []
-              }
-            ]
           }
         },
         "/aut/names/records": {
@@ -401,11 +264,13 @@
               "required": true,
               "content": {
                 "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/MarcRecord"
-                  }
+                  "schema": { "$ref": "#/components/schemas/MarcRecord" }
                 },
-                "application/xml": {}
+                "application/xml": {},
+                "application/marc+xml": {},
+                "application/vnd.oai.marcxml": {},
+                "application/vnd.exlibris.alephsequential": {},
+                "application/marc": {}
               }
             },
             "security": [{
@@ -416,11 +281,6 @@
                   "description": "The record was not actually created (The parameter **noop** was set to true)",
                   "content": {
                     "application/json": {
-                      "schema": {
-                        "$ref": "#/components/schemas/RecordModificationReport"
-                      }
-                    },
-                    "application/xml": {
                       "schema": {
                         "$ref": "#/components/schemas/RecordModificationReport"
                       }
@@ -442,11 +302,6 @@
                       "schema": {
                         "$ref": "#/components/schemas/RecordModificationReport"
                       }
-                    },
-                    "application/xml": {
-                      "schema": {
-                        "$ref": "#/components/schemas/RecordModificationReport"
-                      }
                     }
                   }
                 },
@@ -454,11 +309,6 @@
                   "description": "The record data is invalid",
                   "content": {
                     "application/json": {
-                      "schema": {
-                        "$ref": "#/components/schemas/RecordModificationReport"
-                      }
-                    },
-                    "application/xml": {
                       "schema": {
                         "$ref": "#/components/schemas/RecordModificationReport"
                       }
@@ -472,15 +322,7 @@
                   "description": "The credentials are not authorized for this operation"
                 },
                 "409": {
-                  "description": "The record has a duplicate in the datastore and **unique** was set to true",
-                  "content": {
-                    "application/json": {
-                      "$ref": "#/components/schemas/RecordModificationReport"
-                    },
-                    "application/xml": {
-                      "$ref": "#/components/schemas/RecordModificationReport"
-                    }
-                  }
+                  "description": "The record has a duplicate in the datastore and **unique** was set to true"
                 }
               }
             }
@@ -499,14 +341,7 @@
                 },
                 {
                   "name": "noop",
-                  "description": "Do not actually do the update but return the record in the format it would be uploaded",
-                  "in": "query",
-                  "type": "boolean",
-                  "default": false
-                },
-                {
-                  "name": "sync",
-                  "description": "Synchronize changes between the incoming record and the record in the datastore",
+                  "description": "Do not actually do the update the record",
                   "in": "query",
                   "type": "boolean",
                   "default": false
@@ -517,11 +352,13 @@
                 "required": true,
                 "content": {
                   "application/json": {
-                    "schema": {
-                      "$ref": "#/components/schemas/MarcRecord"
-                    }
+                    "schema": { "$ref": "#/components/schemas/MarcRecord" }
                   },
-                  "application/xml": {}
+                  "application/xml": {},
+                  "application/marc+xml": {},
+                  "application/vnd.oai.marcxml": {},
+                  "application/vnd.exlibris.alephsequential": {},
+                  "application/marc": {}
                 }
               },
               "security": [{
@@ -529,7 +366,7 @@
                 }],
                 "responses": {
                   "200": {
-                    "description": "The record was updated successfully (Unless **noop** was set to true). Return final representation of the record in addition to operation metadata if **noop** was set to true",
+                    "description": "The record was updated successfully (Unless **noop** was set to true)",
                     "content": {
                       "application/json": {
                         "schema": {
@@ -551,17 +388,13 @@
                             }
                           ]
                         }
-                      },
-                      "application/xml": {}
+                      }
                     }
                   },
                   "400": {
                     "description": "The record data is invalid",
                     "content": {
                       "application/json": {
-                        "schema": { "$ref": "#/components/schemas/RecordModificationReport" }
-                      },
-                      "application/xml": {
                         "schema": { "$ref": "#/components/schemas/RecordModificationReport" }
                       }
                     }
@@ -576,18 +409,7 @@
                     "description": "The record does not exist"
                   },
                   "409": {
-                    "description": "The records could not be synchronized (The parameter **sync** was set to true)",
-                    "content": {
-                      "application/json": {
-                        "$ref": "#/components/schemas/RecordModificationReport"
-                      },
-                      "application/xml": {
-                        "$ref": "#/components/schemas/RecordModificationReport"
-                      }
-                    }
-                  },
-                  "423": {
-                    "description": "The record is locked"
+                    "description": "Record has changed in datastore and changes could not be synchronized"
                   }
                 }
               },
@@ -605,7 +427,11 @@
                       "application/json": {
                         "schema": { "$ref": "#/components/schemas/MarcRecord" }
                       },
-                      "application/xml": {}
+                      "application/xml": {},
+                      "application/marc+xml": {},
+                      "application/vnd.oai.marcxml": {},
+                      "application/vnd.exlibris.alephsequential": {},
+                      "application/marc": {}
                     },
                     "headers": {
                       "Record-ID": {
@@ -628,92 +454,6 @@
                 }
               }
             },
-            "/aut/names/records/{id}/lock": {
-              "post": {
-                "summary": "Lock a record or renew the record's lock",
-                "tags": ["/aut/names"],
-                "responses": {
-                  "201": {
-                    "description": "The lock was succesfully created"
-                  },
-                  "204": {
-                    "description": "The lock was succesfully renewed"
-                  },
-                  "401": {
-                    "description": "Credentials are invalid or missing"
-                  },
-                  "403": {
-                    "description": "The credentials are not authorized for this operation"
-                  },
-                  "404": {
-                    "description": "The lock does not exist"
-                  },
-                  "409": {
-                    "description": "Creating or updating a lock failed because the lock is held by another user"
-                  }
-                },
-                "security": [
-                  {
-                    "httpBasic": []
-                  }
-                ]
-              },
-              "delete": {
-                "summary": "Unlock a record",
-                "description": "Unlock a record. Unlocking a record can be done by any user even if the lock is currently held by another user",
-                "tags": ["/aut/names"],
-                "responses": {
-                  "204": {
-                    "description": "The lock was succesfully deleted"
-                  },
-                  "401": {
-                    "description": "Credentials are invalid or missing"
-                  },
-                  "403": {
-                    "description": "The credentials are not authorized for this operation"
-                  },
-                  "404": {
-                    "description": "The lock does not exist"
-                  }
-                },
-                "security": [
-                  {
-                    "httpBasic": []
-                  }
-                ]
-              },
-              "get": {
-                "summary": "Retrieve information about a record lock",
-                "tags": ["/aut/names"],
-                "responses": {
-                  "200": {
-                    "description": "Metadata about the lock",
-                    "content": {
-                      "application/json": {
-                        "schema": { "$ref": "#/components/schemas/RecordLock" }
-                      },
-                      "application/xml": {
-                        "schema": { "$ref": "#/components/schemas/RecordLock" }
-                      }
-                    }
-                  },
-                  "401": {
-                    "description": "Credentials are invalid or missing"
-                  },
-                  "403": {
-                    "description": "The credentials are not authorized for this operation"
-                  },
-                  "404": {
-                    "description": "The lock does not exist"
-                  }
-                },
-                "security": [
-                  {
-                    "httpBasic": []
-                  }
-                ]
-              }
-            },
             "/aut/subjects/records": {
               "post": {
                 "summary": "Create a record",
@@ -721,7 +461,7 @@
                 "parameters": [
                   {
                     "name": "noop",
-                    "description": "Do not create the record but return the messages about the operation",
+                    "description": "Do not create the record",
                     "in": "query",
                     "type": "boolean",
                     "default": false
@@ -739,11 +479,13 @@
                   "required": true,
                   "content": {
                     "application/json": {
-                      "schema": {
-                        "$ref": "#/components/schemas/MarcRecord"
-                      }
+                      "schema": { "$ref": "#/components/schemas/MarcRecord" }
                     },
-                    "application/xml": {}
+                    "application/xml": {},
+                    "application/marc+xml": {},
+                    "application/vnd.oai.marcxml": {},
+                    "application/vnd.exlibris.alephsequential": {},
+                    "application/marc": {}  
                   }
                 },
                 "security": [{
@@ -754,11 +496,6 @@
                       "description": "The record was not actually created (The parameter **noop** was set to true)",
                       "content": {
                         "application/json": {
-                          "schema": {
-                            "$ref": "#/components/schemas/RecordModificationReport"
-                          }
-                        },
-                        "application/xml": {
                           "schema": {
                             "$ref": "#/components/schemas/RecordModificationReport"
                           }
@@ -780,11 +517,6 @@
                           "schema": {
                             "$ref": "#/components/schemas/RecordModificationReport"
                           }
-                        },
-                        "application/xml": {
-                          "schema": {
-                            "$ref": "#/components/schemas/RecordModificationReport"
-                          }
                         }
                       }
                     },
@@ -792,11 +524,6 @@
                       "description": "The record data is invalid",
                       "content": {
                         "application/json": {
-                          "schema": {
-                            "$ref": "#/components/schemas/RecordModificationReport"
-                          }
-                        },
-                        "application/xml": {
                           "schema": {
                             "$ref": "#/components/schemas/RecordModificationReport"
                           }
@@ -810,15 +537,7 @@
                       "description": "The credentials are not authorized for this operation"
                     },
                     "409": {
-                      "description": "The record has a duplicate in the datastore and **unique** was set to true",
-                      "content": {
-                        "application/json": {
-                          "$ref": "#/components/schemas/RecordModificationReport"
-                        },
-                        "application/xml": {
-                          "$ref": "#/components/schemas/RecordModificationReport"
-                        }
-                      }
+                      "description": "The record has a duplicate in the datastore and **unique** was set to true"
                     }
                   }
                 }
@@ -837,14 +556,7 @@
                     },
                     {
                       "name": "noop",
-                      "description": "Do not actually do the update but return the record in the format it would be uploaded",
-                      "in": "query",
-                      "type": "boolean",
-                      "default": false
-                    },
-                    {
-                      "name": "sync",
-                      "description": "Synchronize changes between the incoming record and the record in the datastore",
+                      "description": "Do not actually do the update the record",
                       "in": "query",
                       "type": "boolean",
                       "default": false
@@ -855,11 +567,13 @@
                     "required": true,
                     "content": {
                       "application/json": {
-                        "schema": {
-                          "$ref": "#/components/schemas/MarcRecord"
-                        }
+                        "schema": { "$ref": "#/components/schemas/MarcRecord" }
                       },
-                      "application/xml": {}
+                      "application/xml": {},
+                      "application/marc+xml": {},
+                      "application/vnd.oai.marcxml": {},
+                      "application/vnd.exlibris.alephsequential": {},
+                      "application/marc": {}
                     }
                   },
                   "security": [{
@@ -867,39 +581,19 @@
                     }],
                     "responses": {
                       "200": {
-                        "description": "The record was updated successfully (Unless **noop** was set to true). Return final representation of the record in addition to operation metadata if **noop** was set to true",
+                        "description": "The record was updated successfully (Unless **noop** was set to true)",
                         "content": {
                           "application/json": {
                             "schema": {
-                              "oneOf": [
-                                {
-                                  "$ref": "#/components/schemas/RecordModificationReport"
-                                },
-                                {
-                                  "type": "object",
-                                  "properties": {
-                                    "record": {
-                                      "$ref":  "#/components/schemas/MarcRecord",
-                                      "required": "true"
-                                    },
-                                    "report": {
-                                      "$ref":  "#/components/schemas/RecordModificationReport"
-                                    }
-                                  }
-                                }
-                              ]
+                              "$ref": "#/components/schemas/RecordModificationReport"
                             }
-                          },
-                          "application/xml": {}
+                          }
                         }
                       },
                       "400": {
                         "description": "The record data is invalid",
                         "content": {
                           "application/json": {
-                            "schema": { "$ref": "#/components/schemas/RecordModificationReport" }
-                          },
-                          "application/xml": {
                             "schema": { "$ref": "#/components/schemas/RecordModificationReport" }
                           }
                         }
@@ -914,18 +608,7 @@
                         "description": "The record does not exist"
                       },
                       "409": {
-                        "description": "The records could not be synchronized (The parameter **sync** was set to true)",
-                        "content": {
-                          "application/json": {
-                            "$ref": "#/components/schemas/RecordModificationReport"
-                          },
-                          "application/xml": {
-                            "$ref": "#/components/schemas/RecordModificationReport"
-                          }
-                        }
-                      },
-                      "423": {
-                        "description": "The record is locked"
+                        "description": "Record has changed in datastore and changes could not be synchronized"                        
                       }
                     }
                   },
@@ -943,7 +626,11 @@
                           "application/json": {
                             "schema": { "$ref": "#/components/schemas/MarcRecord" }
                           },
-                          "application/xml": {}
+                          "application/xml": {},
+                          "application/marc+xml": {},
+                          "application/vnd.oai.marcxml": {},
+                          "application/vnd.exlibris.alephsequential": {},
+                          "application/marc": {}  
                         },
                         "headers": {
                           "Record-ID": {
@@ -964,92 +651,6 @@
                         "description": "The record does not exist"
                       }
                     }
-                  }
-                },
-                "/aut/subjects/records/{id}/lock": {
-                  "post": {
-                    "summary": "Lock a record or renew the record's lock",
-                    "tags": ["/aut/subjects"],
-                    "responses": {
-                      "201": {
-                        "description": "The lock was succesfully created"
-                      },
-                      "204": {
-                        "description": "The lock was succesfully renewed"
-                      },
-                      "401": {
-                        "description": "Credentials are invalid or missing"
-                      },
-                      "403": {
-                        "description": "The credentials are not authorized for this operation"
-                      },
-                      "404": {
-                        "description": "The lock does not exist"
-                      },
-                      "409": {
-                        "description": "Creating or updating a lock failed because the lock is held by another user"
-                      }
-                    },
-                    "security": [
-                      {
-                        "httpBasic": []
-                      }
-                    ]
-                  },
-                  "delete": {
-                    "summary": "Unlock a record",
-                    "description": "Unlock a record. Unlocking a record can be done by any user even if the lock is currently held by another user",
-                    "tags": ["/aut/subjects"],
-                    "responses": {
-                      "204": {
-                        "description": "The lock was succesfully deleted"
-                      },
-                      "401": {
-                        "description": "Credentials are invalid or missing"
-                      },
-                      "403": {
-                        "description": "The credentials are not authorized for this operation"
-                      },
-                      "404": {
-                        "description": "The lock does not exist"
-                      }
-                    },
-                    "security": [
-                      {
-                        "httpBasic": []
-                      }
-                    ]
-                  },
-                  "get": {
-                    "summary": "Retrieve information about a record lock",
-                    "tags": ["/aut/subjects"],
-                    "responses": {
-                      "200": {
-                        "description": "Metadata about the lock",
-                        "content": {
-                          "application/json": {
-                            "schema": { "$ref": "#/components/schemas/RecordLock" }
-                          },
-                          "application/xml": {
-                            "schema": { "$ref": "#/components/schemas/RecordLock" }
-                          }
-                        }
-                      },
-                      "401": {
-                        "description": "Credentials are invalid or missing"
-                      },
-                      "403": {
-                        "description": "The credentials are not authorized for this operation"
-                      },
-                      "404": {
-                        "description": "The lock does not exist"
-                      }
-                    },
-                    "security": [
-                      {
-                        "httpBasic": []
-                      }
-                    ]
                   }
                 }
               },
@@ -1072,39 +673,21 @@
                             "type": {
                               "type": "string",
                               "enum": ["error", "warning", "info"],
-                              "required": true,
-                              "xml": {
-                                "attribute": true
-                              }
+                              "required": true
                             },
                             "message": {
                               "type": "string",
-                              "required": true,
-                              "xml": {
-                                "name": "text"
-                              }
+                              "required": true
                             },
                             "duplicates": {
                               "type": "array",
                               "items": {
-                                "type": "string",
-                                "xml": {
-                                  "name": "id"
-                                }
-                              },
-                              "xml": {
-                                "wrapped": true
+                                "type": "string"
                               }
                             }
                           }
-                        },
-                        "xml": {
-                          "name": "message"
                         }
                       }
-                    },
-                    "xml": {
-                      "name": "messages"
                     },
                     "example": {
                       "messages": [
@@ -1118,27 +701,6 @@
                           "duplicates": ["123456", "789100"]
                         }
                       ]
-                    }
-                  },
-                  "RecordLock": {
-                    "type": "object",
-                    "properties": {
-                      "username": {
-                        "description": "User who holds the lock",
-                        "type": "string",
-                        "required": true
-                      },
-                      "expirationTime": {
-                        "type": "string",
-                        "format": "date-time",
-                        "required": true,
-                        "xml": {
-                          "attribute": true
-                        }
-                      }
-                    },
-                    "xml": {
-                      "name": "lock"
                     }
                   },
                   "MarcRecord": {
