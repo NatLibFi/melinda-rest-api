@@ -1,7 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 import _ from 'lodash';
-import MarcRecordSerializers from 'marc-record-serializers';
-import MarcRecord from 'marc-record-js';
+import MarcRecordSerializers from '@natlibfi/marc-record-serializers';
+import {MarcRecord} from '@natlibfi/marc-record';
 import {parse, isBefore} from 'date-fns';
 
 export function convertRecord(input, to, from) {

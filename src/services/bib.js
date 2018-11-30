@@ -27,64 +27,59 @@
 * for the JavaScript code in this file.
 *
 */
-import zoom from 'node-zoom2';
-import IORedis from 'ioredis';
-import {DB_HOST, DB_NAME_BIB, REDIS_PREFIX, ALEPH_OWN_AUTH_API_URL} from '../config';
-import * as recordService from './record';
+import createConversionService from './conversion';
+import createOwnAuthorizationService from './own-authorization';
+import createRecordMatchingService from './record-matching';
+import createValidationService from './validation';
+import createDatastoreService from './datastore';
 
-const connection = zoom.connection(`${DB_HOST}/${DB_NAME_BIB}`).set('elementSetName', 'X');
+export default function({sruURL, ownAuthorizationURL, recordLoadURL}) {
+	const ConversionService = createConversionService();
+	const OwnAuthorizationService = createOwnAuthorizationService({apiURL: ownAuthorizationURL});
+	const RecordMatchingService = createRecordMatchingService({sruURL});
+	const ValidationService = createValidationService();
+	const DatastoreService = createDatastoreService({sruURL, recordLoadURL});
 
-const redis = new IORedis({
-	keyPrefix: REDIS_PREFIX ? REDIS_PREFIX + ':bib:' : 'bib:'
-});
-
-/**
- * @param {Object} options
- * @param {Boolean} options.noop Do not create the record but return the messages about the operation
- * @param {Boolean} options.unique Do not create the record if there are duplicates in the datastore
- * @param {Boolean} options.ownerAuthorization Require the credentials to have authority to change owner metadata
- * @throws {Error}
- * @return {Promise}
- */
-export const postBibRecords = async options => recordService.postRecords(connection, options);
-
-/**
- * @param {String} body The body of record to be updated
- * @param {Object} options
- * @param {String} options.recordId The identifier of the record that's going to be updated
- * @param {String} options.format Format used to serialize and unserialize record
- * @param {Boolean} options.noop Do not actually do the update but return the record in the format it would be uploaded
- * @param {Boolean} options.sync Synchronize changes between the incoming record and the record in the datastore
- * @param {Boolean} options.ownerAuthorization Require the credentials to have authority to change owner metadata
- * @throws {Error}
- * @return {Promise}
- */
-export const postBibRecordsById = async (body, options) => recordService.postRecordsById(connection, redis, ALEPH_OWN_AUTH_API_URL, body, options);
-
-/**
- * @param {Object} options
- * @throws {Error}
- * @return {Promise}
- */
-export const getBibRecordById = async options => recordService.getRecordById(connection, options);
-
-/**
- * @param {Object} options
- * @throws {Error}
- * @return {Promise}
- */
-export const postBibRecordsByIdLock = async options => recordService.postRecordsByIdLock(connection, redis, options);
-
-/**
- * @param {Object} options
- * @throws {Error}
- * @return {Promise}
- */
-export const deleteBibRecordsByIdLock = async options => recordService.deleteRecordsByIdLock(connection, redis, options);
-
-/**
- * @param {Object} options
- * @throws {Error}
- * @return {Promise}
- */
-export const getBibRecordsByIdLock = async options => recordService.getRecordsByIdLock(connection, redis, options);
+	return { read, create, update };
+	
+	async function read({id, format}) {
+		const record = await DatastoreService.read(id);
+		return ConversionService.serialize(record, format);
+	}
+	
+	async function create({data, format, credentials, noop, unique}) {
+		const record = ConversionService.unserialize(data, format);
+		
+		await OwnAuthorizationService.check(record, credentials);
+		
+		if (unique) {
+			await RecordMatchingService.check(record);
+		}
+		
+		const validationResults = await ValidationService.validate(record);
+		
+		if (noop) {
+			return [validationResults];
+		}
+		
+		const id = await DatastoreService.create(record, credentials);
+		
+		return [validationResults, id]
+	}
+	
+	async function update({data, id, format, credentials, noop}) {
+		const record = ConversionService.unserialize(data, format);
+		
+		await OwnAuthorizationService.check(record, credentials);
+		
+		const validationResults = await ValidationService.validate(record);
+		
+		if (noop) {
+			return validationResults;
+		}
+		
+		const id = await DatastoreService.create(record, credentials);
+		
+		return validationResults
+	}
+}

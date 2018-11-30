@@ -27,32 +27,84 @@
 * for the JavaScript code in this file.
 *
 */
-import axios from 'axios';
+
 import passport from 'passport';
-import MarcRecord from 'marc-record-js';
-import * as AuthorizedPortion from '@natlibfi/melinda-marc-record-utils/dist/authorized-portion';
+import createSruClient from '@natlibfi/sru-client';
+import {MarcRecord} from '@natlibfi/marc-record';
 import dateAddSeconds from 'date-fns/add_seconds';
 import dateParse from 'date-fns/parse';
 import dateFormat from 'date-fns/format';
 import dateIsFuture from 'date-fns/is_future';
 import {recordFrom, recordTo, findNewerCATFields, selectFirstSubfieldValue} from '../record-utils';
 import fieldOrderComparator from '../marc-field-sort';
-import validate from '../marc-record-validate';
-import {LOCK_DURATION} from '../config';
+// Import validate from '../marc-record-validate';
 
-export const getRecordLock = async (redis, recordId) => {
-	const lock = await redis.hgetall('lock:' + recordId);
+/* eslint-disable capitalized-comments, spaced-comment */
 
-	const lockExists = Object.getOwnPropertyNames(lock).length > 0 && dateIsFuture(lock.expiresAt);
+const SRU_VERSION = '2.0';
 
-	if (!lockExists) {
-		return false;
-	}
+export default function ({sruAPI, xAPI, recordLoadAPI, ownAuthAPI}) {
+	const m = new MarcRecord();
+	const sruClient = createSruClient({url: sruAPI, version: SRU_VERSION});
 
-	return lock;
-};
+	return {
+		get: async (id, format = 'json') => {
 
-export const fetchRecordById = (connection, recordId, verifyIfExists = false) => {
+		},
+		create: async (record, format) => {
+
+		},
+		update: async (id, record, format) => {
+
+		}
+	};
+}
+
+/**
+* @param {Object} options
+* @throws {Error}
+* @return {Promise}
+*/
+export async function getRecordById({sruClient, id, format}) {
+	const m = new MarcRecord();
+	const xml = await sruClient.searchRetrieve(`rec.id=${id}`);
+	console.log(xml);
+	/*return new Promise((resolve, reject) => {
+		let record;
+
+		connection.query('cql', `rec.id = ${recordId}`)
+			.createReadStream()
+			.on('data', r => {
+				record = r.xml;
+			})
+			.on('close', () => {
+				if (verifyIfExists) {
+					if (record) {
+						return resolve(true);
+					}
+					return resolve(false);
+				}
+
+				if (!record) {
+					throw new Error('Record Not Found');
+				}
+
+				resolve(recordFrom(record, 'marcxml'));
+			});
+	});
+	const {recordId, format = 'json'} = options;
+
+	const record = await fetchRecordById(connection, recordId);
+
+	return {
+		status: 200,
+		data: recordTo(record, format)
+	};*/
+}
+
+/*
+export const fetchRecordById = ({sruClient, id}) => {
+	const xml = await sruClient.searchRetrieve(`rec.id=${id}`);
 	return new Promise((resolve, reject) => {
 		let record;
 
@@ -76,8 +128,8 @@ export const fetchRecordById = (connection, recordId, verifyIfExists = false) =>
 				resolve(recordFrom(record, 'marcxml'));
 			});
 	});
-};
-
+};*/
+/*
 /**
 * @param {Object} connection node-zoom2 connection
 * @param {Object} options
@@ -87,7 +139,7 @@ export const fetchRecordById = (connection, recordId, verifyIfExists = false) =>
 * @throws {Error}
 * @return {Promise}
 */
-export const postRecords = async (connection, options) => {
+/*export const postRecords = async (connection, options) => {
 	return new Promise((resolve, reject) => {
 		connection
 			.updateRecord({
@@ -116,7 +168,7 @@ export const postRecords = async (connection, options) => {
 			});
 	});
 };
-
+*/
 /**
 * @param {Object} connection node-zoom2 connection
 * @param {Object} redis ioredis connection
@@ -131,7 +183,7 @@ export const postRecords = async (connection, options) => {
 * @throws {Error}
 * @return {Promise}
 */
-export const postRecordsById = async (connection, redis, ownAuthApiUrl, body, options) => {
+/*export const postRecordsById = async (connection, redis, ownAuthApiUrl, body, options) => {
 	const {recordId, format, user, sync = false, noop = false, ownerAuthorization = false} = options;
 
 	const lock = await getRecordLock(redis, recordId);
@@ -232,7 +284,7 @@ export const postRecordsById = async (connection, redis, ownAuthApiUrl, body, op
 
 		return response.data;
 	}
-};
+};*/
 
 /**
 * @param {Object} connection node-zoom2 connection
@@ -240,7 +292,7 @@ export const postRecordsById = async (connection, redis, ownAuthApiUrl, body, op
 * @throws {Error}
 * @return {Promise}
 */
-export const getRecordById = async (connection, options) => {
+/*export const getRecordById = async (connection, options) => {
 	const {recordId, format = 'json'} = options;
 
 	const record = await fetchRecordById(connection, recordId);
@@ -249,122 +301,4 @@ export const getRecordById = async (connection, options) => {
 		status: 200,
 		data: recordTo(record, format)
 	};
-};
-
-/**
-* @param {Object} connection node-zoom2 connection
-* @param {Object} redis ioredis connection
-* @param {Object} options
-* @throws {Error}
-* @return {Promise}
-*/
-export const postRecordsByIdLock = async (connection, redis, options) => {
-	try {
-		const {recordId, user} = options;
-
-		const recordExists = await fetchRecordById(connection, recordId, true);
-
-		if (!recordExists) {
-			return {
-				status: 404,
-				data: 'Not Found'
-			};
-		}
-
-		const lock = await getRecordLock(redis, recordId);
-
-		if (lock && lock.user !== user.userName) {
-			return {
-				status: 409,
-				data: 'Creating or updating a lock failed because the lock is held by another user'
-			};
-		}
-
-		const expiresAt = dateAddSeconds(Date.now(), LOCK_DURATION);
-
-		const result = await redis.multi()
-			.hmset('lock:' + recordId, {
-				user: user.userName,
-				expiresAt: dateFormat(expiresAt)
-			})
-			.expireat('lock:' + recordId, dateFormat(expiresAt, 'X'))
-			.exec();
-
-		if (lock) {
-			return {
-				status: 204,
-				data: 'The lock was succesfully renewed'
-			};
-		}
-
-		return {
-			status: 201,
-			data: 'The lock was succesfully created'
-		};
-	} catch (err) {
-		console.error(err);
-		throw new Error('Internal Server Error');
-	}
-};
-
-/**
-* @param {Object} connection node-zoom2 connection
-* @param {Object} redis ioredis connection
-* @param {Object} options
-* @throws {Error}
-* @return {Promise}
-*/
-export const deleteRecordsByIdLock = async (connection, redis, options) => {
-	try {
-		const {recordId, user} = options;
-
-		const lock = await getRecordLock(redis, recordId);
-
-		if (!lock) {
-			return {
-				status: 404,
-				data: 'Not Found'
-			};
-		}
-
-		const result = await redis.del('lock:' + recordId);
-
-		return {
-			status: 204,
-			data: 'The lock was succesfully deleted'
-		};
-	} catch (err) {
-		console.error(err);
-		throw new Error('Internal Server Error');
-	}
-};
-
-/**
-* @param {Object} connection node-zoom2 connection
-* @param {Object} redis ioredis connection
-* @param {Object} options
-* @throws {Error}
-* @return {Promise}
-*/
-export const getRecordsByIdLock = async (connection, redis, options) => {
-	try {
-		const {recordId, user} = options;
-
-		const lock = await getRecordLock(redis, recordId);
-
-		if (!lock) {
-			return {
-				status: 404,
-				data: 'Not Found'
-			};
-		}
-
-		return {
-			status: 200,
-			data: lock
-		};
-	} catch (err) {
-		console.error(err);
-		throw new Error('Internal Server Error');
-	}
-};
+};*/

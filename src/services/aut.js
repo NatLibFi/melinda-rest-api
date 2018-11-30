@@ -28,8 +28,6 @@
 *
 */
 
-import zoom from 'node-zoom2';
-import IORedis from 'ioredis';
 import {DB_HOST, DB_NAME_AUT_NAMES, DB_NAME_AUT_SUBJECTS, REDIS_PREFIX} from '../config';
 import * as recordService from './record';
 
