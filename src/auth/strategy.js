@@ -1,5 +1,3 @@
-/* eslint-disable no-unused-vars, valid-jsdoc */
-
 /**
 *
 * @licstart  The following is the entire license notice for the JavaScript code in this file.
@@ -27,16 +25,24 @@
 * for the JavaScript code in this file.
 *
 */
-import validateFactory from '@natlibfi/marc-record-validate';
-import {
-	EmptyFields,
-	FieldsPresent,
-	IdenticalFields,
-	EndingPunctuation,
-	Punctuation,
-	UnicodeDecomposition,
-	FieldStructure,
-	ResolvableExtReferencesMelinda
-} from '@natlibfi/marc-record-validators-melinda';
 
-export default validateFactory([]);
+import {BasicStrategy} from 'passport-http';
+import createAuthenticationService from './service';
+
+export default class extends BasicStrategy {
+	constructor({url, library}) {
+		const AuthenticationService = createAuthenticationService({url, library});
+
+		super(async (username, password, done) => {
+			console.log('test');
+			try {
+				const user = await AuthenticationService.authenticate({username, password});
+				done(user);
+			} catch (err) {
+				done(err);
+			}
+		});
+
+		this.name = 'melinda';
+	}
+}

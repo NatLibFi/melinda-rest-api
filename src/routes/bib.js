@@ -26,50 +26,57 @@
 *
 */
 
-import express from 'express';
-import bodyParser from 'body-parser';
-import * as bib from '../services/bib';
-import {MIMETYPES, MIMETYPES_JSON, MIMETYPES_TEXT} from '../constants';
+import {Router} from 'express';
+import passport from 'passport';
+import {Strategy as MelindaStrategy} from '../auth';
+// Import createBibService as bib from '../services/bib';
+import {ALEPH_X_SERVICE_URL, ALEPH_USER_LIBRARY} from '../config'
 
-const router = new express.Router();
+export default Router;
 
-router.use(bodyParser.json({type: MIMETYPES_JSON}));
-router.use(bodyParser.text({type: MIMETYPES_TEXT}));
+const BibRouter = new Router();
 
-/**
- * Create a record
- */
-router.post('/records', async (req, res) => {
-	const options = {
-		noop: req.query.noop,
-		unique: req.query.unique,
-		ownerAuthorization: req.query.ownerAuthorization,
-		record: req.body.record
-	};
+passport.use(new MelindaStrategy({url: ALEPH_X_SERVICE_URL, library: ALEPH_USER_LIBRARY}));
+BibRouter.use(passport.initialize());
 
+BibRouter.use(passport.authenticate('melinda'));
+
+BibRouter.post('/', async res => {
+	console.log('BAR');
+	res.send('FOO');
+});
+/*
+Router.post('/', async (req, res) => {
 	try {
-		const result = await bib.postBibRecords(options);
+		const options = {
+			noop: req.query.noop,
+			unique: req.query.unique,
+			data: req.body,
+			format: parseContentType(req),
+			cataloguer: req.user.id
+		};
+
+		const id = await bib.create(options);
 		res.status(result.status || 200).send(result.data);
 	} catch (err) {
-		return res.status(err.status || 500).send(err.message);
+		if (err instanceof RecordServiceError) {
+		}
+
+		return res.status(HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 });
 
-/**
- * Update a record
- */
-router.post('/records/:id', async (req, res) => {
+Router.post('/:id', async (req, res) => {
 	const type = req.get('Content-Type');
 
 	const format = MIMETYPES[type];
 
 	const options = {
+		format,
 		recordId: req.params.id,
 		noop: req.query.noop === 'true',
 		sync: req.query.sync === 'true',
-		ownerAuthorization: req.query.ownerAuthorization === 'true',
-		user: req.user,
-		format
+		cataloguer: req.user.id
 	};
 
 	try {
@@ -80,10 +87,7 @@ router.post('/records/:id', async (req, res) => {
 	}
 });
 
-/**
- * Retrieve a record
- */
-router.get('/records/:id', async (req, res) => {
+Router.get('/:id', async (req, res) => {
 	const type = req.accepts(Object.keys(MIMETYPES));
 
 	const format = MIMETYPES[type];
@@ -102,57 +106,16 @@ router.get('/records/:id', async (req, res) => {
 	}
 });
 
-/**
- * Lock a record or renew the record's lock
- */
-router.post('/records/:id/lock', async (req, res) => {
-	const options = {
-		recordId: req.params.id,
-		user: req.user
-	};
+function parseContentType(request) {
+	const type = request.headers['Content-Type'];
 
-	try {
-		const result = await bib.postBibRecordsByIdLock(options);
-
-		res.status(result.status || 200).send(result.data);
-	} catch (err) {
-		console.log(err);
-		return res.status(err.status || 500).send(err.message);
+	switch (type) {
+		case 'application/marc':
+		return 'iso2709';
+		case 'application/xml':
+		return 'marcxml';
+		case 'application/json':
+		return 'json';
 	}
-});
-
-/**
- * Unlock a record
- */
-router.delete('/records/:id/lock', async (req, res) => {
-	const options = {
-		recordId: req.params.id,
-		user: req.user
-	};
-
-	try {
-		const result = await bib.deleteBibRecordsByIdLock(options);
-		res.status(result.status || 200).send(result.data);
-	} catch (err) {
-		return res.status(err.status || 500).send(err.message);
-	}
-});
-
-/**
- * Retrieve information about a record lock
- */
-router.get('/records/:id/lock', async (req, res) => {
-	const options = {
-		recordId: req.params.id,
-		user: req.user
-	};
-
-	try {
-		const result = await bib.getBibRecordsByIdLock(options);
-		res.status(result.status || 200).send(result.data);
-	} catch (err) {
-		return res.status(err.status || 500).send(err.message);
-	}
-});
-
-export default router;
+}
+*/

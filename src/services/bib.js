@@ -28,58 +28,58 @@
 *
 */
 import createConversionService from './conversion';
-import createOwnAuthorizationService from './own-authorization';
 import createRecordMatchingService from './record-matching';
+import createOwnAuthorizationService from './authorization';
 import createValidationService from './validation';
 import createDatastoreService from './datastore';
 
-export default function({sruURL, ownAuthorizationURL, recordLoadURL}) {
+export default async function ({sruURL, authorizationURL, authorizationApiKey, recordLoadURL, recordLoadApiKey}) {
 	const ConversionService = createConversionService();
-	const OwnAuthorizationService = createOwnAuthorizationService({apiURL: ownAuthorizationURL});
 	const RecordMatchingService = createRecordMatchingService({sruURL});
-	const ValidationService = createValidationService();
-	const DatastoreService = createDatastoreService({sruURL, recordLoadURL});
+	const AuthorizationService = await createOwnAuthorizationService({sruURL, apiKey: ownAuthorizationApiKey, apiURL: authorizationURL});
+	const ValidationService = await createValidationService();
+	const DatastoreService = createDatastoreService({sruURL, apiURL: recordLoadURL, apiKey: recordLoadApiKey});
 
-	return { read, create, update };
-	
-	async function read({id, format}) {
+	return {read, create, update};
+
+	async function read({id, credentials, format}) {
 		const record = await DatastoreService.read(id);
 		return ConversionService.serialize(record, format);
 	}
-	
+
 	async function create({data, format, credentials, noop, unique}) {
 		const record = ConversionService.unserialize(data, format);
-		
-		await OwnAuthorizationService.check(record, credentials);
-		
+
+		AuthorizationService.check({username: credentials.username, record});
+
 		if (unique) {
 			await RecordMatchingService.check(record);
 		}
-		
+
 		const validationResults = await ValidationService.validate(record);
-		
+
 		if (noop) {
 			return [validationResults];
 		}
-		
+
 		const id = await DatastoreService.create(record, credentials);
-		
-		return [validationResults, id]
+
+		return [validationResults, id];
 	}
-	
+
 	async function update({data, id, format, credentials, noop}) {
 		const record = ConversionService.unserialize(data, format);
-		
-		await OwnAuthorizationService.check(record, credentials);
-		
+
+		await AuthorizationService.check({record, id, credentials});
+
 		const validationResults = await ValidationService.validate(record);
-		
+
 		if (noop) {
 			return validationResults;
 		}
-		
+
 		const id = await DatastoreService.create(record, credentials);
-		
-		return validationResults
+
+		return validationResults;
 	}
 }
