@@ -28,94 +28,107 @@
 
 import {Router} from 'express';
 import passport from 'passport';
-import {Strategy as MelindaStrategy} from '../auth';
-// Import createBibService as bib from '../services/bib';
-import {ALEPH_X_SERVICE_URL, ALEPH_USER_LIBRARY} from '../config'
+import HttpStatus from 'http-status';
+import ipFilter from 'express-ip-filter';
+import ServiceError from '../services/error';
+import createService, {FORMATS} from '../services/bib';
 
-export default Router;
+import {
+	IP_FILTER_BIB, ALEPH_LIBRARY_BIB, SRU_URL, RECORD_LOAD_URL,
+	RECORD_LOAD_API_KEY, OWN_AUTHORIZATION_URL,
+	OWN_AUTHORIZATION_API_KEY
+} from '../config';
 
-const BibRouter = new Router();
+export default async () => {
+	const CONTENT_TYPES = {
+		'application/json': FORMATS.JSON,
+		'application/marc': FORMATS.ISO2709,
+		'application/xml': FORMATS.MARCXML
+	};
 
-passport.use(new MelindaStrategy({url: ALEPH_X_SERVICE_URL, library: ALEPH_USER_LIBRARY}));
-BibRouter.use(passport.initialize());
+	const ipFilterList = JSON.parse(IP_FILTER_BIB);
+	const Service = await createService({
+		sruURL: SRU_URL, authorizationURL: OWN_AUTHORIZATION_URL,
+		authorizationApiKey: OWN_AUTHORIZATION_API_KEY,
+		recordLoadURL: RECORD_LOAD_URL, recordLoadApiKey: RECORD_LOAD_API_KEY,
+		recordLoadLibrary: ALEPH_LIBRARY_BIB
+	});
 
-BibRouter.use(passport.authenticate('melinda'));
+	return new Router()
+		.use(ipFilter({filter: ipFilterList}))
+		.use(passport.authenticate('melinda', {session: false}))
+		.post('/', createResource)
+		.get('/:id', readResource)
+	//	.post('/:id', updateResource)
+		.use((err, req, res, next) => {
+			if (err instanceof ServiceError) {
+				res.status(err.status).send(err.payload);
+			} else {
+				next(err);
+			}
+		});
 
-BibRouter.post('/', async res => {
-	console.log('BAR');
-	res.send('FOO');
-});
-/*
-Router.post('/', async (req, res) => {
-	try {
-		const options = {
-			noop: req.query.noop,
-			unique: req.query.unique,
-			data: req.body,
-			format: parseContentType(req),
-			cataloguer: req.user.id
-		};
+	async function readResource(req, res, next) {
+		try {
+			const type = req.accepts(Object.keys(CONTENT_TYPES));
 
-		const id = await bib.create(options);
-		res.status(result.status || 200).send(result.data);
-	} catch (err) {
-		if (err instanceof RecordServiceError) {
+			if (type) {
+				const format = CONTENT_TYPES[type];
+				const record = await Service.read({id: req.params.id, format});
+				res.type(type).status(HttpStatus.OK).send(record);
+			} else {
+				res.sendStatus(HttpStatus.NOT_ACCEPTABLE);
+			}
+		} catch (err) {
+			next(err);
 		}
-
-		return res.status(HttpStatus.INTERNAL_SERVER_ERROR);
 	}
-});
 
-Router.post('/:id', async (req, res) => {
-	const type = req.get('Content-Type');
+	async function createResource(req, res, next) {
+		try {
+			const type = req.headers['content-type'];
+			const format = CONTENT_TYPES[type];
 
-	const format = MIMETYPES[type];
+			if (!format) {
+				return res.sendStatus(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+			}
 
-	const options = {
-		format,
-		recordId: req.params.id,
-		noop: req.query.noop === 'true',
-		sync: req.query.sync === 'true',
-		cataloguer: req.user.id
-	};
+			const {messages, id} = await Service.create({
+				format,
+				data: req.body,
+				cataloger: req.user.id,
+				noop: req.query.noop,
+				unique: req.query.unique
+			});
 
-	try {
-		const result = await bib.postBibRecordsById(req.body, options);
-		res.status(result.status || 200).send(result.data);
-	} catch (err) {
-		return res.status(err.status || 500).send(err.message);
+			if (!req.query.noop) {
+				res.status(HttpStatus.CREATED).set('Record-ID', id);
+			}
+
+			res.type('application/json').send(messages);
+		} catch (err) {
+			next(err);
+		}
 	}
-});
+};
 
-Router.get('/:id', async (req, res) => {
-	const type = req.accepts(Object.keys(MIMETYPES));
+/* Async function updateResource(req, res) {
+const type = req.get('Content-Type');
 
-	const format = MIMETYPES[type];
+const format = MIMETYPES[type];
 
-	const options = {
-		recordId: req.params.id,
-		format
-	};
+const options = {
+format,
+recordId: req.params.id,
+noop: req.query.noop === 'true',
+sync: req.query.sync === 'true',
+cataloger: req.user.id
+};
 
-	try {
-		const result = await bib.getBibRecordById(options);
-
-		res.type(type).status(result.status || 200).send(result.data);
-	} catch (err) {
-		return res.status(err.status || 500).send(err.message);
-	}
-});
-
-function parseContentType(request) {
-	const type = request.headers['Content-Type'];
-
-	switch (type) {
-		case 'application/marc':
-		return 'iso2709';
-		case 'application/xml':
-		return 'marcxml';
-		case 'application/json':
-		return 'json';
-	}
+try {
+const result = await bib.postBibRecordsById(req.body, options);
+res.status(result.status || 200).send(result.data);
+} catch (err) {
+return res.status(err.status || 500).send(err.message);
 }
-*/
+} */

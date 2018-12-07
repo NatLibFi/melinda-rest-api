@@ -52,7 +52,7 @@ export function createLogger() {
 	});
 }
 
-export function createAuthorizationHeader({username, password = ''}) {
+export function createAuthorizationHeader(username, password = '') {
 	const encoded = Buffer.from(`${username}:${password}`).toString('base64');
 	return `Basic ${encoded}`;
 }

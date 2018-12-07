@@ -30,14 +30,20 @@ import {readEnvironmentVariable, getApiVersion} from './utils';
 
 export const HTTP_PORT = readEnvironmentVariable('HTTP_PORT', 8080);
 
-//export const LIBRARY_BIB = readEnvironmentVariable('LIBRARY_BIB');
-//export const LIBRARY_AUT_NAMES = readEnvironmentVariable('LIBRARY_AUT_NAMES');
-//export const LIBRARY_AUT_SUBJECTS = readEnvironmentVariable('LIBRARY_AUT_SUBJECTS');
+export const IP_FILTER_BIB = readEnvironmentVariable('IP_FILTER_BIB', '["*.*.*.*"]');
+export const IP_FILTER_AUT = readEnvironmentVariable('IP_FILTER_AUT', '["*.*.*.*"]');
 
-//export const ALEPH_OWN_AUTH_API_URL = readEnvironmentVariable('ALEPH_OWN_AUTH_API_URL');
-//export const ALEPH_RECORD_LOADER_API_URL = readEnvironmentVariable('ALEPH_RECORD_LOAD_API_URL');
-
-export const ALEPH_X_SERVICE_URL = readEnvironmentVariable('ALEPH_X_SERVICE_URL');
+export const ALEPH_X_API_URL = readEnvironmentVariable('ALEPH_X_API_URL');
 export const ALEPH_USER_LIBRARY = readEnvironmentVariable('ALEPH_USER_LIBRARY');
+
+export const OWN_AUTHORIZATION_URL = readEnvironmentVariable('OWN_AUTHORIZATION_URL');
+export const OWN_AUTHORIZATION_API_KEY = readEnvironmentVariable('OWN_AUTHORIZATION_API_KEY');
+
+export const RECORD_LOAD_URL = readEnvironmentVariable('RECORD_LOAD_URL');
+export const RECORD_LOAD_API_KEY = readEnvironmentVariable('RECORD_LOAD_API_KEY');
+
+export const SRU_URL = readEnvironmentVariable('SRU_URL');
+
+export const ALEPH_LIBRARY_BIB = readEnvironmentVariable('ALEPH_LIBRARY_BIB');
 
 export const SWAGGER_UI_URL = `https://natlibfi.github.io/melinda-rest-api-doc?version=${getApiVersion()}`;

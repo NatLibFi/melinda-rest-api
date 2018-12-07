@@ -31,13 +31,7 @@ import fetch from 'node-fetch';
 import {URL} from 'url';
 import {DOMParser} from 'xmldom';
 
-export class AuthenticationError extends Error {
-	constructor({status, payload}, ...params) {
-		super(params);
-		this.status = status;
-		this.payload = payload;
-	}
-}
+export class AuthenticationError extends Error {}
 
 export default ({url, library}) => {
 	const baseURL = new URL(url);
@@ -62,11 +56,11 @@ export default ({url, library}) => {
 			return parseUserInfo(doc);
 		}
 
-		throw new AuthenticationError({status: HttpStatus.INTERNAL_SERVER_ERROR, payload: body});
+		throw new Error(body);
 
 		function checkForErrors(doc) {
 			if (invalidReply() || hasErrors()) {
-				throw new AuthenticationError({status: HttpStatus.UNAUTHORIZED, payload: body});
+				throw new AuthenticationError(body);
 			}
 
 			function invalidReply() {
@@ -113,7 +107,7 @@ export default ({url, library}) => {
 				};
 
 				if (parts.length > 0) {
-					obj.middleName = parts;
+					obj.middleName = parts.join(' ');
 				}
 
 				return obj;

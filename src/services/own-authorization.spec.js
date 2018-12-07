@@ -32,7 +32,7 @@ import {expect} from 'chai';
 import HttpStatus from 'http-status';
 import nock from 'nock';
 import {MarcRecord} from '@natlibfi/marc-record';
-import * as testContext from './authorization';
+import * as testContext from './own-authorization';
 
 const FIXTURES_PATH = path.join(__dirname, '../../test-fixtures/authorization');
 

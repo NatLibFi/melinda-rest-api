@@ -30,7 +30,7 @@ import HttpStatus from 'http-status';
 import fetch from 'node-fetch';
 import createSruClient from '@natlibfi/sru-client';
 import {MARCXML} from '@natlibfi/marc-record-serializers';
-import {createLogger, createAuthorizationHeader} from '../utils';
+import {createAuthorizationHeader} from '../utils';
 
 export const SRU_VERSION = '2.0';
 
@@ -41,48 +41,38 @@ export class AuthorizationError extends Error {
 	}
 }
 
-export default function ({sruURL, ownAuthURL}) {
-	const Logger = createLogger();
+export default function ({sruURL, apiURL, apiKey}) {
 	const sruClient = createSruClient({serverUrl: sruURL, version: SRU_VERSION, maximumRecords: 1});
+	const requestOptions = {
+		headers: {
+			Accept: 'application/json',
+			Authorization: createAuthorizationHeader(apiKey)
+		}
+	};
 
 	return {check};
 
-	async function check({record, id, username, password}) {
-		try {
-			const permissions = await checkPermissions(username, password);
+	async function check({record, id, cataloger}) {
+		const permissions = await getPermissions(cataloger);
 
-			if (record) {
-				if (id) {
-					const existingRecord = await fetchRecord(id);
-					await validateOwnModifications(permissions, record, existingRecord);
-				} else {
-					await validateOwnModifications(permissions, record);
-				}
+		if (record) {
+			if (id) {
+				const existingRecord = await fetchRecord(id);
+				await validateOwnModifications(permissions, record, existingRecord);
+			} else {
+				await validateOwnModifications(permissions, record);
 			}
-		} catch (err) {
-			if (err instanceof AuthorizationError) {
-				throw err;
-			}
-
-			Logger.log('error', err.stack);
-			throw new AuthorizationError(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
-	async function checkPermissions(username, password) {
-		const response = await fetch(ownAuthURL, {
-			headers: {
-				Accept: 'application/json',
-				Authorization: generateAuthorizationHeader(username, password)
-			}
-		});
+	async function getPermissions(cataloger) {
+		const url = new URL(apiURL);
+		url.searchParams.set('username', cataloger);
+
+		const response = await fetch(url, requestOptions);
 
 		if (response.status === HttpStatus.OK) {
 			return response.json();
-		}
-
-		if (response.status === HttpStatus.UNAUTHORIZED) {
-			throw new AuthorizationError(HttpStatus.UNAUTHORIZED);
 		}
 
 		throw new Error(`Unexpected response: ${response.status} ${response.statusText}`);

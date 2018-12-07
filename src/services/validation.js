@@ -28,7 +28,7 @@
 *
 */
 
-import validateFactory from '@natlibfi/marc-record-validate';
+// import validateFactory from '@natlibfi/marc-record-validate';
 // Import {} from '@natlibfi/marc-record-validators-melinda';
 
 export class ValidationError extends Error {
@@ -39,17 +39,19 @@ export class ValidationError extends Error {
 }
 
 export default async function () {
-	const validateFunc = await validateFactory([]);
+//	Const validateFunc = await validateFactory([]);
 
 	return {validate};
 
 	async function validate(record) {
-		const results = await validateFunc(record, {fix: true, validateFixes: true});
+		return [];
+		/* Const results = await validateFunc(record, {fix: true, validateFixes: true});
 
 		if (results.valid) {
 			return results.messages;
 		}
 
 		throw new ValidationError(results.messages);
+		*/
 	}
 }

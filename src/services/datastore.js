@@ -28,10 +28,9 @@
 
 import HttpStatus from 'http-status';
 import fetch from 'node-fetch';
-import {URLSearchParams} from 'url';
 import createSruClient from '@natlibfi/sru-client';
 import {MARCXML, AlephSequential} from '@natlibfi/marc-record-serializers';
-import {createLogger, createAuthorizationHeader} from '../utils';
+import {createAuthorizationHeader} from '../utils';
 
 const FIX_ROUTINE = 'GEN01';
 const UPDATE_ACTION = 'REP';
@@ -46,36 +45,29 @@ export class DatastoreError extends Error {
 }
 
 export default function ({sruURL, apiURL, apiKey, library}) {
-	const Logger = createLogger();
 	const sruClient = createSruClient({serverUrl: sruURL, version: SRU_VERSION, maximumRecords: 1});
+	const requestOptions = {
+		headers: {
+			Accept: 'application/json',
+			Authorization: createAuthorizationHeader(apiKey)
+		}
+	};
 
 	return {create, read, update};
 
 	async function read(id) {
-		try {
-			return await fetchRecord(id);
-		} catch (err) {
-			handleError(err);
-		}
+		return fetchRecord(id);
 	}
 
 	async function create({record, cataloger = DEFAULT_CATALOGER_ID}) {
-		try {
-			return await loadRecord({record, cataloger});
-		} catch (err) {
-			handleError(err);
-		}
+		return loadRecord({record, cataloger});
 	}
 
 	async function update({record, id, cataloger = DEFAULT_CATALOGER_ID}) {
-		try {
-			const existingRecord = await fetchRecord(id);
+		const existingRecord = await fetchRecord(id);
 
-			await validateRecordState(record, existingRecord);
-			await loadRecord({record, id, cataloger});
-		} catch (err) {
-			handleError(err);
-		}
+		await validateRecordState(record, existingRecord);
+		await loadRecord({record, id, cataloger});
 	}
 
 	async function fetchRecord(id) {
@@ -102,37 +94,31 @@ export default function ({sruURL, apiURL, apiKey, library}) {
 	}
 
 	async function loadRecord({record, id, cataloger}) {
-		let formattedRecord;
+		const url = new URL(apiURL);
+		const formattedRecord = AlephSequential.to(record);
 
-		try {
-			formattedRecord = AlephSequential.to(record);
-		} catch (err) {
-			throw new DatastoreError(HttpStatus.BAD_REQUEST);
-		}
+		url.searchParams.set('library', library);
+		url.searchParams.set('method', id === undefined ? 'NEW' : 'OLD');
+		url.searchParams.set('fixRoutine', FIX_ROUTINE);
+		url.searchParams.set('updateAction', UPDATE_ACTION);
+		url.searchParams.set('cataloger', cataloger);
 
-		const parameters = new URLSearchParams({
-			library: library,
-			method: id === undefined ? 'NEW' : 'OLD',
-			fixRoutine: FIX_ROUTINE,
-			updateAction: UPDATE_ACTION,
-			cataloger
-		});
-
-		const response = await fetch(`${apiURL}?${parameters.toString()}`, {
+		const response = await fetch(url, Object.assign({
 			method: 'POST',
-			body: formattedRecord,
-			headers: {
-				Accept: 'application/json',
-				Authorization: createAuthorizationHeader({username: apiKey, password: ''})
-			}
-		});
+			body: formattedRecord
+		}, requestOptions));
 
 		if (response.status === HttpStatus.OK) {
 			const idList = await response.json();
-			return idList.shift();
+			return formatRecordId(idList.shift());
 		}
 
-		throw new Error(`Unexpected response: ${response.status} ${response.statusText}`);
+		throw new Error(`Unexpected response: ${response.status}: ${await response.text()}`);
+
+		function formatRecordId(id) {
+			const pattern = new RegExp(`${library.toUpperCase()}$`);
+			return id.replace(pattern, '');
+		}
 	}
 
 	// Checks that the modification history is identical
@@ -143,14 +129,5 @@ export default function ({sruURL, apiURL, apiKey, library}) {
 		if (JSON.stringify(incomingModificationHistory) !== JSON.stringify(existingModificationHistory)) {
 			throw new DatastoreError(HttpStatus.CONFLICT);
 		}
-	}
-
-	function handleError(err) {
-		if (err instanceof DatastoreError) {
-			throw err;
-		}
-
-		Logger.log('error', err.stack);
-		throw new DatastoreError(HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 }

@@ -1,3 +1,5 @@
+/* eslint-disable no-unused-vars, valid-jsdoc */
+
 /**
 *
 * @licstart  The following is the entire license notice for the JavaScript code in this file.
@@ -26,27 +28,10 @@
 *
 */
 
-import {BasicStrategy} from 'passport-http';
-import createAuthenticationService, {AuthenticationError} from './service';
-
-export default class extends BasicStrategy {
-	constructor({url, library}) {
-		const AuthenticationService = createAuthenticationService({url, library});
-
-		super((username, password, done) => {
-			AuthenticationService.authenticate({username, password})
-				.then(user => {
-					done(null, user);
-				})
-				.catch(err => {
-					if (err instanceof AuthenticationError) {
-						done(null, false);
-					} else {
-						done(err);
-					}
-				});
-		});
-
-		this.name = 'melinda';
+export default class extends Error {
+	constructor(status, payload, ...params) {
+		super(params);
+		this.status = status;
+		this.payload = payload;
 	}
 }

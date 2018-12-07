@@ -62,7 +62,7 @@ describe('services/conversion', () => {
 		describe('#serialize', () => {
 			it('Should throw because of unsupported format', () => {
 				const service = testContext.default();
-				expect(service.serialize).to.throw(testContext.ConversionError);
+				expect(service.serialize).to.throw();
 			});
 
 			it('Should serialize to MARCXML', () => {
@@ -97,7 +97,7 @@ describe('services/conversion', () => {
 		describe('#unserialize', () => {
 			it('Should throw because of unsupported format', () => {
 				const service = testContext.default();
-				expect(service.unserialize).to.throw(testContext.ConversionError);
+				expect(service.unserialize).to.throw();
 			});
 
 			it('Should unserialize from MARCXML', () => {

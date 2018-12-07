@@ -51,6 +51,7 @@ export default function ({sruURL}) {
 
 	async function checkBib(record, stopOnFirstMatch = true) {
 		return new Promise((resolve, reject) => {
+			let found;
 			const idList = [];
 
 			CandidateService.findBib(record)
@@ -62,10 +63,13 @@ export default function ({sruURL}) {
 					if (!results.hasNegativeFeatures && results.type !== 'NOT_DUPLICATE') {
 						const id = candidate.get(/^001$/).shift().value;
 
-						idList.push(id);
+						if (!found) {
+							found = true;
+							idList.push(id);
 
-						if (stopOnFirstMatch) {
-							resolve(idList);
+							if (stopOnFirstMatch) {
+								resolve(idList);
+							}
 						}
 					}
 				});

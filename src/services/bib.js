@@ -27,50 +27,88 @@
 * for the JavaScript code in this file.
 *
 */
-import createConversionService from './conversion';
+
+import HttpStatus from 'http-status';
+import ServiceError from './error';
+import createConversionService, {ConversionError} from './conversion';
 import createRecordMatchingService from './record-matching';
-import createOwnAuthorizationService from './authorization';
-import createValidationService from './validation';
-import createDatastoreService from './datastore';
+import createAuthorizationService, {AuthorizationError} from './own-authorization';
+import createValidationService, {ValidationError} from './validation';
+import createDatastoreService, {DatastoreError} from './datastore';
 
-export default async function ({sruURL, authorizationURL, authorizationApiKey, recordLoadURL, recordLoadApiKey}) {
-	const ConversionService = createConversionService();
+export {FORMATS} from './conversion';
+
+export default async function ({sruURL, authorizationURL, authorizationApiKey, recordLoadURL, recordLoadLibrary, recordLoadApiKey}) {
+	const sruUrlBib = `${sruURL}/bibprv`;
+	const ConversionService 	= createConversionService();
 	const RecordMatchingService = createRecordMatchingService({sruURL});
-	const AuthorizationService = await createOwnAuthorizationService({sruURL, apiKey: ownAuthorizationApiKey, apiURL: authorizationURL});
+	const AuthorizationService = createAuthorizationService({sruURL, apiKey: authorizationApiKey, apiURL: authorizationURL});
 	const ValidationService = await createValidationService();
-	const DatastoreService = createDatastoreService({sruURL, apiURL: recordLoadURL, apiKey: recordLoadApiKey});
+	const DatastoreService = createDatastoreService({
+		sruURL: sruUrlBib,
+		apiURL: recordLoadURL,
+		library: recordLoadLibrary,
+		apiKey: recordLoadApiKey
+	});
 
-	return {read, create, update};
+	return {read, create};
+	// Return {read, create, update};
 
-	async function read({id, credentials, format}) {
-		const record = await DatastoreService.read(id);
-		return ConversionService.serialize(record, format);
+	async function read({id, format}) {
+		try {
+			const record = await DatastoreService.read(id);
+			return ConversionService.serialize(record, format);
+		} catch (err) {
+			if (err instanceof DatastoreError) {
+				throw new ServiceError(err.status);
+			}
+
+			throw err;
+		}
 	}
 
-	async function create({data, format, credentials, noop, unique}) {
-		const record = ConversionService.unserialize(data, format);
+	async function create({data, format, cataloger, noop, unique}) {
+		try {
+			const record = ConversionService.unserialize(data, format);
 
-		AuthorizationService.check({username: credentials.username, record});
+			await AuthorizationService.check({cataloger, record});
 
-		if (unique) {
-			await RecordMatchingService.check(record);
+			if (unique) {
+				const idList = await RecordMatchingService.checkBib(record);
+
+				if (idList.length > 0) {
+					throw new ServiceError(HttpStatus.CONFLICT, idList);
+				}
+			}
+
+			const validationResults = await ValidationService.validate(record);
+
+			if (noop) {
+				return {messages: validationResults};
+			}
+
+			const id = await DatastoreService.create({record, cataloger});
+
+			return {messages: validationResults, id};
+		} catch (err) {
+			if (err instanceof ConversionError) {
+				throw new ServiceError(err.status);
+			} else if (err instanceof DatastoreError) {
+				throw new ServiceError(err.status);
+			} else if (err instanceof AuthorizationError) {
+				throw new ServiceError(HttpStatus.FORBIDDEN);
+			} else if (err instanceof ValidationError) {
+				throw new ServiceError(HttpStatus.UNPROCESSABLE_ENTITY, err.messages);
+			}
+
+			throw err;
 		}
-
-		const validationResults = await ValidationService.validate(record);
-
-		if (noop) {
-			return [validationResults];
-		}
-
-		const id = await DatastoreService.create(record, credentials);
-
-		return [validationResults, id];
 	}
 
-	async function update({data, id, format, credentials, noop}) {
+	/* Async function update({data, id, format, cataloger, noop}) {
 		const record = ConversionService.unserialize(data, format);
 
-		await AuthorizationService.check({record, id, credentials});
+		await OwnAuthorizationService.check({record, id, cataloger});
 
 		const validationResults = await ValidationService.validate(record);
 
@@ -78,8 +116,8 @@ export default async function ({sruURL, authorizationURL, authorizationApiKey, r
 			return validationResults;
 		}
 
-		const id = await DatastoreService.create(record, credentials);
+		await DatastoreService.create(record, cataloger);
 
 		return validationResults;
-	}
+	} */
 }

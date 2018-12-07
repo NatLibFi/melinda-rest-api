@@ -28,6 +28,7 @@
 *
 */
 
+import HttpStatus from 'http-status';
 import {MarcRecord} from '@natlibfi/marc-record';
 import {MARCXML, ISO2709, Json} from '@natlibfi/marc-record-serializers';
 
@@ -37,7 +38,12 @@ export const FORMATS = {
 	JSON: 3
 };
 
-export class ConversionError extends Error {}
+export class ConversionError extends Error {
+	constructor(status, ...params) {
+		super(params);
+		this.status = status;
+	}
+}
 
 export default function () {
 	return {serialize, unserialize};
@@ -51,20 +57,27 @@ export default function () {
 			case FORMATS.JSON:
 				return Json.to(record);
 			default:
-				throw new ConversionError();
+				throw new Error();
 		}
 	}
 
 	function unserialize(data, format) {
-		switch (format) {
-			case FORMATS.MARCXML:
-				return MARCXML.from(data);
-			case FORMATS.ISO2709:
-				return ISO2709.from(data);
-			case FORMATS.JSON:
-				return Json.from(data);
-			default:
-				throw new ConversionError();
+		try {
+			switch (format) {
+				case FORMATS.MARCXML:
+					return MARCXML.from(data);
+				case FORMATS.ISO2709:
+					return ISO2709.from(data);
+				case FORMATS.JSON:
+					return Json.from(data);
+				default:
+					break;
+			}
+		} catch (err) {
+			throw new ConversionError(HttpStatus.BAD_REQUEST);
 		}
+
+		// No supported format found
+		throw new Error();
 	}
 }

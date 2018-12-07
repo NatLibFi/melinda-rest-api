@@ -30,29 +30,56 @@ import path from 'path';
 import HttpStatus from 'http-status';
 import express from 'express';
 import bodyParser from 'body-parser';
+import passport from 'passport';
+import {MarcRecord} from '@natlibfi/marc-record';
 
+import {Strategy as MelindaStrategy} from './auth';
+import createBibRouter from './routes/bib';
+import {createLogger} from './utils';
+import {HTTP_PORT, SWAGGER_UI_URL, ALEPH_X_API_URL, ALEPH_USER_LIBRARY} from './config';
 
-// Import aut from './routes/aut';
-import bib from './routes/bib';
+// Aleph creates partial subfields...
+MarcRecord.setValidationOptions({subfieldValues: false});
 
-import {HTTP_PORT, SWAGGER_UI_URL} from './config';
+run();
 
-const app = express();
+async function run() {
+	const Logger = createLogger();
+	const app = express();
+	const BibRouter = await createBibRouter();
 
-app.use(bodyParser.text({limit: '5MB'}));
+	passport.use(new MelindaStrategy({url: ALEPH_X_API_URL, library: ALEPH_USER_LIBRARY}));
 
-app.use('/bib', bib);
-//app.use('/aut', aut);
-app.use('/doc', express.static(path.resolve(__dirname, '..', 'doc')));
+	app.use(bodyParser.text({limit: '5MB', type: '*/*'}));
+	app.use(passport.initialize());
 
-app.use('/', (req, res) => {
-	const accepts = req.accepts('text/html', 'application/xhtml+xml', 'application/json');
+	app.use('/bib', BibRouter);
+	app.get('/doc', express.static(path.resolve(__dirname, '..', 'doc')));
+	app.get('/', docHandler);
+	app.use(errorHandler);
 
-	if (accepts === 'application/json') {
-		res.redirect(HttpStatus.MOVED_PERMANENTLY, '/doc/api.json');
-	} else {
-		res.redirect(HttpStatus.MOVED_PERMANENTLY, SWAGGER_UI_URL);
+	app.listen(HTTP_PORT, () => console.log('Started Melinda REST API'));
+
+	function docHandler(req, res) {
+		const accepts = req.accepts('text/html', 'application/xhtml+xml', 'application/json');
+
+		if (!accepts) {
+			return res.sendStatus(HttpStatus.NOT_ACCEPTABLE);
+		}
+
+		if (accepts === 'application/json') {
+			res.redirect(HttpStatus.MOVED_PERMANENTLY, '/doc/api.json');
+		} else {
+			res.redirect(HttpStatus.MOVED_PERMANENTLY, SWAGGER_UI_URL);
+		}
 	}
-});
 
-app.listen(HTTP_PORT, () => console.log('Started Melinda REST API'));
+	function errorHandler(err, req, res, next) {
+		if (res.headersSent) {
+			return next(err);
+		}
+
+		Logger.log('error', err.stack);
+		res.sendStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+	}
+}
