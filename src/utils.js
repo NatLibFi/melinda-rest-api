@@ -81,7 +81,7 @@ export function getApiVersion() {
 
 	function getFilePath() {
 		// Support Docker builds
-		if (fs.existsSync(path.join(__dirname, 'package.json')) {
+		if (fs.existsSync(path.join(__dirname, 'package.json'))) {
 			return 'package.json';
 		}
 
