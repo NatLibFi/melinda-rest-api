@@ -75,7 +75,7 @@ export function readEnvironmentVariable(name, defaultValue, opts = {}) {
 
 export function getApiVersion() {
 	const filePath = getFilePath();
-	const data = fs.readFileSync();
+	const data = fs.readFileSync(filePath);
 	const {version} = JSON.parse(data);
 	return version;
 
