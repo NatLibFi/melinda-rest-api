@@ -19,6 +19,6 @@ pipeline:
     - docker_password
     when:
       event: [push, tag]
-      branch: [master, dev-redesign]
+      branch: [master, test]
       matrix:
         NODE_VERSION: 8
