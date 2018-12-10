@@ -89,8 +89,10 @@ export function formatRequestBoolean(value) {
 }
 
 export function createWhitelistMiddleware(whitelist) {
+	console.log(whitelist);
 	return (req, res, next) => {
-		const ip = req.ip.split(/:/).pop();
+		console.log(req.connection.remoteAddress);
+		const ip = (req.connection.remoteAddress || req.ip).split(/:/).pop();
 
 		if (whitelist.some(pattern => pattern.test(ip))) {
 			return next();
