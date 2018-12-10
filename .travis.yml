@@ -3,11 +3,13 @@ node_js:
   - 'node'
   - '8'
 before_script:
-  - npm install
   - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
   - chmod +x ./cc-test-reporter
   - ./cc-test-reporter before-build
-script: npm test
+install:
+- npm install
+scripts:
+- npm test
 after_script:
   - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
 addons:
