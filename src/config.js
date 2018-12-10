@@ -28,7 +28,8 @@
 
 import {readEnvironmentVariable} from './utils';
 
-export const HTTP_PORT = readEnvironmentVariable('HTTP_PORT', 8080);
+export const HTTP_PORT = readEnvironmentVariable('HTTP_PORT', '8080');
+export const ENABLE_PROXY = readEnvironmentVariable('ENABLE_PROXY', '');
 
 export const IP_FILTER_BIB = readEnvironmentVariable('IP_FILTER_BIB', '[".*"]');
 

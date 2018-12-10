@@ -37,7 +37,7 @@ import {MarcRecord} from '@natlibfi/marc-record';
 import {Strategy as MelindaStrategy} from './auth';
 import createBibRouter from './routes/bib';
 import {createLogger} from './utils';
-import {HTTP_PORT, SWAGGER_UI_URL, ALEPH_X_API_URL, ALEPH_USER_LIBRARY} from './config';
+import {HTTP_PORT, ENABLE_PROXY, SWAGGER_UI_URL, ALEPH_X_API_URL, ALEPH_USER_LIBRARY} from './config';
 
 process.on('SIGINT', () => {
 	process.exit(1);
@@ -52,6 +52,10 @@ async function run() {
 	const app = express();
 	const BibRouter = await createBibRouter();
 	const apiDoc = JSON.parse(fs.readFileSync(path.join(__dirname, 'api.json'), 'utf8'));
+
+	if (ENABLE_PROXY) {
+		app.enable('trust proxy', true);
+	}
 
 	passport.use(new MelindaStrategy({url: ALEPH_X_API_URL, library: ALEPH_USER_LIBRARY}));
 
