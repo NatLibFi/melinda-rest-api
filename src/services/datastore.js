@@ -26,6 +26,7 @@
 *
 */
 
+import {URL} from 'url';
 import HttpStatus from 'http-status';
 import fetch from 'node-fetch';
 import createSruClient from '@natlibfi/sru-client';
