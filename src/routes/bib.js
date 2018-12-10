@@ -29,10 +29,9 @@
 import {Router} from 'express';
 import passport from 'passport';
 import HttpStatus from 'http-status';
-import ipFilter from 'express-ip-filter';
 import ServiceError from '../services/error';
 import createService, {FORMATS} from '../services/bib';
-import {formatRequestBoolean} from '../utils';
+import {formatRequestBoolean, createWhitelistMiddleware} from '../utils';
 
 import {
 	IP_FILTER_BIB, ALEPH_LIBRARY_BIB, SRU_URL, RECORD_LOAD_URL,
@@ -47,7 +46,7 @@ export default async () => {
 		'application/xml': FORMATS.MARCXML
 	};
 
-	const ipFilterList = JSON.parse(IP_FILTER_BIB);
+	const ipFilterList = JSON.parse(IP_FILTER_BIB).map(rule => new RegExp(rule));
 	const Service = await createService({
 		sruURL: SRU_URL, authorizationURL: OWN_AUTHORIZATION_URL,
 		authorizationApiKey: OWN_AUTHORIZATION_API_KEY,
@@ -56,7 +55,7 @@ export default async () => {
 	});
 
 	return new Router()
-		.use(ipFilter({filter: ipFilterList}))
+		.use(createWhitelistMiddleware(ipFilterList))
 		.use(passport.authenticate('melinda', {session: false}))
 		.post('/', createResource)
 		.get('/:id', readResource)

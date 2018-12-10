@@ -1,30 +1,30 @@
 /**
-*
-* @licstart  The following is the entire license notice for the JavaScript code in this file.
-*
-* RESTful API for Melinda
-*
-* Copyright (C) 2018 University Of Helsinki (The National Library Of Finland)
-*
-* This file is part of melinda-rest-api
-*
-* melinda-rest-api program is free software: you can redistribute it and/or modify
-* it under the terms of the GNU Affero General Public License as
-* published by the Free Software Foundation, either version 3 of the
-* License, or (at your option) any later version.
-*
-* melinda-rest-api is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU Affero General Public License for more details.
-*
-* You should have received a copy of the GNU Affero General Public License
-* along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*
-* @licend  The above is the entire license notice
-* for the JavaScript code in this file.
-*
-*/
+	*
+	* @licstart  The following is the entire license notice for the JavaScript code in this file.
+	*
+	* RESTful API for Melinda
+	*
+	* Copyright (C) 2018 University Of Helsinki (The National Library Of Finland)
+	*
+	* This file is part of melinda-rest-api
+	*
+	* melinda-rest-api program is free software: you can redistribute it and/or modify
+	* it under the terms of the GNU Affero General Public License as
+	* published by the Free Software Foundation, either version 3 of the
+	* License, or (at your option) any later version.
+	*
+	* melinda-rest-api is distributed in the hope that it will be useful,
+	* but WITHOUT ANY WARRANTY; without even the implied warranty of
+	* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	* GNU Affero General Public License for more details.
+	*
+	* You should have received a copy of the GNU Affero General Public License
+	* along with this program.  If not, see <http://www.gnu.org/licenses/>.
+	*
+	* @licend  The above is the entire license notice
+	* for the JavaScript code in this file.
+	*
+	*/
 
 import fs from 'fs';
 import path from 'path';
@@ -37,7 +37,11 @@ import {MarcRecord} from '@natlibfi/marc-record';
 import {Strategy as MelindaStrategy} from './auth';
 import createBibRouter from './routes/bib';
 import {createLogger} from './utils';
-import {HTTP_PORT, SWAGGER_UI_URL, ALEPH_X_API_URL, ALEPH_USER_LIBRARY} from './config';
+import {HTTP_PORT, ENABLE_PROXY, SWAGGER_UI_URL, ALEPH_X_API_URL, ALEPH_USER_LIBRARY} from './config';
+
+process.on('SIGINT', () => {
+	process.exit(1);
+});
 
 // Aleph creates partial subfields...
 MarcRecord.setValidationOptions({subfieldValues: false});
@@ -45,23 +49,27 @@ MarcRecord.setValidationOptions({subfieldValues: false});
 run();
 
 async function run() {
-	const Logger = createLogger();
 	const app = express();
 	const BibRouter = await createBibRouter();
 	const apiDoc = JSON.parse(fs.readFileSync(path.join(__dirname, 'api.json'), 'utf8'));
 
+	if (ENABLE_PROXY) {
+		app.enable('trust proxy', true);
+	}
+
 	passport.use(new MelindaStrategy({url: ALEPH_X_API_URL, library: ALEPH_USER_LIBRARY}));
 
+	app.use(createLogger());
 	app.use(bodyParser.text({limit: '5MB', type: '*/*'}));
 	app.use(passport.initialize());
 
 	app.use('/bib', BibRouter);
-	app.get('/', docHandler);
-	app.use(errorHandler);
+	app.get('/', handleDocRequest);
+	app.use(handleError);
 
-	app.listen(HTTP_PORT, () => Logger.log('info', 'Started Melinda REST API'));
+	app.listen(HTTP_PORT, () => console.log('Started Melinda REST API'));
 
-	function docHandler(req, res) {
+	function handleDocRequest(req, res) {
 		const accepts = req.accepts('text/html', 'application/xhtml+xml', 'application/json');
 
 		if (!accepts) {
@@ -75,12 +83,12 @@ async function run() {
 		}
 	}
 
-	function errorHandler(err, req, res, next) {
+	function handleError(err, req, res, next) {
 		if (res.headersSent) {
 			return next(err);
 		}
 
-		Logger.log('error', err.stack);
+		console.log(err.stack);
 		res.sendStatus(HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 }
