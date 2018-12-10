@@ -26,11 +26,11 @@
 *
 */
 
-import {readEnvironmentVariable, getApiVersion} from './utils';
+import {readEnvironmentVariable} from './utils';
 
 export const HTTP_PORT = readEnvironmentVariable('HTTP_PORT', 8080);
 
-export const IP_FILTER_BIB = readEnvironmentVariable('IP_FILTER_BIB', '["*.*.*.*"]');
+export const IP_FILTER_BIB = readEnvironmentVariable('IP_FILTER_BIB', '[".*"]');
 
 export const ALEPH_X_API_URL = readEnvironmentVariable('ALEPH_X_API_URL');
 export const ALEPH_USER_LIBRARY = readEnvironmentVariable('ALEPH_USER_LIBRARY');
@@ -45,4 +45,4 @@ export const SRU_URL = readEnvironmentVariable('SRU_URL');
 
 export const ALEPH_LIBRARY_BIB = readEnvironmentVariable('ALEPH_LIBRARY_BIB');
 
-export const SWAGGER_UI_URL = `https://natlibfi.github.io/melinda-rest-api-doc?version=${getApiVersion()}`;
+export const SWAGGER_UI_URL = readEnvironmentVariable('SWAGGER_UI_URL');

@@ -32,8 +32,10 @@
 
 import fs from 'fs';
 import path from 'path';
+import HttpStatus from 'http-status';
 import moment from 'moment';
 import winston from 'winston';
+import expressWinston from 'express-winston';
 
 export function createLogger() {
 	const timestamp = winston.format(info => {
@@ -41,7 +43,7 @@ export function createLogger() {
 		return info;
 	});
 
-	return winston.createLogger({
+	return expressWinston.logger({
 		silent: process.env.NODE_ENV === 'test',
 		level: process.env.DEBUG ? 'debug' : 'info',
 		format: winston.format.combine(
@@ -50,7 +52,12 @@ export function createLogger() {
 		),
 		transports: [
 			new winston.transports.Console()
-		]
+		],
+		meta: true,
+		msg: '{{req.ip}} HTTP {{req.method}} {{req.path}} - {{res.statusCode}} {{res.responseTime}}ms',
+		ignoreRoute: function (req, res) {
+			return false;
+		}
 	});
 }
 
@@ -67,26 +74,10 @@ export function readEnvironmentVariable(name, defaultValue, opts = {}) {
 			throw new Error(message);
 		}
 		const loggedDefaultValue = opts.hideDefaultValue ? '[hidden]' : defaultValue;
-		console.log('info', `No environment variable set for ${name}, using default value: ${loggedDefaultValue}`);
+		console.log(`No environment variable set for ${name}, using default value: ${loggedDefaultValue}`);
 	}
 
 	return process.env[name] || defaultValue;
-}
-
-export function getApiVersion() {
-	const filePath = getFilePath();
-	const data = fs.readFileSync(filePath);
-	const {version} = JSON.parse(data);
-	return version;
-
-	function getFilePath() {
-		// Support Docker builds
-		if (fs.existsSync(path.join(__dirname, 'package.json'))) {
-			return 'package.json';
-		}
-
-		return path.resolve(__dirname, '..', 'package.json');
-	}
 }
 
 export function formatRequestBoolean(value) {
@@ -95,4 +86,16 @@ export function formatRequestBoolean(value) {
 	}
 
 	return Boolean(Number(value));
+}
+
+export function createWhitelistMiddleware(whitelist) {
+	return (req, res, next) => {
+		const ip = req.ip.split(/:/).pop();
+
+		if (whitelist.some(pattern => pattern.test(ip))) {
+			return next();
+		}
+
+		res.sendStatus(HttpStatus.FORBIDDEN);
+	};
 }
