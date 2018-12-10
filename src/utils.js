@@ -74,9 +74,19 @@ export function readEnvironmentVariable(name, defaultValue, opts = {}) {
 }
 
 export function getApiVersion() {
-	const data = fs.readFileSync(path.resolve(__dirname, '..', 'package.json'));
+	const filePath = getFilePath();
+	const data = fs.readFileSync();
 	const {version} = JSON.parse(data);
 	return version;
+
+	function getFilePath() {
+		// Support Docker builds
+		if (fs.existsSync(path.join(__dirname, 'package.json')) {
+			return 'package.json';
+		}
+
+		return path.resolve(__dirname, '..', 'package.json');
+	}
 }
 
 export function formatRequestBoolean(value) {
