@@ -1,8 +1,12 @@
+matrix:
+  NODE_VERSION:
+  - 8
+  - latest
 pipeline:
   generate-tags:
     image: quay.io/natlibfi/drone-gen-tags
   test:
-    image: node:8
+    image: node:${NODE_VERSION}
     commands:
     - npm install
     - npm test
@@ -15,4 +19,6 @@ pipeline:
     - docker_password
     when:
       event: [push, tag]
-      branch: [master, test]
+      branch: [master, dev-redesign]
+      matrix:
+        NODE_VERSION: 8
