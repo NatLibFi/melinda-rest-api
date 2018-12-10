@@ -51,8 +51,7 @@ export default async function ({sruURL, authorizationURL, authorizationApiKey, r
 		apiKey: recordLoadApiKey
 	});
 
-	return {read, create};
-	// Return {read, create, update};
+	return {read, create, update};
 
 	async function read({id, format}) {
 		try {
@@ -84,7 +83,7 @@ export default async function ({sruURL, authorizationURL, authorizationApiKey, r
 			const validationResults = await ValidationService.validate(record);
 
 			if (noop) {
-				return {messages: validationResults};
+				return validationResults;
 			}
 
 			const id = await DatastoreService.create({record, cataloger});
@@ -92,11 +91,11 @@ export default async function ({sruURL, authorizationURL, authorizationApiKey, r
 			return {messages: validationResults, id};
 		} catch (err) {
 			if (err instanceof ConversionError) {
-				throw new ServiceError(err.status);
+				throw new ServiceError(HttpStatus.BAD_REQUEST);
 			} else if (err instanceof DatastoreError) {
 				throw new ServiceError(err.status);
 			} else if (err instanceof AuthorizationError) {
-				throw new ServiceError(HttpStatus.FORBIDDEN);
+				throw new ServiceError(err.status);
 			} else if (err instanceof ValidationError) {
 				throw new ServiceError(HttpStatus.UNPROCESSABLE_ENTITY, err.messages);
 			}
@@ -105,19 +104,33 @@ export default async function ({sruURL, authorizationURL, authorizationApiKey, r
 		}
 	}
 
-	/* Async function update({data, id, format, cataloger, noop}) {
-		const record = ConversionService.unserialize(data, format);
+	async function update({id, data, format, cataloger, noop}) {
+		try {
+			const record = ConversionService.unserialize(data, format);
 
-		await OwnAuthorizationService.check({record, id, cataloger});
+			await AuthorizationService.check({cataloger, record});
 
-		const validationResults = await ValidationService.validate(record);
+			const validationResults = await ValidationService.validate(record);
 
-		if (noop) {
+			if (noop) {
+				return validationResults;
+			}
+
+			await DatastoreService.update({id, record, cataloger});
+
 			return validationResults;
+		} catch (err) {
+			if (err instanceof ConversionError) {
+				throw new ServiceError(HttpStatus.BAD_REQUEST);
+			} else if (err instanceof DatastoreError) {
+				throw new ServiceError(err.status);
+			} else if (err instanceof AuthorizationError) {
+				throw new ServiceError(err.status);
+			} else if (err instanceof ValidationError) {
+				throw new ServiceError(HttpStatus.UNPROCESSABLE_ENTITY, err.messages);
+			}
+
+			throw err;
 		}
-
-		await DatastoreService.create(record, cataloger);
-
-		return validationResults;
-	} */
+	}
 }

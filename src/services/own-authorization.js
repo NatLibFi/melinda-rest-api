@@ -35,9 +35,9 @@ import {createAuthorizationHeader} from '../utils';
 export const SRU_VERSION = '2.0';
 
 export class AuthorizationError extends Error {
-	constructor(error, ...params) {
+	constructor(status, ...params) {
 		super(params);
-		this.error = error || HttpStatus.INTERNAL_SERVER_ERROR;
+		this.status = status;
 	}
 }
 
@@ -55,13 +55,11 @@ export default function ({sruURL, apiURL, apiKey}) {
 	async function check({record, id, cataloger}) {
 		const permissions = await getPermissions(cataloger);
 
-		if (record) {
-			if (id) {
-				const existingRecord = await fetchRecord(id);
-				await validateOwnModifications(permissions, record, existingRecord);
-			} else {
-				await validateOwnModifications(permissions, record);
-			}
+		if (id) {
+			const existingRecord = await fetchRecord(id);
+			await validateOwnModifications(permissions, record, existingRecord);
+		} else {
+			await validateOwnModifications(permissions, record);
 		}
 	}
 

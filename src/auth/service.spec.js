@@ -70,9 +70,6 @@ describe('auth/service', () => {
 				const service = testContext.default({url: 'https://auth', library});
 				const user = await service.authenticate({username, password});
 
-				console.log(JSON.stringify(JSON.parse(userData1), undefined, 2));
-				console.log(JSON.stringify(user, undefined, 2));
-
 				expect(user).to.eql(JSON.parse(userData1));
 			});
 
@@ -96,7 +93,6 @@ describe('auth/service', () => {
 					throw new Error('Should throw');
 				} catch (err) {
 					expect(err).to.be.an.instanceof(testContext.AuthenticationError);
-					expect(err.status).to.eql(HttpStatus.UNAUTHORIZED);
 				}
 			});
 
@@ -120,7 +116,6 @@ describe('auth/service', () => {
 					throw new Error('Should throw');
 				} catch (err) {
 					expect(err).to.be.an.instanceof(testContext.AuthenticationError);
-					expect(err.status).to.eql(HttpStatus.UNAUTHORIZED);
 				}
 			});
 
@@ -143,8 +138,7 @@ describe('auth/service', () => {
 					await service.authenticate({username, password});
 					throw new Error('Should throw');
 				} catch (err) {
-					expect(err).to.be.an.instanceof(testContext.AuthenticationError);
-					expect(err.status).to.eql(HttpStatus.INTERNAL_SERVER_ERROR);
+					expect(err).to.be.an('error');
 				}
 			});
 		});

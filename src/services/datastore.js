@@ -38,9 +38,9 @@ const SRU_VERSION = '2.0';
 const DEFAULT_CATALOGER_ID = 'API';
 
 export class DatastoreError extends Error {
-	constructor(error, ...params) {
+	constructor(status, ...params) {
 		super(params);
-		this.error = error || HttpStatus.INTERNAL_SERVER_ERROR;
+		this.status = status;
 	}
 }
 

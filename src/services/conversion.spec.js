@@ -37,7 +37,6 @@ import * as testContext from './conversion';
 const FIXTURES_PATH = path.join(__dirname, '../../test-fixtures/conversion');
 
 const marcxml1 = fs.readFileSync(path.join(FIXTURES_PATH, 'marcxml1'), 'utf8');
-const alephsequential1 = fs.readFileSync(path.join(FIXTURES_PATH, 'alephsequential1'), 'utf8');
 const iso2709_1 = fs.readFileSync(path.join(FIXTURES_PATH, 'iso2709_1'), 'utf8');
 const json1 = fs.readFileSync(path.join(FIXTURES_PATH, 'json1'), 'utf8');
 
@@ -72,13 +71,6 @@ describe('services/conversion', () => {
 				expect(data).to.equal(marcxml1);
 			});
 
-			it('Should serialize to AlephSequential', () => {
-				const service = testContext.default();
-				const data = service.serialize(record1, testContext.FORMATS.ALEPH_SEQUENTIAL);
-
-				expect(data).to.equal(alephsequential1);
-			});
-
 			it('Should serialize to ISO2709', () => {
 				const service = testContext.default();
 				const data = service.serialize(record1, testContext.FORMATS.ISO2709);
@@ -107,13 +99,6 @@ describe('services/conversion', () => {
 				expect(record.equalsTo(record1)).to.equal(true);
 			});
 
-			it('Should unserialize from AlephSequential', () => {
-				const service = testContext.default();
-				const record = service.unserialize(alephsequential1, testContext.FORMATS.ALEPH_SEQUENTIAL);
-
-				expect(record.equalsTo(record1)).to.equal(true);
-			});
-
 			it('Should unserialize from ISO2709', () => {
 				const service = testContext.default();
 				const record = service.unserialize(iso2709_1, testContext.FORMATS.ISO2709);
@@ -126,6 +111,14 @@ describe('services/conversion', () => {
 				const record = service.unserialize(json1, testContext.FORMATS.JSON);
 
 				expect(record.equalsTo(record1)).to.equal(true);
+			});
+
+			it('Should throw because the record could not be unserialized', () => {
+				const service = testContext.default();
+
+				expect(() => {
+					service.unserialize('', testContext.FORMATS.JSON);
+				}).to.throw(testContext.ConversionError);
 			});
 		});
 	});

@@ -29,7 +29,6 @@
 import fs from 'fs';
 import path from 'path';
 import {expect} from 'chai';
-import HttpStatus from 'http-status';
 import nock from 'nock';
 import {MarcRecord} from '@natlibfi/marc-record';
 import * as testContext from './own-authorization';
@@ -55,31 +54,13 @@ describe('services/authorization', () => {
 		});
 
 		describe('#check', () => {
-			it('Should fail because of invalid authentication', async () => {
-				nock('https://own.auth')
-					.get(/.*/).reply(401);
-
-				const service = testContext.default({
-					sruURL: 'https://sru',
-					ownAuthURL: 'https://own.auth'
-				});
-
-				try {
-					await service.check({username: 'foo', password: 'bar'});
-					throw new Error('Should throw');
-				} catch (err) {
-					expect(err).to.be.an.instanceof(testContext.AuthorizationError);
-					expect(err).to.have.property('error', HttpStatus.UNAUTHORIZED);
-				}
-			});
-
 			it('Should succeed', async () => {
 				nock('https://own.auth')
 					.get(/.*/).reply(200, ['FOO']);
 
 				const service = testContext.default({
 					sruURL: 'https://sru',
-					ownAuthURL: 'https://own.auth'
+					apiURL: 'https://own.auth'
 				});
 
 				const record = new MarcRecord(JSON.parse(incomingRecord1));
@@ -92,7 +73,7 @@ describe('services/authorization', () => {
 
 				const service = testContext.default({
 					sruURL: 'https://sru',
-					ownAuthURL: 'https://own.auth'
+					apiURL: 'https://own.auth'
 				});
 
 				try {
@@ -102,7 +83,6 @@ describe('services/authorization', () => {
 					throw new Error('Should throw');
 				} catch (err) {
 					expect(err).to.be.an.instanceof(testContext.AuthorizationError);
-					expect(err).to.have.property('error', HttpStatus.FORBIDDEN);
 				}
 			});
 
@@ -114,7 +94,7 @@ describe('services/authorization', () => {
 
 				const service = testContext.default({
 					sruURL: 'https://sru',
-					ownAuthURL: 'https://own.auth'
+					apiURL: 'https://own.auth'
 				});
 
 				try {
@@ -124,7 +104,6 @@ describe('services/authorization', () => {
 					throw new Error('Should throw');
 				} catch (err) {
 					expect(err).to.be.an.instanceof(testContext.AuthorizationError);
-					expect(err).to.have.property('error', HttpStatus.FORBIDDEN);
 				}
 			});
 
@@ -134,15 +113,14 @@ describe('services/authorization', () => {
 
 				const service = testContext.default({
 					sruURL: 'https://sru',
-					ownAuthURL: 'https://own.auth'
+					apiURL: 'https://own.auth'
 				});
 
 				try {
 					await service.check({username: 'foo', password: 'bar'});
 					throw new Error('Should throw');
 				} catch (err) {
-					expect(err).to.be.an.instanceof(testContext.AuthorizationError);
-					expect(err).to.have.property('error', HttpStatus.INTERNAL_SERVER_ERROR);
+					expect(err).to.be.an('error');
 				}
 			});
 		});

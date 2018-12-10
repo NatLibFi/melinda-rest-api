@@ -32,6 +32,7 @@
 // Import {} from '@natlibfi/marc-record-validators-melinda';
 
 export class ValidationError extends Error {
+	/* istanbul ignore next: Actual validation is currently not in use */
 	constructor(messages, ...params) {
 		super(params);
 		this.messages = messages;

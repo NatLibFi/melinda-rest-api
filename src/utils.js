@@ -28,6 +28,8 @@
 *
 */
 
+/* istanbul ignore file */
+
 import fs from 'fs';
 import path from 'path';
 import moment from 'moment';
@@ -74,7 +76,13 @@ export function readEnvironmentVariable(name, defaultValue, opts = {}) {
 export function getApiVersion() {
 	const data = fs.readFileSync(path.resolve(__dirname, '..', 'package.json'));
 	const {version} = JSON.parse(data);
+	return version;
+}
 
-	// Removes the patch version portion
-	return version.replace(/\.[0-9]+$/, '');
+export function formatRequestBoolean(value) {
+	if (Number.isNaN(Number(value))) {
+		return value === 'true';
+	}
+
+	return Boolean(Number(value));
 }

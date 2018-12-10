@@ -96,7 +96,7 @@ describe('services/datastore', () => {
 					throw new Error('Should throw');
 				} catch (err) {
 					expect(err).to.be.an.instanceof(testContext.DatastoreError);
-					expect(err).to.have.property('error', HttpStatus.NOT_FOUND);
+					expect(err).to.have.property('status', HttpStatus.NOT_FOUND);
 				}
 			});
 
@@ -115,8 +115,7 @@ describe('services/datastore', () => {
 					await service.read('1234');
 					throw new Error('Should throw');
 				} catch (err) {
-					expect(err).to.be.an.instanceof(testContext.DatastoreError);
-					expect(err).to.have.property('error', HttpStatus.INTERNAL_SERVER_ERROR);
+					expect(err).to.be.an('error');
 				}
 			});
 		});
@@ -155,8 +154,7 @@ describe('services/datastore', () => {
 					await service.create({record});
 					throw new Error('Should throw');
 				} catch (err) {
-					expect(err).to.be.an.instanceof(testContext.DatastoreError);
-					expect(err).to.have.property('error', HttpStatus.INTERNAL_SERVER_ERROR);
+					expect(err).to.be.an('error');
 				}
 			});
 		});
@@ -196,7 +194,7 @@ describe('services/datastore', () => {
 					throw new Error('Should throw');
 				} catch (err) {
 					expect(err).to.be.an.instanceof(testContext.DatastoreError);
-					expect(err).to.have.property('error', HttpStatus.NOT_FOUND);
+					expect(err).to.have.property('status', HttpStatus.NOT_FOUND);
 				}
 			});
 
@@ -217,7 +215,7 @@ describe('services/datastore', () => {
 					throw new Error('Should throw');
 				} catch (err) {
 					expect(err).to.be.an.instanceof(testContext.DatastoreError);
-					expect(err).to.have.property('error', HttpStatus.CONFLICT);
+					expect(err).to.have.property('status', HttpStatus.CONFLICT);
 				}
 			});
 
@@ -236,8 +234,7 @@ describe('services/datastore', () => {
 					const record = new MarcRecord(JSON.parse(incomingRecord3));
 					await service.update({record, id: '1234'});
 				} catch (err) {
-					expect(err).to.be.an.instanceof(testContext.DatastoreError);
-					expect(err).to.have.property('error', HttpStatus.INTERNAL_SERVER_ERROR);
+					expect(err).to.be.an('error');
 				}
 			});
 		});

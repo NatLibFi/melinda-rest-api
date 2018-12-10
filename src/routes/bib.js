@@ -32,6 +32,7 @@ import HttpStatus from 'http-status';
 import ipFilter from 'express-ip-filter';
 import ServiceError from '../services/error';
 import createService, {FORMATS} from '../services/bib';
+import {formatRequestBoolean} from '../utils';
 
 import {
 	IP_FILTER_BIB, ALEPH_LIBRARY_BIB, SRU_URL, RECORD_LOAD_URL,
@@ -59,7 +60,7 @@ export default async () => {
 		.use(passport.authenticate('melinda', {session: false}))
 		.post('/', createResource)
 		.get('/:id', readResource)
-	//	.post('/:id', updateResource)
+		.post('/:id', updateResource)
 		.use((err, req, res, next) => {
 			if (err instanceof ServiceError) {
 				res.status(err.status).send(err.payload);
@@ -93,15 +94,15 @@ export default async () => {
 				return res.sendStatus(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
 			}
 
+			const unique = req.query.unique === undefined ? true : formatRequestBoolean(req.query.unique);
+			const noop = formatRequestBoolean(req.query.noop);
 			const {messages, id} = await Service.create({
-				format,
+				format, unique, noop,
 				data: req.body,
-				cataloger: req.user.id,
-				noop: req.query.noop,
-				unique: req.query.unique
+				cataloger: req.user.id
 			});
 
-			if (!req.query.noop) {
+			if (!noop) {
 				res.status(HttpStatus.CREATED).set('Record-ID', id);
 			}
 
@@ -110,25 +111,27 @@ export default async () => {
 			next(err);
 		}
 	}
+
+	async function updateResource(req, res, next) {
+		try {
+			const type = req.headers['content-type'];
+			const format = CONTENT_TYPES[type];
+
+			if (!format) {
+				return res.sendStatus(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+			}
+
+			const noop = formatRequestBoolean(req.query.noop);
+			const messages = await Service.update({
+				format, noop,
+				data: req.body,
+				id: req.params.id,
+				cataloger: req.user.id
+			});
+
+			res.type('application/json').send(messages);
+		} catch (err) {
+			next(err);
+		}
+	}
 };
-
-/* Async function updateResource(req, res) {
-const type = req.get('Content-Type');
-
-const format = MIMETYPES[type];
-
-const options = {
-format,
-recordId: req.params.id,
-noop: req.query.noop === 'true',
-sync: req.query.sync === 'true',
-cataloger: req.user.id
-};
-
-try {
-const result = await bib.postBibRecordsById(req.body, options);
-res.status(result.status || 200).send(result.data);
-} catch (err) {
-return res.status(err.status || 500).send(err.message);
-}
-} */

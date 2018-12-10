@@ -31,7 +31,6 @@ import {readEnvironmentVariable, getApiVersion} from './utils';
 export const HTTP_PORT = readEnvironmentVariable('HTTP_PORT', 8080);
 
 export const IP_FILTER_BIB = readEnvironmentVariable('IP_FILTER_BIB', '["*.*.*.*"]');
-export const IP_FILTER_AUT = readEnvironmentVariable('IP_FILTER_AUT', '["*.*.*.*"]');
 
 export const ALEPH_X_API_URL = readEnvironmentVariable('ALEPH_X_API_URL');
 export const ALEPH_USER_LIBRARY = readEnvironmentVariable('ALEPH_USER_LIBRARY');

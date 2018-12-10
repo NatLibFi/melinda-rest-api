@@ -26,6 +26,7 @@
 *
 */
 
+import fs from 'fs';
 import path from 'path';
 import HttpStatus from 'http-status';
 import express from 'express';
@@ -47,6 +48,7 @@ async function run() {
 	const Logger = createLogger();
 	const app = express();
 	const BibRouter = await createBibRouter();
+	const apiDoc = JSON.parse(fs.readFileSync(path.join(__dirname, 'api.json'), 'utf8'));
 
 	passport.use(new MelindaStrategy({url: ALEPH_X_API_URL, library: ALEPH_USER_LIBRARY}));
 
@@ -54,11 +56,10 @@ async function run() {
 	app.use(passport.initialize());
 
 	app.use('/bib', BibRouter);
-	app.get('/doc', express.static(path.resolve(__dirname, '..', 'doc')));
 	app.get('/', docHandler);
 	app.use(errorHandler);
 
-	app.listen(HTTP_PORT, () => console.log('Started Melinda REST API'));
+	app.listen(HTTP_PORT, () => Logger.log('info', 'Started Melinda REST API'));
 
 	function docHandler(req, res) {
 		const accepts = req.accepts('text/html', 'application/xhtml+xml', 'application/json');
@@ -68,7 +69,7 @@ async function run() {
 		}
 
 		if (accepts === 'application/json') {
-			res.redirect(HttpStatus.MOVED_PERMANENTLY, '/doc/api.json');
+			res.json(apiDoc);
 		} else {
 			res.redirect(HttpStatus.MOVED_PERMANENTLY, SWAGGER_UI_URL);
 		}

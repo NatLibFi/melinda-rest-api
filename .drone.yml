@@ -1,0 +1,18 @@
+pipeline:
+  generate-tags:
+    image: quay.io/natlibfi/drone-gen-tags
+  test:
+    image: node:8
+    commands:
+    - npm install
+    - npm test
+  docker:
+    image: plugins/docker
+    registry: quay.io
+    repo: quay.io/natlibfi/melinda-rest-api
+    secrets:
+    - docker_username
+    - docker_password
+    when:
+      event: [push, tag]
+      branch: [master, test]

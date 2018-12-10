@@ -1,6 +1,6 @@
-# RESTful API for Melinda [![NPM Version](https://img.shields.io/npm/v/@natlibfi/melinda-rest-api.svg)](https://npmjs.org/package/@natlibfi/melinda-rest-api) [![Build Status](https://travis-ci.org/NatLibFi/melinda-rest-api.svg)](https://travis-ci.org/NatLibFi/melinda-rest-api) [![Test Coverage](https://codeclimate.com/github/NatLibFi/melinda-rest-api/badges/coverage.svg)](https://codeclimate.com/github/NatLibFi/melinda-rest-api/coverage)
+# Melinda REST API for ILS integration  [![NPM Version](https://img.shields.io/npm/v/@natlibfi/melinda-rest-api.svg)](https://npmjs.org/package/@natlibfi/melinda-rest-api) [![Build Status](https://travis-ci.org/NatLibFi/melinda-rest-api.svg)](https://travis-ci.org/NatLibFi/melinda-rest-api) [![Test Coverage](https://codeclimate.com/github/NatLibFi/melinda-rest-api/badges/coverage.svg)](https://codeclimate.com/github/NatLibFi/melinda-rest-api/coverage)
 
-RESTful API for Melinda
+Melinda REST API for ILS integration
 
 ## License and copyright
 

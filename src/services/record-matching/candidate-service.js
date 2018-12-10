@@ -90,11 +90,22 @@ class ProxyEmitter extends EventEmitter {
 
 			function handleRecord(xml) {
 				const record = MARCXML.from(xml);
-				const id = record.get(/^001$/).shift().value;
 
-				if (!self.idList.includes(id)) {
-					self.emit('candidate', record);
-					self.idList.push(id);
+				if (record.get(/^001$/).length > 0) {
+					const id = record.get(/^001$/).shift().value;
+
+					if (!isDeleted() && !self.idList.includes(id)) {
+						self.emit('candidate', record);
+						self.idList.push(id);
+					}
+				}
+
+				function isDeleted() {
+					return record
+						.get(/^STA$/)
+						.some(f => f.subfields.some(
+							sf => sf.code === 'a' && sf.value === 'DELETED'
+						));
 				}
 			}
 		}

@@ -28,7 +28,6 @@
 *
 */
 
-import HttpStatus from 'http-status';
 import {MarcRecord} from '@natlibfi/marc-record';
 import {MARCXML, ISO2709, Json} from '@natlibfi/marc-record-serializers';
 
@@ -74,7 +73,7 @@ export default function () {
 					break;
 			}
 		} catch (err) {
-			throw new ConversionError(HttpStatus.BAD_REQUEST);
+			throw new ConversionError();
 		}
 
 		// No supported format found
