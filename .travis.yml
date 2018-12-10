@@ -1,11 +1,18 @@
 language: node_js
 node_js:
   - 'node'
-  - '7'
-script: npm run travisci
+  - '8'
+before_script:
+  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+  - chmod +x ./cc-test-reporter
+  - ./cc-test-reporter before-build
+install:
+- npm install
+scripts:
+- npm test
 after_script:
-  - codeclimate-test-reporter < coverage/lcov.info
+  - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
 addons:
-  code_climate:
-    repo_token:
-      secure: ""
+  global:
+    cc_test_reporter_id:
+      secure: "cbbfd47b004c99f56d9884afe6f158d0ac8ffde3de40976af61b501b16ffca4c"

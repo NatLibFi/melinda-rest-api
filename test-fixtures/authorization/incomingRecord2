@@ -1,0 +1,7 @@
+{
+  "leader": "01864cam a2200529zi 4500",
+  "fields": [
+    {"tag": "245", "subfields": [{"code": "a", "value": "foo"}]},
+    {"tag": "LOW", "subfields": [{"code": "a", "value": "BAR"}]}
+  ]
+}

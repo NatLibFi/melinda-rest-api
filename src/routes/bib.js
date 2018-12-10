@@ -26,133 +26,112 @@
 *
 */
 
-import express from 'express';
-import bodyParser from 'body-parser';
-import * as bib from '../services/bib';
-import {MIMETYPES, MIMETYPES_JSON, MIMETYPES_TEXT} from '../constants';
+import {Router} from 'express';
+import passport from 'passport';
+import HttpStatus from 'http-status';
+import ipFilter from 'express-ip-filter';
+import ServiceError from '../services/error';
+import createService, {FORMATS} from '../services/bib';
+import {formatRequestBoolean} from '../utils';
 
-const router = new express.Router();
+import {
+	IP_FILTER_BIB, ALEPH_LIBRARY_BIB, SRU_URL, RECORD_LOAD_URL,
+	RECORD_LOAD_API_KEY, OWN_AUTHORIZATION_URL,
+	OWN_AUTHORIZATION_API_KEY
+} from '../config';
 
-router.use(bodyParser.json({type: MIMETYPES_JSON}));
-router.use(bodyParser.text({type: MIMETYPES_TEXT}));
-
-/**
- * Create a record
- */
-router.post('/records', async (req, res) => {
-	const options = {
-		noop: req.query.noop,
-		unique: req.query.unique,
-		ownerAuthorization: req.query.ownerAuthorization,
-		record: req.body.record
+export default async () => {
+	const CONTENT_TYPES = {
+		'application/json': FORMATS.JSON,
+		'application/marc': FORMATS.ISO2709,
+		'application/xml': FORMATS.MARCXML
 	};
 
-	try {
-		const result = await bib.postBibRecords(options);
-		res.status(result.status || 200).send(result.data);
-	} catch (err) {
-		return res.status(err.status || 500).send(err.message);
+	const ipFilterList = JSON.parse(IP_FILTER_BIB);
+	const Service = await createService({
+		sruURL: SRU_URL, authorizationURL: OWN_AUTHORIZATION_URL,
+		authorizationApiKey: OWN_AUTHORIZATION_API_KEY,
+		recordLoadURL: RECORD_LOAD_URL, recordLoadApiKey: RECORD_LOAD_API_KEY,
+		recordLoadLibrary: ALEPH_LIBRARY_BIB
+	});
+
+	return new Router()
+		.use(ipFilter({filter: ipFilterList}))
+		.use(passport.authenticate('melinda', {session: false}))
+		.post('/', createResource)
+		.get('/:id', readResource)
+		.post('/:id', updateResource)
+		.use((err, req, res, next) => {
+			if (err instanceof ServiceError) {
+				res.status(err.status).send(err.payload);
+			} else {
+				next(err);
+			}
+		});
+
+	async function readResource(req, res, next) {
+		try {
+			const type = req.accepts(Object.keys(CONTENT_TYPES));
+
+			if (type) {
+				const format = CONTENT_TYPES[type];
+				const record = await Service.read({id: req.params.id, format});
+				res.type(type).status(HttpStatus.OK).send(record);
+			} else {
+				res.sendStatus(HttpStatus.NOT_ACCEPTABLE);
+			}
+		} catch (err) {
+			next(err);
+		}
 	}
-});
 
-/**
- * Update a record
- */
-router.post('/records/:id', async (req, res) => {
-	const type = req.get('Content-Type');
+	async function createResource(req, res, next) {
+		try {
+			const type = req.headers['content-type'];
+			const format = CONTENT_TYPES[type];
 
-	const format = MIMETYPES[type];
+			if (!format) {
+				return res.sendStatus(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+			}
 
-	const options = {
-		recordId: req.params.id,
-		noop: req.query.noop === 'true',
-		sync: req.query.sync === 'true',
-		ownerAuthorization: req.query.ownerAuthorization == 'true',
-		user: req.user,
-		format
-	};
+			const unique = req.query.unique === undefined ? true : formatRequestBoolean(req.query.unique);
+			const noop = formatRequestBoolean(req.query.noop);
+			const {messages, id} = await Service.create({
+				format, unique, noop,
+				data: req.body,
+				cataloger: req.user.id
+			});
 
-	try {
-		const result = await bib.postBibRecordsById(req.body, options);
-		res.status(result.status || 200).send(result.data);
-	} catch (err) {
-		return res.status(err.status || 500).send(err.message);
+			if (!noop) {
+				res.status(HttpStatus.CREATED).set('Record-ID', id);
+			}
+
+			res.type('application/json').send(messages);
+		} catch (err) {
+			next(err);
+		}
 	}
-});
 
-/**
- * Retrieve a record
- */
-router.get('/records/:id', async (req, res) => {
-	const type = req.accepts(Object.keys(MIMETYPES));
+	async function updateResource(req, res, next) {
+		try {
+			const type = req.headers['content-type'];
+			const format = CONTENT_TYPES[type];
 
-	const format = MIMETYPES[type];
+			if (!format) {
+				return res.sendStatus(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+			}
 
-	const options = {
-		recordId: req.params.id,
-		format
-	};
+			const noop = formatRequestBoolean(req.query.noop);
+			const messages = await Service.update({
+				format, noop,
+				data: req.body,
+				id: req.params.id,
+				cataloger: req.user.id
+			});
 
-	try {
-		const result = await bib.getBibRecordById(options);
-
-		res.type(type).status(result.status || 200).send(result.data);
-	} catch (err) {
-		return res.status(err.status || 500).send(err.message);
+			res.type('application/json').send(messages);
+		} catch (err) {
+			next(err);
+		}
 	}
-});
-
-/**
- * Lock a record or renew the record's lock
- */
-router.post('/records/:id/lock', async (req, res) => {
-	const options = {
-		recordId: req.params.id,
-		user: req.user
-	};
-
-	try {
-		const result = await bib.postBibRecordsByIdLock(options);
-
-		res.status(result.status || 200).send(result.data);
-	} catch (err) {
-		console.log(err);
-		return res.status(err.status || 500).send(err.message);
-	}
-});
-
-/**
- * Unlock a record
- */
-router.delete('/records/:id/lock', async (req, res) => {
-	const options = {
-		recordId: req.params.id,
-		user: req.user
-	};
-
-	try {
-		const result = await bib.deleteBibRecordsByIdLock(options);
-		res.status(result.status || 200).send(result.data);
-	} catch (err) {
-		return res.status(err.status || 500).send(err.message);
-	}
-});
-
-/**
- * Retrieve information about a record lock
- */
-router.get('/records/:id/lock', async (req, res) => {
-	const options = {
-		recordId: req.params.id,
-		user: req.user
-	};
-
-	try {
-		const result = await bib.getBibRecordsByIdLock(options);
-		res.status(result.status || 200).send(result.data);
-	} catch (err) {
-		return res.status(err.status || 500).send(err.message);
-	}
-});
-
-export default router;
+};

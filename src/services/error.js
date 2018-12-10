@@ -1,3 +1,5 @@
+/* eslint-disable no-unused-vars, valid-jsdoc */
+
 /**
 *
 * @licstart  The following is the entire license notice for the JavaScript code in this file.
@@ -26,23 +28,10 @@
 *
 */
 
-import {readEnvironmentVariable, getApiVersion} from './utils';
-
-export const HTTP_PORT = readEnvironmentVariable('HTTP_PORT', 8080);
-
-export const IP_FILTER_BIB = readEnvironmentVariable('IP_FILTER_BIB', '["*.*.*.*"]');
-
-export const ALEPH_X_API_URL = readEnvironmentVariable('ALEPH_X_API_URL');
-export const ALEPH_USER_LIBRARY = readEnvironmentVariable('ALEPH_USER_LIBRARY');
-
-export const OWN_AUTHORIZATION_URL = readEnvironmentVariable('OWN_AUTHORIZATION_URL');
-export const OWN_AUTHORIZATION_API_KEY = readEnvironmentVariable('OWN_AUTHORIZATION_API_KEY');
-
-export const RECORD_LOAD_URL = readEnvironmentVariable('RECORD_LOAD_URL');
-export const RECORD_LOAD_API_KEY = readEnvironmentVariable('RECORD_LOAD_API_KEY');
-
-export const SRU_URL = readEnvironmentVariable('SRU_URL');
-
-export const ALEPH_LIBRARY_BIB = readEnvironmentVariable('ALEPH_LIBRARY_BIB');
-
-export const SWAGGER_UI_URL = `https://natlibfi.github.io/melinda-rest-api-doc?version=${getApiVersion()}`;
+export default class extends Error {
+	constructor(status, payload, ...params) {
+		super(params);
+		this.status = status;
+		this.payload = payload;
+	}
+}

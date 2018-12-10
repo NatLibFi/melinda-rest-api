@@ -1,0 +1,352 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Melinda REST API for ILS integration ",
+    "version": "1.0"
+  },
+  "tags": [
+    {
+      "name": "/bib",
+      "description": "Operate on bibliographic records"
+    }
+  ],
+  "paths": {
+    "/bib": {
+      "post": {
+        "summary": "Create a record",
+        "tags": ["/bib"],
+        "parameters": [
+          {
+            "name": "noop",
+            "description": "Do not create the record",
+            "in": "query",
+            "type": "boolean",
+            "default": false
+          },
+          {
+            "name": "unique",
+            "description": "Do not create the record if there are duplicates in the datastore",
+            "in": "query",
+            "type": "boolean",
+            "default": true
+          }
+        ],
+        "requestBody": {
+          "description": "Contains a single record",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/MarcRecord" }
+            },
+            "application/xml": {},
+            "application/marc": {}
+          }
+        },
+        "security": [{
+          "httpBasic": []
+          }],
+          "responses": {
+            "200": {
+              "description": "The record was not actually created (The parameter **noop** was set to true)",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ReportValidationReport"
+                  }
+                }
+              }
+            },
+            "201": {
+              "description": "The record was created succesfully",
+              "headers": {
+                "Record-ID": {
+                  "description": "The Record's identifier",
+                  "schema": {
+                    "type": "string"
+                  }
+                }
+              },
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/RecordValidationReport"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "The record data is malfored or in an unsupported format"
+            },
+            "401": {
+              "description": "Credentials are invalid or missing"
+            },
+            "403": {
+              "description": "The credentials are not authorized for this operation, i.e. the user does not have the permission to change the owner metadata of the record"
+            },
+            "409": {
+              "description": "The record has a duplicate in the datastore and **unique** was set to true"
+            },
+            "422": {
+              "description": "The record does not pass validation",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ReportValidationReport"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/bib/{id}": {
+        "post": {
+          "summary": "Update a record",
+          "tags": ["/bib"],
+          "parameters": [
+            {
+              "name": "id",
+              "description": "The identifier of the record that's going to be updated",
+              "in": "path",
+              "type": "string",
+              "required": true
+            },
+            {
+              "name": "noop",
+              "description": "Do not actually do the update the record",
+              "in": "query",
+              "type": "boolean",
+              "default": false
+            }
+          ],
+          "requestBody": {
+            "description": "Contains a single record",
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/MarcRecord" }
+              },
+              "application/xml": {},
+              "application/marc": {}
+            }
+          },
+          "security": [{
+            "httpBasic": []
+            }],
+            "responses": {
+              "200": {
+                "description": "The record was updated successfully (Unless **noop** was set to true)",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "oneOf": [
+                        {
+                          "$ref": "#/components/schemas/ReportValidationReport"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "record": {
+                              "$ref":  "#/components/schemas/MarcRecord",
+                              "required": "true"
+                            },
+                            "report": {
+                              "$ref":  "#/components/schemas/ReportValidationReport"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              },
+              "400": {
+                "description": "The record data is malfored or in an unsupported format"
+              },
+              "401": {
+                "description": "Credentials are invalid or missing"
+              },
+              "403": {
+                "description": "The credentials are not authorized for this operation, i.e. the user does not have the permission to change the owner metadata of the record"
+              },
+              "404": {
+                "description": "The record does not exist"
+              },
+              "409": {
+                "description": "Record has changed in datastore and changes could not be synchronized"
+              },
+              "422": {
+                "description": "The record does not pass validation",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/ReportValidationReport"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "get": {
+            "summary": "Retrieve a record",
+            "tags": ["/bib"],
+            "security": [
+              {
+                "httpBasic": []
+              }
+            ],
+            "responses": {
+              "200": {
+                "content": {
+                  "application/json": {
+                    "schema": { "$ref": "#/components/schemas/MarcRecord" }
+                  },
+                  "application/xml": {},
+                  "application/marc+xml": {},
+                  "application/vnd.oai.marcxml": {},
+                  "application/vnd.exlibris.alephsequential": {},
+                  "application/marc": {}
+                },
+                "headers": {
+                  "Record-ID": {
+                    "description": "Identifier of the record",
+                    "schema": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "401": {
+                "description": "Credentials are invalid or missing"
+              },
+              "403": {
+                "description": "The credentials are not authorized for this operation"
+              },
+              "404": {
+                "description": "The record does not exist"
+              }
+            }
+          }
+        }
+      },
+      "components": {
+        "securitySchemes": {
+          "httpBasic": {
+            "type": "http",
+            "scheme": "basic"
+          }
+        },
+        "schemas": {
+          "ReportValidationReport": {
+            "type": "object",
+            "properties": {
+              "messages": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": ["error", "warning", "info"],
+                      "required": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "required": true
+                    },
+                    "duplicates": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "example": {
+              "messages": [
+                {
+                  "type": "info",
+                  "message": "foobar"
+                },
+                {
+                  "type": "error",
+                  "message": "The record has duplicates in the datastore",
+                  "duplicates": ["123456", "789100"]
+                }
+              ]
+            }
+          },
+          "MarcRecord": {
+            "type": "object",
+            "properties": {
+              "leader": {
+                "type": "string"
+              },
+              "fields": {
+                "type": "array",
+                "required": true,
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "tag": {
+                            "type": "string",
+                            "required": true
+                          },
+                          "value": {
+                            "type": "string",
+                            "required": true
+                          }
+                        }
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "tag": {
+                            "type": "string",
+                            "required": true
+                          },
+                          "subfields": {
+                            "type": "array",
+                            "required": true,
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "code": {
+                                  "type": "string",
+                                  "required": true
+                                },
+                                "value": {
+                                  "type": "string",
+                                  "required": true
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "example": {
+              "fields": [{
+                "tag": "245",
+                "subfields": [
+                  {
+                    "code": "a",
+                    "value": "foo"
+                  }
+                ]
+                }]
+              }
+            }
+          }
+        }
+      }

@@ -26,23 +26,27 @@
 *
 */
 
-import {readEnvironmentVariable, getApiVersion} from './utils';
+import {BasicStrategy} from 'passport-http';
+import createAuthenticationService, {AuthenticationError} from './service';
 
-export const HTTP_PORT = readEnvironmentVariable('HTTP_PORT', 8080);
+export default class extends BasicStrategy {
+	constructor({url, library}) {
+		const AuthenticationService = createAuthenticationService({url, library});
 
-export const IP_FILTER_BIB = readEnvironmentVariable('IP_FILTER_BIB', '["*.*.*.*"]');
+		super((username, password, done) => {
+			AuthenticationService.authenticate({username, password})
+				.then(user => {
+					done(null, user);
+				})
+				.catch(err => {
+					if (err instanceof AuthenticationError) {
+						done(null, false);
+					} else {
+						done(err);
+					}
+				});
+		});
 
-export const ALEPH_X_API_URL = readEnvironmentVariable('ALEPH_X_API_URL');
-export const ALEPH_USER_LIBRARY = readEnvironmentVariable('ALEPH_USER_LIBRARY');
-
-export const OWN_AUTHORIZATION_URL = readEnvironmentVariable('OWN_AUTHORIZATION_URL');
-export const OWN_AUTHORIZATION_API_KEY = readEnvironmentVariable('OWN_AUTHORIZATION_API_KEY');
-
-export const RECORD_LOAD_URL = readEnvironmentVariable('RECORD_LOAD_URL');
-export const RECORD_LOAD_API_KEY = readEnvironmentVariable('RECORD_LOAD_API_KEY');
-
-export const SRU_URL = readEnvironmentVariable('SRU_URL');
-
-export const ALEPH_LIBRARY_BIB = readEnvironmentVariable('ALEPH_LIBRARY_BIB');
-
-export const SWAGGER_UI_URL = `https://natlibfi.github.io/melinda-rest-api-doc?version=${getApiVersion()}`;
+		this.name = 'melinda';
+	}
+}

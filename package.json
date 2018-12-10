@@ -17,67 +17,89 @@
 	"version": "1.0.0",
 	"main": "./dist/index.js",
 	"engines": {
-		"node": ">=7"
+		"node": ">=8"
 	},
 	"scripts": {
+		"start": "babel-node src/index.js",
 		"prepublishOnly": "npm run build:transpile",
-		"lint": "xo --fix",
-		"test": "cross-env NODE_ENV=test nyc mocha --require ./test/test-bootstrap.js --compilers js:babel-register",
-		"coverage": "nyc check-coverage",
-		"clean": "rimraf build coverage .nyc_output dist",
-		"build:transpile": "babel src --source-maps --out-dir=dist --minified",
-		"build": "npm run build:transpile && ncu",
-		"dev": "nodemon --exec babel-node src/index.js",
-		"dev:check": "npm run clean && npm run lint && npm test;npm run coverage;npm run dev",
-		"dev:watch": "chokidar src -c 'npm run build:transpile && node dist/index.js'",
-		"check-and-build": "npm run lint && npm test && npm run coverage && npm run build",
-		"travisci": "npm run check-and-build",
-		"publish-to-npm": "npm install && npm run lint && npm test && npm run coverage && npm publish --access=public"
+		"check-deps": "npm-check;exit 0",
+		"lint:base": "eslint --fix",
+		"lint": "npm run lint:base -- src",
+		"test:base": "cross-env NODE_ENV=test nyc mocha --require @babel/register",
+		"test": "npm run lint && npm run test:base -- src/**/*.spec.js && npm run coverage",
+		"coverage": "nyc check-coverage --per-file",
+		"build:transpile": "babel src --source-maps --copy-files --delete-dir-on-start --out-dir=dist --minified",
+		"build": "npm run build:transpile && npm run check-deps",
+		"watch": "cross-env NODE_ENV=test chokidar src -c 'npm test && npm run coverage'",
+		"publish-to-npm": "npm install && npm test && npm run coverage && npm publish --access=public"
+	},
+	"dependencies": {
+		"@natlibfi/marc-record": "^4.0.1",
+		"@natlibfi/marc-record-serializers": "^3.0.1",
+		"@natlibfi/marc-record-validate": "^4.0.0",
+		"@natlibfi/marc-record-validators-melinda": "^5.1.2",
+		"@natlibfi/melinda-deduplication-common": "^3.0.0",
+		"@natlibfi/sru-client": "^3.0.0",
+		"body-parser": "^1.18.3",
+		"express": "^4.16.4",
+		"express-ip-filter": "^2.0.0",
+		"http-status": "^1.3.1",
+		"moment": "^2.22.2",
+		"node-fetch": "^2.3.0",
+		"passport": ">=0.4.0 <1.0.0",
+		"passport-http": ">=0.3.0 <1.0.0",
+		"synaptic": "^1.1.4",
+		"winston": "^3.1.0",
+		"xmldom": "^>=0.1.27 <1.0.0"
 	},
 	"devDependencies": {
-		"babel-cli": "^6.26.0",
-		"babel-plugin-istanbul": "^4.1.5",
-		"babel-plugin-rewire": "^1.1.0",
-		"babel-preset-env": "^1.6.1",
-		"babel-register": "^6.26.0",
-		"chai": "^4.1.2",
-		"chai-http": "^3.0.0",
-		"chokidar-cli": "^1.2.0",
-		"codeclimate-test-reporter": "^0.5.0",
-		"cross-env": "^5.1.1",
-		"git-scripts": "^0.2.1",
-		"ioredis-mock": "^3.7.0",
-		"istanbul": "^0.4.5",
-		"mocha": "^4.0.1",
-		"nock": "^9.1.9",
-		"nodemon": "^1.14.11",
-		"npm-check-updates": "^2.13.0",
-		"nyc": "^11.3.0",
-		"rimraf": "^2.6.2",
-		"sinon": "^4.4.2",
-		"sinon-chai": "^2.14.0",
-		"xo": "^0.18.2"
+		"@babel/cli": "^7.2.0",
+		"@babel/core": "^7.2.0",
+		"@babel/node": "^7.2.0",
+		"@babel/preset-env": "^7.2.0",
+		"@babel/register": "^7.0.0",
+		"babel-eslint": "^10.0.1",
+		"babel-plugin-istanbul": "^5.1.0",
+		"babel-plugin-rewire": "^1.2.0",
+		"chai": "^4.2.0",
+		"chokidar-cli": "^1.2.1",
+		"cross-env": "^5.2.0",
+		"eslint": "^5.9.0",
+		"eslint-config-xo": ">=0.25.0 <1.0.0",
+		"eslint-plugin-import": "^2.14.0",
+		"istanbul": ">=0.4.5 <1.0.0",
+		"mocha": "^5.2.0",
+		"nock": "^10.0.3",
+		"npm-check": "^5.9.0",
+		"nyc": "^13.1.0",
+		"sinon": "^7.1.1",
+		"sinon-chai": "^3.3.0"
 	},
-	"xo": {
+	"eslintConfig": {
+		"parser": "babel-eslint",
+		"plugins": [
+			"import"
+		],
+		"extends": [
+			"xo",
+			"plugin:import/errors"
+		],
 		"rules": {
-			"valid-jsdoc": [
-				"error"
-			],
 			"prefer-arrow-callback": [
 				"error"
 			]
 		},
-		"ignores": [
-			"node-zoom2/**"
-		]
+		"env": {
+			"mocha": true
+		}
 	},
 	"babel": {
 		"presets": [
 			[
-				"env",
+				"@babel/preset-env",
 				{
 					"targets": {
-						"node": "7"
+						"node": "8"
 					}
 				}
 			]
@@ -92,37 +114,21 @@
 		}
 	},
 	"nyc": {
+		"exclude": [
+			"**/*.spec.js"
+		],
 		"reporter": [
 			"lcov",
 			"html"
 		],
 		"require": [
-			"babel-register"
+			"@babel/register"
 		],
 		"sourceMap": false,
 		"instrument": false,
-		"lines": 100,
-		"statements": 100,
-		"functions": 100,
-		"branches": 100
-	},
-	"dependencies": {
-		"@natlibfi/melinda-marc-record-utils": "^1.1.1",
-		"axios": "^0.18.0",
-		"body-parser": "^1.18.2",
-		"cookie-parser": "^1.4.3",
-		"date-fns": "^1.29.0",
-		"es6-promisify": "^6.0.0",
-		"express": "^4.16.2",
-		"ioredis": "^3.2.2",
-		"lodash": "^4.17.5",
-		"marc-record-js": "^0.3.2",
-		"marc-record-serializers": "^1.4.0",
-		"mysql2": "^1.5.3",
-		"node-zoom2": "file:node-zoom2",
-		"passport": "^0.4.0",
-		"passport-http": "^0.3.0",
-		"swagger-ui-express": "^2.0.14",
-		"xml2js": "^0.4.19"
+		"lines": 80,
+		"statements": 80,
+		"functions": 80,
+		"branches": 80
 	}
 }

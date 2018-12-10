@@ -27,72 +27,110 @@
 * for the JavaScript code in this file.
 *
 */
-import mysql from 'mysql2/promise';
-import zoom from 'node-zoom2';
-import IORedis from 'ioredis';
-import {DB_HOST, DB_NAME_BIB, REDIS_PREFIX, AUTH_DB_HOST, AUTH_DB_USER, AUTH_DB_PASS,AUTH_DB_NAME} from '../config';
-import * as recordService from './record';
 
-const mysqlConnection = mysql.createConnection({
-	host: AUTH_DB_HOST,
-	user: AUTH_DB_USER,
-	password: AUTH_DB_PASS,
-	database: AUTH_DB_NAME
-});
+import HttpStatus from 'http-status';
+import ServiceError from './error';
+import createConversionService, {ConversionError} from './conversion';
+import createRecordMatchingService from './record-matching';
+import createAuthorizationService, {AuthorizationError} from './own-authorization';
+import createValidationService, {ValidationError} from './validation';
+import createDatastoreService, {DatastoreError} from './datastore';
 
-const connection = zoom.connection(`${DB_HOST}/${DB_NAME_BIB}`).set('elementSetName', 'X');
+export {FORMATS} from './conversion';
 
-const redis = new IORedis({
-	keyPrefix: REDIS_PREFIX ? REDIS_PREFIX + ':bib:' : 'bib:'
-});
+export default async function ({sruURL, authorizationURL, authorizationApiKey, recordLoadURL, recordLoadLibrary, recordLoadApiKey}) {
+	const sruUrlBib = `${sruURL}/bibprv`;
+	const ConversionService 	= createConversionService();
+	const RecordMatchingService = createRecordMatchingService({sruURL});
+	const AuthorizationService = createAuthorizationService({sruURL, apiKey: authorizationApiKey, apiURL: authorizationURL});
+	const ValidationService = await createValidationService();
+	const DatastoreService = createDatastoreService({
+		sruURL: sruUrlBib,
+		apiURL: recordLoadURL,
+		library: recordLoadLibrary,
+		apiKey: recordLoadApiKey
+	});
 
-/**
- * @param {Object} options
- * @param {Boolean} options.noop Do not create the record but return the messages about the operation
- * @param {Boolean} options.unique Do not create the record if there are duplicates in the datastore
- * @param {Boolean} options.ownerAuthorization Require the credentials to have authority to change owner metadata
- * @throws {Error}
- * @return {Promise}
- */
-export const postBibRecords = async options => recordService.postRecords(connection, options);
+	return {read, create, update};
 
-/**
- * @param {String} body The body of record to be updated
- * @param {Object} options
- * @param {String} options.recordId The identifier of the record that's going to be updated
- * @param {String} options.format Format used to serialize and unserialize record
- * @param {Boolean} options.noop Do not actually do the update but return the record in the format it would be uploaded
- * @param {Boolean} options.sync Synchronize changes between the incoming record and the record in the datastore
- * @param {Boolean} options.ownerAuthorization Require the credentials to have authority to change owner metadata
- * @throws {Error}
- * @return {Promise}
- */
-export const postBibRecordsById = async (body, options) => recordService.postRecordsById(connection, await mysqlConnection, redis, body, options);
+	async function read({id, format}) {
+		try {
+			const record = await DatastoreService.read(id);
+			return ConversionService.serialize(record, format);
+		} catch (err) {
+			if (err instanceof DatastoreError) {
+				throw new ServiceError(err.status);
+			}
 
-/**
- * @param {Object} options
- * @throws {Error}
- * @return {Promise}
- */
-export const getBibRecordById = async options => recordService.getRecordById(connection, options);
+			throw err;
+		}
+	}
 
-/**
- * @param {Object} options
- * @throws {Error}
- * @return {Promise}
- */
-export const postBibRecordsByIdLock = async options => recordService.postRecordsByIdLock(connection, redis, options);
+	async function create({data, format, cataloger, noop, unique}) {
+		try {
+			const record = ConversionService.unserialize(data, format);
 
-/**
- * @param {Object} options
- * @throws {Error}
- * @return {Promise}
- */
-export const deleteBibRecordsByIdLock = async options => recordService.deleteRecordsByIdLock(connection, redis, options);
+			await AuthorizationService.check({cataloger, record});
 
-/**
- * @param {Object} options
- * @throws {Error}
- * @return {Promise}
- */
-export const getBibRecordsByIdLock = async options => recordService.getRecordsByIdLock(connection, redis, options);
+			if (unique) {
+				const idList = await RecordMatchingService.checkBib(record);
+
+				if (idList.length > 0) {
+					throw new ServiceError(HttpStatus.CONFLICT, idList);
+				}
+			}
+
+			const validationResults = await ValidationService.validate(record);
+
+			if (noop) {
+				return validationResults;
+			}
+
+			const id = await DatastoreService.create({record, cataloger});
+
+			return {messages: validationResults, id};
+		} catch (err) {
+			if (err instanceof ConversionError) {
+				throw new ServiceError(HttpStatus.BAD_REQUEST);
+			} else if (err instanceof DatastoreError) {
+				throw new ServiceError(err.status);
+			} else if (err instanceof AuthorizationError) {
+				throw new ServiceError(err.status);
+			} else if (err instanceof ValidationError) {
+				throw new ServiceError(HttpStatus.UNPROCESSABLE_ENTITY, err.messages);
+			}
+
+			throw err;
+		}
+	}
+
+	async function update({id, data, format, cataloger, noop}) {
+		try {
+			const record = ConversionService.unserialize(data, format);
+
+			await AuthorizationService.check({cataloger, record});
+
+			const validationResults = await ValidationService.validate(record);
+
+			if (noop) {
+				return validationResults;
+			}
+
+			await DatastoreService.update({id, record, cataloger});
+
+			return validationResults;
+		} catch (err) {
+			if (err instanceof ConversionError) {
+				throw new ServiceError(HttpStatus.BAD_REQUEST);
+			} else if (err instanceof DatastoreError) {
+				throw new ServiceError(err.status);
+			} else if (err instanceof AuthorizationError) {
+				throw new ServiceError(err.status);
+			} else if (err instanceof ValidationError) {
+				throw new ServiceError(HttpStatus.UNPROCESSABLE_ENTITY, err.messages);
+			}
+
+			throw err;
+		}
+	}
+}

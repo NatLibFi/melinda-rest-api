@@ -1,0 +1,31 @@
+{
+  "leader": "00132cam a22000617i 4500",
+  "fields": [
+    {
+      "tag": "008",
+      "value": "870423s1978    sw ||||||d   |||||||swe||"
+    },
+    {
+      "tag": "020",
+      "ind1": " ",
+      "ind2": " ",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "951-35-1137-5"
+        }
+      ]
+    },
+    {
+      "tag": "245",
+      "ind1": " ",
+      "ind2": " ",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "foo;bar"
+        }
+      ]
+    }
+  ]
+}

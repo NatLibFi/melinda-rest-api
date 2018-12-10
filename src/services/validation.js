@@ -1,3 +1,5 @@
+/* eslint-disable no-unused-vars, valid-jsdoc, import/default */
+
 /**
 *
 * @licstart  The following is the entire license notice for the JavaScript code in this file.
@@ -26,23 +28,31 @@
 *
 */
 
-import {readEnvironmentVariable, getApiVersion} from './utils';
+// import validateFactory from '@natlibfi/marc-record-validate';
+// Import {} from '@natlibfi/marc-record-validators-melinda';
 
-export const HTTP_PORT = readEnvironmentVariable('HTTP_PORT', 8080);
+export class ValidationError extends Error {
+	/* istanbul ignore next: Actual validation is currently not in use */
+	constructor(messages, ...params) {
+		super(params);
+		this.messages = messages;
+	}
+}
 
-export const IP_FILTER_BIB = readEnvironmentVariable('IP_FILTER_BIB', '["*.*.*.*"]');
+export default async function () {
+//	Const validateFunc = await validateFactory([]);
 
-export const ALEPH_X_API_URL = readEnvironmentVariable('ALEPH_X_API_URL');
-export const ALEPH_USER_LIBRARY = readEnvironmentVariable('ALEPH_USER_LIBRARY');
+	return {validate};
 
-export const OWN_AUTHORIZATION_URL = readEnvironmentVariable('OWN_AUTHORIZATION_URL');
-export const OWN_AUTHORIZATION_API_KEY = readEnvironmentVariable('OWN_AUTHORIZATION_API_KEY');
+	async function validate(record) {
+		return [];
+		/* Const results = await validateFunc(record, {fix: true, validateFixes: true});
 
-export const RECORD_LOAD_URL = readEnvironmentVariable('RECORD_LOAD_URL');
-export const RECORD_LOAD_API_KEY = readEnvironmentVariable('RECORD_LOAD_API_KEY');
+		if (results.valid) {
+			return results.messages;
+		}
 
-export const SRU_URL = readEnvironmentVariable('SRU_URL');
-
-export const ALEPH_LIBRARY_BIB = readEnvironmentVariable('ALEPH_LIBRARY_BIB');
-
-export const SWAGGER_UI_URL = `https://natlibfi.github.io/melinda-rest-api-doc?version=${getApiVersion()}`;
+		throw new ValidationError(results.messages);
+		*/
+	}
+}
