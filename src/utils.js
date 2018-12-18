@@ -37,13 +37,13 @@ import moment from 'moment';
 import winston from 'winston';
 import expressWinston from 'express-winston';
 
-export function createLogger() {
+export function createLoggers() {
 	const timestamp = winston.format(info => {
 		info.timestamp = moment().format();
 		return info;
 	});
 
-	return expressWinston.logger({				
+	const options = {
 		format: winston.format.combine(
 			timestamp(),
 			winston.format.printf(i => `${i.timestamp} - ${i.level}: ${i.message}`)
@@ -53,13 +53,19 @@ export function createLogger() {
 				level: process.env.DEBUG ? 'debug' : 'info',
 				silent: process.env.NODE_ENV === 'test'
 			})
-		],
-		meta: true,
-		msg: '{{req.ip}} HTTP {{req.method}} {{req.path}} - {{res.statusCode}} {{res.responseTime}}ms',
-		ignoreRoute: function (req, res) {
-			return false;
-		}
-	});
+		]
+	};
+
+	return {
+		Logger: winston.createLogger(options),
+		expressLogger: expressWinston.logger(Object.assign({
+			meta: true,
+			msg: '{{req.ip}} HTTP {{req.method}} {{req.path}} - {{res.statusCode}} {{res.responseTime}}ms',
+			ignoreRoute: function (req, res) {
+				return false;
+			}
+		}, options))
+	};
 }
 
 export function createAuthorizationHeader(username, password = '') {

@@ -36,7 +36,7 @@ import {MarcRecord} from '@natlibfi/marc-record';
 
 import {Strategy as MelindaStrategy} from './auth';
 import createBibRouter from './routes/bib';
-import {createLogger} from './utils';
+import {createLoggers} from './utils';
 import {HTTP_PORT, ENABLE_PROXY, SWAGGER_UI_URL, ALEPH_X_API_URL, ALEPH_USER_LIBRARY} from './config';
 
 process.on('SIGINT', () => {
@@ -49,6 +49,7 @@ MarcRecord.setValidationOptions({subfieldValues: false});
 run();
 
 async function run() {
+	const {Logger, expressLogger} = createLoggers();
 	const app = express();
 	const BibRouter = await createBibRouter();
 	const apiDoc = JSON.parse(fs.readFileSync(path.join(__dirname, 'api.json'), 'utf8'));
@@ -59,7 +60,7 @@ async function run() {
 
 	passport.use(new MelindaStrategy({url: ALEPH_X_API_URL, library: ALEPH_USER_LIBRARY}));
 
-	app.use(createLogger());
+	app.use(expressLogger);
 	app.use(bodyParser.text({limit: '5MB', type: '*/*'}));
 	app.use(passport.initialize());
 
@@ -67,7 +68,7 @@ async function run() {
 	app.get('/', handleDocRequest);
 	app.use(handleError);
 
-	app.listen(HTTP_PORT, () => console.log('Started Melinda REST API'));
+	app.listen(HTTP_PORT, () => Logger.log('info', 'Started Melinda REST API'));
 
 	function handleDocRequest(req, res) {
 		const accepts = req.accepts('text/html', 'application/xhtml+xml', 'application/json');
