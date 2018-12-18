@@ -12,7 +12,7 @@ scripts:
 - npm test
 after_script:
   - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
-addons:
+env:
   global:
     cc_test_reporter_id:
       secure: "cbbfd47b004c99f56d9884afe6f158d0ac8ffde3de40976af61b501b16ffca4c"
