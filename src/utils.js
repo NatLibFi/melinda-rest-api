@@ -43,15 +43,16 @@ export function createLogger() {
 		return info;
 	});
 
-	return expressWinston.logger({
-		silent: process.env.NODE_ENV === 'test',
-		level: process.env.DEBUG ? 'debug' : 'info',
+	return expressWinston.logger({				
 		format: winston.format.combine(
 			timestamp(),
 			winston.format.printf(i => `${i.timestamp} - ${i.level}: ${i.message}`)
 		),
 		transports: [
-			new winston.transports.Console()
+			new winston.transports.Console({
+				level: process.env.DEBUG ? 'debug' : 'info',
+				silent: process.env.NODE_ENV === 'test'
+			})
 		],
 		meta: true,
 		msg: '{{req.ip}} HTTP {{req.method}} {{req.path}} - {{res.statusCode}} {{res.responseTime}}ms',
