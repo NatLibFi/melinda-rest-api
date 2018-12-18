@@ -73,7 +73,7 @@ export default function ({sruURL, apiURL, apiKey, library}) {
 
 		/* Replace the id in case the record has 001 with a different value than the id parameter */
 		if (f001) {
-			f001.value = formatRecordId(id);
+			f001.value = id;
 		}
 
 		await loadRecord({record, cataloger, update: true});
