@@ -68,7 +68,15 @@ export default function ({sruURL, apiURL, apiKey, library}) {
 		const existingRecord = await fetchRecord(id);
 
 		await validateRecordState(record, existingRecord);
-		await loadRecord({record, id, cataloger});
+
+		const f001 = record.get(/^001$/).shift();
+
+		/* Replace the id in case the record has 001 with a different value than the id parameter */
+		if (f001) {
+			f001.value = formatRecordId(id);
+		}
+
+		await loadRecord({record, cataloger, update: true});
 	}
 
 	async function fetchRecord(id) {
@@ -94,12 +102,12 @@ export default function ({sruURL, apiURL, apiKey, library}) {
 		});
 	}
 
-	async function loadRecord({record, id, cataloger}) {
+	async function loadRecord({record, cataloger, update = false}) {
 		const url = new URL(apiURL);
 		const formattedRecord = AlephSequential.to(record);
 
 		url.searchParams.set('library', library);
-		url.searchParams.set('method', id === undefined ? 'NEW' : 'OLD');
+		url.searchParams.set('method', update ? 'OLD' : 'NEW');
 		url.searchParams.set('fixRoutine', FIX_ROUTINE);
 		url.searchParams.set('updateAction', UPDATE_ACTION);
 		url.searchParams.set('cataloger', cataloger);
@@ -114,12 +122,30 @@ export default function ({sruURL, apiURL, apiKey, library}) {
 			return formatRecordId(idList.shift());
 		}
 
+		if (response.status === HttpStatus.INTERNAL_SERVER_ERROR) {
+			const payload = await response.text();
+			const errors = parseErrors(payload);
+			throw new Error(`Unexpected response: ${errors.join()}`);
+		}
+
 		throw new Error(`Unexpected response: ${response.status}: ${await response.text()}`);
 
-		function formatRecordId(id) {
-			const pattern = new RegExp(`${library.toUpperCase()}$`);
-			return id.replace(pattern, '');
+		function parseErrors(log) {
+			let result;
+			const errors = [];
+			const re = /^\[error\] (.*)$/mg;
+
+			while (result = re.exec(log)) { /* eslint-disable-line no-cond-assign */
+				errors.push(result[1]);
+			}
+
+			return errors;
 		}
+	}
+
+	function formatRecordId(id) {
+		const pattern = new RegExp(`${library.toUpperCase()}$`);
+		return id.replace(pattern, '');
 	}
 
 	// Checks that the modification history is identical

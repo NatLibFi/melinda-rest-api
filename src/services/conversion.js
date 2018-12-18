@@ -32,7 +32,7 @@ import {MarcRecord} from '@natlibfi/marc-record';
 import {MARCXML, ISO2709, Json} from '@natlibfi/marc-record-serializers';
 
 export const FORMATS = {
-	MARCXML: 0,
+	MARCXML: 1,
 	ISO2709: 2,
 	JSON: 3
 };
