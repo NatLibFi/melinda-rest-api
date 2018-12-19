@@ -226,6 +226,17 @@
         "tags": [
           "/bib"
         ],
+        "parameters": [
+          {
+            "name": "id",
+            "description": "The identifier of the record that's going to be updated",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "security": [
           {
             "httpBasic": []
