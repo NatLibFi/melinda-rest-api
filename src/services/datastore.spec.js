@@ -43,10 +43,12 @@ const sruResponse2 = fs.readFileSync(path.join(FIXTURES_PATH, 'sruResponse2'), '
 const sruResponse3 = fs.readFileSync(path.join(FIXTURES_PATH, 'sruResponse3'), 'utf8');
 const sruResponse4 = fs.readFileSync(path.join(FIXTURES_PATH, 'sruResponse4'), 'utf8');
 const sruResponse5 = fs.readFileSync(path.join(FIXTURES_PATH, 'sruResponse5'), 'utf8');
+const sruResponse6 = fs.readFileSync(path.join(FIXTURES_PATH, 'sruResponse6'), 'utf8');
 const expectedRecord1 = fs.readFileSync(path.join(FIXTURES_PATH, 'expectedRecord1'), 'utf8');
 const incomingRecord1 = fs.readFileSync(path.join(FIXTURES_PATH, 'incomingRecord1'), 'utf8');
 const incomingRecord2 = fs.readFileSync(path.join(FIXTURES_PATH, 'incomingRecord2'), 'utf8');
 const incomingRecord3 = fs.readFileSync(path.join(FIXTURES_PATH, 'incomingRecord3'), 'utf8');
+const incomingRecord4 = fs.readFileSync(path.join(FIXTURES_PATH, 'incomingRecord4'), 'utf8');
 
 MarcRecord.setValidationOptions({subfieldValues: false});
 
@@ -217,6 +219,23 @@ describe('services/datastore', () => {
 					expect(err).to.be.an.instanceof(testContext.DatastoreError);
 					expect(err).to.have.property('status', HttpStatus.CONFLICT);
 				}
+			});
+
+			it('Should update the record (CAT-field has props in different order)', async () => {
+				nock('https://sru')
+					.get(/.*/).reply(200, sruResponse6);
+				nock('https://api')
+					.post(/.*/).reply(200, ['1234']);
+
+				const service = testContext.default({
+					sruURL: 'https://sru',
+					apiURL: 'https://api',
+					apiKey: 'foobar',
+					library: 'foo'
+				});
+
+				const record = new MarcRecord(JSON.parse(incomingRecord4));
+				await service.update({record, id: '1234'});
 			});
 
 			it('Should fail because of an unexpected error', async () => {

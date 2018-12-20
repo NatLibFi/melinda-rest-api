@@ -41,6 +41,7 @@
 		"@natlibfi/melinda-deduplication-common": "^3.0.0",
 		"@natlibfi/sru-client": "^3.0.0",
 		"body-parser": "^1.18.3",
+		"deep-eql": "^4.0.0",
 		"express": "^4.16.4",
 		"express-ip-filter": "^2.0.0",
 		"express-winston": "^3.0.1",
