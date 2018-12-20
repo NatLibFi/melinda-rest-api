@@ -27,6 +27,7 @@
 */
 
 import {URL} from 'url';
+import deepEqual from 'deep-eql';
 import HttpStatus from 'http-status';
 import fetch from 'node-fetch';
 import createSruClient from '@natlibfi/sru-client';
@@ -153,7 +154,7 @@ export default function ({sruURL, apiURL, apiKey, library}) {
 		const incomingModificationHistory = incomingRecord.get(/^CAT$/);
 		const existingModificationHistory = existingRecord.get(/^CAT$/);
 
-		if (JSON.stringify(incomingModificationHistory) !== JSON.stringify(existingModificationHistory)) {
+		if (!deepEqual(incomingModificationHistory, existingModificationHistory)) {
 			throw new DatastoreError(HttpStatus.CONFLICT);
 		}
 	}
