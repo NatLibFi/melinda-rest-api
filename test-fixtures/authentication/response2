@@ -1,5 +1,0 @@
-<?xml version = "1.0" encoding = "UTF-8"?>
-<user-auth>
-<error>No such staff member exist. Make sure both user and password are correct.</error>
-<session-id></session-id>
-</user-auth>
