@@ -33,16 +33,16 @@ export const ENABLE_PROXY = readEnvironmentVariable('ENABLE_PROXY', '');
 
 export const IP_FILTER_BIB = readEnvironmentVariable('IP_FILTER_BIB', '[".*"]');
 
-export const ALEPH_X_API_URL = readEnvironmentVariable('ALEPH_X_API_URL');
+export const ALEPH_X_SVC_URL = readEnvironmentVariable('ALEPH_X_SVC_URL');
 export const ALEPH_USER_LIBRARY = readEnvironmentVariable('ALEPH_USER_LIBRARY');
 
-export const OWN_AUTHORIZATION_URL = readEnvironmentVariable('OWN_AUTHORIZATION_URL');
-export const OWN_AUTHORIZATION_API_KEY = readEnvironmentVariable('OWN_AUTHORIZATION_API_KEY');
+export const OWN_AUTHZ_URL = readEnvironmentVariable('OWN_AUTHZ_URL');
+export const OWN_AUTHZ_API_KEY = readEnvironmentVariable('OWN_AUTHZ_API_KEY');
 
 export const RECORD_LOAD_URL = readEnvironmentVariable('RECORD_LOAD_URL');
 export const RECORD_LOAD_API_KEY = readEnvironmentVariable('RECORD_LOAD_API_KEY');
 
-export const SRU_URL = readEnvironmentVariable('SRU_URL');
+export const BIB_SRU_URL = readEnvironmentVariable('BIB_SRU_URL');
 
 export const ALEPH_LIBRARY_BIB = readEnvironmentVariable('ALEPH_LIBRARY_BIB');
 

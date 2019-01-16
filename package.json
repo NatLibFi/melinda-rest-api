@@ -38,7 +38,7 @@
 		"@natlibfi/marc-record-serializers": "^3.0.4",
 		"@natlibfi/marc-record-validate": "^4.0.0",
 		"@natlibfi/marc-record-validators-melinda": "^5.1.2",
-		"@natlibfi/melinda-deduplication-common": "^3.0.0",
+		"@natlibfi/melinda-commons": "file:../melinda-commons-js",
 		"@natlibfi/sru-client": "^3.0.0",
 		"body-parser": "^1.18.3",
 		"deep-eql": "^4.0.0",

@@ -33,18 +33,22 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import passport from 'passport';
 import {MarcRecord} from '@natlibfi/marc-record';
+import {Authentication} from '@natlibfi/melinda-commons';
 
-import {Strategy as MelindaStrategy} from './auth';
 import createBibRouter from './routes/bib';
 import {createLoggers} from './utils';
-import {HTTP_PORT, ENABLE_PROXY, SWAGGER_UI_URL, ALEPH_X_API_URL, ALEPH_USER_LIBRARY} from './config';
+import {
+	HTTP_PORT, ENABLE_PROXY, SWAGGER_UI_URL,
+	ALEPH_X_SVC_URL, ALEPH_USER_LIBRARY,
+	OWN_AUTHZ_URL, OWN_AUTHZ_API_KEY
+} from './config';
+
+// Aleph creates partial subfields...
+MarcRecord.setValidationOptions({subfieldValues: false});
 
 process.on('SIGINT', () => {
 	process.exit(1);
 });
-
-// Aleph creates partial subfields...
-MarcRecord.setValidationOptions({subfieldValues: false});
 
 run();
 
@@ -58,7 +62,10 @@ async function run() {
 		app.enable('trust proxy', true);
 	}
 
-	passport.use(new MelindaStrategy({url: ALEPH_X_API_URL, library: ALEPH_USER_LIBRARY}));
+	passport.use(new Authentication.MelindaStrategy({
+		xServiceURL: ALEPH_X_SVC_URL, userLibrary: ALEPH_USER_LIBRARY,
+		ownAuthzURL: OWN_AUTHZ_URL, ownAuthzApiKey: OWN_AUTHZ_API_KEY
+	}));
 
 	app.use(expressLogger);
 	app.use(bodyParser.text({limit: '5MB', type: '*/*'}));

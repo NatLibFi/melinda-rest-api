@@ -68,11 +68,6 @@ export function createLoggers() {
 	};
 }
 
-export function createAuthorizationHeader(username, password = '') {
-	const encoded = Buffer.from(`${username}:${password}`).toString('base64');
-	return `Basic ${encoded}`;
-}
-
 export function readEnvironmentVariable(name, defaultValue, opts = {}) {
 	if (process.env[name] === undefined) {
 		if (defaultValue === undefined) {
@@ -80,6 +75,7 @@ export function readEnvironmentVariable(name, defaultValue, opts = {}) {
 			console.log('error', message);
 			throw new Error(message);
 		}
+
 		const loggedDefaultValue = opts.hideDefaultValue ? '[hidden]' : defaultValue;
 		console.log(`No environment variable set for ${name}, using default value: ${loggedDefaultValue}`);
 	}

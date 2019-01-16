@@ -27,27 +27,23 @@
 */
 
 import HttpStatus from 'http-status';
-import ServiceError from './error';
+import {RecordMatching, Datastore, OwnAuthorization} from '@natlibfi/melinda-commons';
+
 import createConversionService, {ConversionError} from './conversion';
-import createRecordMatchingService from './record-matching';
-import createAuthorizationService, {AuthorizationError} from './own-authorization';
 import createValidationService, {ValidationError} from './validation';
-import createDatastoreService, {DatastoreError} from './datastore';
+import ServiceError from './error';
 
 export {FORMATS} from './conversion';
 
-export default async function ({sruURL, authorizationURL, authorizationApiKey, recordLoadURL, recordLoadLibrary, recordLoadApiKey}) {
-	const sruUrlBib = `${sruURL}/bibprv`;
-	const ConversionService 	= createConversionService();
-	const RecordMatchingService = createRecordMatchingService({sruURL});
-	const AuthorizationService = createAuthorizationService({sruURL, apiKey: authorizationApiKey, apiURL: authorizationURL});
+export default async function ({sruURL, recordLoadURL, recordLoadLibrary, recordLoadApiKey}) {
+	const {DatastoreError} = Datastore;
+	const {OwnAuthorizationError} = OwnAuthorization;
+	const ConversionService = createConversionService();
 	const ValidationService = await createValidationService();
-	const DatastoreService = createDatastoreService({
-		sruURL: sruUrlBib,
-		apiURL: recordLoadURL,
-		library: recordLoadLibrary,
-		apiKey: recordLoadApiKey
-	});
+
+	const RecordMatchingService = RecordMatching.createBibService({sruURL});
+
+	const DatastoreService = Datastore.createService({sruURL, recordLoadURL, recordLoadApiKey, library: recordLoadLibrary});
 
 	return {read, create, update};
 
@@ -64,17 +60,17 @@ export default async function ({sruURL, authorizationURL, authorizationApiKey, r
 		}
 	}
 
-	async function create({data, format, cataloger, noop, unique}) {
+	async function create({data, format, user, noop, unique}) {
 		try {
 			const record = ConversionService.unserialize(data, format);
 
-			await AuthorizationService.check({cataloger, record});
+			OwnAuthorization.validateChanges(user.authorization, record);
 
 			if (unique) {
-				const idList = await RecordMatchingService.checkBib(record);
+				const matchingId = await RecordMatchingService.find(record);
 
-				if (idList.length > 0) {
-					throw new ServiceError(HttpStatus.CONFLICT, idList);
+				if (matchingId) {
+					throw new ServiceError(HttpStatus.CONFLICT, matchingId);
 				}
 			}
 
@@ -84,15 +80,15 @@ export default async function ({sruURL, authorizationURL, authorizationApiKey, r
 				return validationResults;
 			}
 
-			const id = await DatastoreService.create({record, cataloger});
+			const id = await DatastoreService.create({record, cataloger: user.id});
 
 			return {messages: validationResults, id};
 		} catch (err) {
 			if (err instanceof ConversionError) {
 				throw new ServiceError(HttpStatus.BAD_REQUEST);
+			} else if (err instanceof OwnAuthorizationError) {
+				throw new ServiceError(HttpStatus.FORBIDDEN);
 			} else if (err instanceof DatastoreError) {
-				throw new ServiceError(err.status);
-			} else if (err instanceof AuthorizationError) {
 				throw new ServiceError(err.status);
 			} else if (err instanceof ValidationError) {
 				throw new ServiceError(HttpStatus.UNPROCESSABLE_ENTITY, err.messages);
@@ -102,11 +98,12 @@ export default async function ({sruURL, authorizationURL, authorizationApiKey, r
 		}
 	}
 
-	async function update({id, data, format, cataloger, noop}) {
+	async function update({id, data, format, user, noop}) {
 		try {
 			const record = ConversionService.unserialize(data, format);
+			const existingRecord = await DatastoreService.read(id);
 
-			await AuthorizationService.check({cataloger, record});
+			OwnAuthorization.validateChanges(user.authorization, record, existingRecord);
 
 			const validationResults = await ValidationService.validate(record);
 
@@ -114,15 +111,15 @@ export default async function ({sruURL, authorizationURL, authorizationApiKey, r
 				return validationResults;
 			}
 
-			await DatastoreService.update({id, record, cataloger});
+			await DatastoreService.update({id, record, cataloger: user.id});
 
 			return validationResults;
 		} catch (err) {
 			if (err instanceof ConversionError) {
 				throw new ServiceError(HttpStatus.BAD_REQUEST);
+			} else if (err instanceof OwnAuthorizationError) {
+				throw new ServiceError(HttpStatus.FORBIDDEN);
 			} else if (err instanceof DatastoreError) {
-				throw new ServiceError(err.status);
-			} else if (err instanceof AuthorizationError) {
 				throw new ServiceError(err.status);
 			} else if (err instanceof ValidationError) {
 				throw new ServiceError(HttpStatus.UNPROCESSABLE_ENTITY, err.messages);

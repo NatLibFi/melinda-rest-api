@@ -34,9 +34,8 @@ import createService, {FORMATS} from '../services/bib';
 import {formatRequestBoolean, createWhitelistMiddleware} from '../utils';
 
 import {
-	IP_FILTER_BIB, ALEPH_LIBRARY_BIB, SRU_URL, RECORD_LOAD_URL,
-	RECORD_LOAD_API_KEY, OWN_AUTHORIZATION_URL,
-	OWN_AUTHORIZATION_API_KEY
+	IP_FILTER_BIB, ALEPH_LIBRARY_BIB, BIB_SRU_URL,
+	RECORD_LOAD_URL, RECORD_LOAD_API_KEY
 } from '../config';
 
 export default async () => {
@@ -48,9 +47,9 @@ export default async () => {
 
 	const ipFilterList = JSON.parse(IP_FILTER_BIB).map(rule => new RegExp(rule));
 	const Service = await createService({
-		sruURL: SRU_URL, authorizationURL: OWN_AUTHORIZATION_URL,
-		authorizationApiKey: OWN_AUTHORIZATION_API_KEY,
-		recordLoadURL: RECORD_LOAD_URL, recordLoadApiKey: RECORD_LOAD_API_KEY,
+		sruURL: BIB_SRU_URL,
+		recordLoadURL: RECORD_LOAD_URL,
+		recordLoadApiKey: RECORD_LOAD_API_KEY,
 		recordLoadLibrary: ALEPH_LIBRARY_BIB
 	});
 
@@ -98,7 +97,7 @@ export default async () => {
 			const {messages, id} = await Service.create({
 				format, unique, noop,
 				data: req.body,
-				cataloger: req.user.id
+				user: req.user
 			});
 
 			if (!noop) {
@@ -125,7 +124,7 @@ export default async () => {
 				format, noop,
 				data: req.body,
 				id: req.params.id,
-				cataloger: req.user.id
+				user: req.user
 			});
 
 			res.type('application/json').send(messages);
