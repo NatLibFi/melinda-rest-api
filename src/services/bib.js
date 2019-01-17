@@ -75,10 +75,10 @@ export default async function ({sruURL, recordLoadURL, recordLoadLibrary, record
 
 			if (unique) {
 				Logger.log('debug', 'Attempting to find matching records in the datastore');
-				const matchingId = await RecordMatchingService.find(record);
+				const matchingIds = await RecordMatchingService.find(record);
 
-				if (matchingId) {
-					throw new ServiceError(HttpStatus.CONFLICT, matchingId);
+				if (matchingIds.length > 0) {
+					throw new ServiceError(HttpStatus.CONFLICT, matchingIds);
 				}
 			}
 
