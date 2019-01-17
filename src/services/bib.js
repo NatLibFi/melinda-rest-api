@@ -32,12 +32,14 @@ import {RecordMatching, Datastore, OwnAuthorization} from '@natlibfi/melinda-com
 import createConversionService, {ConversionError} from './conversion';
 import createValidationService, {ValidationError} from './validation';
 import ServiceError from './error';
+import {createLogger} from '../utils';
 
 export {FORMATS} from './conversion';
 
 export default async function ({sruURL, recordLoadURL, recordLoadLibrary, recordLoadApiKey}) {
 	const {DatastoreError} = Datastore;
 	const {OwnAuthorizationError} = OwnAuthorization;
+	const Logger = createLogger();
 	const ConversionService = createConversionService();
 	const ValidationService = await createValidationService();
 
@@ -49,7 +51,10 @@ export default async function ({sruURL, recordLoadURL, recordLoadLibrary, record
 
 	async function read({id, format}) {
 		try {
+			Logger.log('debug', `Reading record ${id} from datastore`);
 			const record = await DatastoreService.read(id);
+
+			Logger.log('debug', `Serializing record ${id}`);
 			return ConversionService.serialize(record, format);
 		} catch (err) {
 			if (err instanceof DatastoreError) {
@@ -62,11 +67,14 @@ export default async function ({sruURL, recordLoadURL, recordLoadLibrary, record
 
 	async function create({data, format, user, noop, unique}) {
 		try {
+			Logger.log('debug', 'Unserializing record');
 			const record = ConversionService.unserialize(data, format);
 
+			Logger.log('debug', 'Checking LOW-tag authorization');
 			OwnAuthorization.validateChanges(user.authorization, record);
 
 			if (unique) {
+				Logger.log('debug', 'Attempting to find matching records in the datastore');
 				const matchingId = await RecordMatchingService.find(record);
 
 				if (matchingId) {
@@ -74,12 +82,14 @@ export default async function ({sruURL, recordLoadURL, recordLoadLibrary, record
 				}
 			}
 
+			Logger.log('debug', 'Validating the record');
 			const validationResults = await ValidationService.validate(record);
 
 			if (noop) {
 				return validationResults;
 			}
 
+			Logger.log('debug', 'Creating a new record in datastore');
 			const id = await DatastoreService.create({record, cataloger: user.id});
 
 			return {messages: validationResults, id};
@@ -100,17 +110,23 @@ export default async function ({sruURL, recordLoadURL, recordLoadLibrary, record
 
 	async function update({id, data, format, user, noop}) {
 		try {
+			Logger.log('debug', 'Unserializing record');
 			const record = ConversionService.unserialize(data, format);
+
+			Logger.log('debug', `Reading record ${id} from datastore`);
 			const existingRecord = await DatastoreService.read(id);
 
+			Logger.log('debug', 'Checking LOW-tag authorization');
 			OwnAuthorization.validateChanges(user.authorization, record, existingRecord);
 
+			Logger.log('debug', 'Validating the record');
 			const validationResults = await ValidationService.validate(record);
 
 			if (noop) {
 				return validationResults;
 			}
 
+			Logger.log('debug', `Updating record ${id} in datastore`);
 			await DatastoreService.update({id, record, cataloger: user.id});
 
 			return validationResults;

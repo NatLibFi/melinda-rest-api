@@ -36,7 +36,7 @@ import {MarcRecord} from '@natlibfi/marc-record';
 import {Authentication} from '@natlibfi/melinda-commons';
 
 import createBibRouter from './routes/bib';
-import {createLoggers} from './utils';
+import {createLogger, createExpressLogger} from './utils';
 import {
 	HTTP_PORT, ENABLE_PROXY, SWAGGER_UI_URL,
 	ALEPH_X_SVC_URL, ALEPH_USER_LIBRARY,
@@ -53,7 +53,7 @@ process.on('SIGINT', () => {
 run();
 
 async function run() {
-	const {Logger, expressLogger} = createLoggers();
+	const Logger = createLogger();
 	const app = express();
 	const BibRouter = await createBibRouter();
 	const apiDoc = JSON.parse(fs.readFileSync(path.join(__dirname, 'api.json'), 'utf8'));
@@ -67,7 +67,7 @@ async function run() {
 		ownAuthzURL: OWN_AUTHZ_URL, ownAuthzApiKey: OWN_AUTHZ_API_KEY
 	}));
 
-	app.use(expressLogger);
+	app.use(createExpressLogger());
 	app.use(bodyParser.text({limit: '5MB', type: '*/*'}));
 	app.use(passport.initialize());
 
