@@ -37,17 +37,14 @@ import moment from 'moment';
 import winston from 'winston';
 import expressWinston from 'express-winston';
 
-export function createLoggers() {
+function createLoggerOptions() {
 	const timestamp = winston.format(info => {
 		info.timestamp = moment().format();
 		return info;
 	});
 
-	const options = {
-		format: winston.format.combine(
-			timestamp(),
-			winston.format.printf(i => `${i.timestamp} - ${i.level}: ${i.message}`)
-		),
+	return {
+		format: winston.format.combine(timestamp(), winston.format.printf(formatMessage)),
 		transports: [
 			new winston.transports.Console({
 				level: process.env.DEBUG ? 'debug' : 'info',
@@ -56,16 +53,23 @@ export function createLoggers() {
 		]
 	};
 
-	return {
-		Logger: winston.createLogger(options),
-		expressLogger: expressWinston.logger(Object.assign({
-			meta: true,
-			msg: '{{req.ip}} HTTP {{req.method}} {{req.path}} - {{res.statusCode}} {{res.responseTime}}ms',
-			ignoreRoute: function (req, res) {
-				return false;
-			}
-		}, options))
-	};
+	function formatMessage(i) {
+		return `${i.timestamp} - ${i.level}: ${i.message}`;
+	}
+}
+
+export function createLogger() {
+	return winston.createLogger(createLoggerOptions());
+}
+
+export function createExpressLogger() {
+	return expressWinston.logger(Object.assign({
+		meta: true,
+		msg: '{{req.ip}} HTTP {{req.method}} {{req.path}} - {{res.statusCode}} {{res.responseTime}}ms',
+		ignoreRoute: function (req, res) {
+			return false;
+		}
+	}, createLoggerOptions()));
 }
 
 export function readEnvironmentVariable(name, defaultValue, opts = {}) {
