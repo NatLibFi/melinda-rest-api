@@ -109,7 +109,14 @@
             "description": "The credentials are not authorized for this operation, i.e. the user does not have the permission to change the owner metadata of the record"
           },
           "409": {
-            "description": "The record has a duplicate in the datastore and **unique** was set to true"
+            "description": "The record has a duplicate in the datastore and **unique** was set to true",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecordDuplicateReport"
+                }
+              }
+            }
           },
           "422": {
             "description": "The record does not pass validation",
@@ -298,6 +305,15 @@
       }
     },
     "schemas": {
+      "RecordDuplicateReport": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "example": [
+          "000001234"
+        ]
+      },
       "RecordValidationReport": {
         "type": "array",
         "items": {
