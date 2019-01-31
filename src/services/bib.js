@@ -32,11 +32,13 @@ import {RecordMatching, Datastore, OwnAuthorization} from '@natlibfi/melinda-com
 import createConversionService, {ConversionError} from './conversion';
 import createValidationService, {ValidationError} from './validation';
 import ServiceError from './error';
-import {createLogger} from '../utils';
+import {Utils} from '@natlibfi/melinda-commons';
 
 export {FORMATS} from './conversion';
 
-export default async function ({sruURL, recordLoadURL, recordLoadLibrary, recordLoadApiKey}) {
+const {createLogger} = Utils;
+
+export default async function ({sruURL, recordLoadURL, recordLoadApiKey, recordLoadLibrary}) {
 	const {DatastoreError} = Datastore;
 	const {OwnAuthorizationError} = OwnAuthorization;
 	const Logger = createLogger();
@@ -45,7 +47,7 @@ export default async function ({sruURL, recordLoadURL, recordLoadLibrary, record
 
 	const RecordMatchingService = RecordMatching.createBibService({sruURL});
 
-	const DatastoreService = Datastore.createService({sruURL, recordLoadURL, recordLoadApiKey, library: recordLoadLibrary});
+	const DatastoreService = Datastore.createService({sruURL, recordLoadURL, recordLoadApiKey, recordLoadLibrary});
 
 	return {read, create, update};
 

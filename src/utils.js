@@ -30,62 +30,7 @@
 
 /* istanbul ignore file */
 
-import fs from 'fs';
-import path from 'path';
 import HttpStatus from 'http-status';
-import moment from 'moment';
-import winston from 'winston';
-import expressWinston from 'express-winston';
-
-function createLoggerOptions() {
-	const timestamp = winston.format(info => {
-		info.timestamp = moment().format();
-		return info;
-	});
-
-	return {
-		format: winston.format.combine(timestamp(), winston.format.printf(formatMessage)),
-		transports: [
-			new winston.transports.Console({
-				level: process.env.DEBUG ? 'debug' : 'info',
-				silent: process.env.NODE_ENV === 'test'
-			})
-		]
-	};
-
-	function formatMessage(i) {
-		return `${i.timestamp} - ${i.level}: ${i.message}`;
-	}
-}
-
-export function createLogger() {
-	return winston.createLogger(createLoggerOptions());
-}
-
-export function createExpressLogger() {
-	return expressWinston.logger(Object.assign({
-		meta: true,
-		msg: '{{req.ip}} HTTP {{req.method}} {{req.path}} - {{res.statusCode}} {{res.responseTime}}ms',
-		ignoreRoute: function (req, res) {
-			return false;
-		}
-	}, createLoggerOptions()));
-}
-
-export function readEnvironmentVariable(name, defaultValue, opts = {}) {
-	if (process.env[name] === undefined) {
-		if (defaultValue === undefined) {
-			const message = `Mandatory environment variable missing: ${name}`;
-			console.log('error', message);
-			throw new Error(message);
-		}
-
-		const loggedDefaultValue = opts.hideDefaultValue ? '[hidden]' : defaultValue;
-		console.log(`No environment variable set for ${name}, using default value: ${loggedDefaultValue}`);
-	}
-
-	return process.env[name] || defaultValue;
-}
 
 export function formatRequestBoolean(value) {
 	if (Number.isNaN(Number(value))) {
