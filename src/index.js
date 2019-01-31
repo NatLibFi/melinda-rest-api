@@ -33,15 +33,17 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import passport from 'passport';
 import {MarcRecord} from '@natlibfi/marc-record';
-import {Authentication} from '@natlibfi/melinda-commons';
+import {Authentication, Utils} from '@natlibfi/melinda-commons';
 
 import createBibRouter from './routes/bib';
-import {createLogger, createExpressLogger} from './utils';
+
 import {
 	HTTP_PORT, ENABLE_PROXY, SWAGGER_UI_URL,
 	ALEPH_X_SVC_URL, ALEPH_USER_LIBRARY,
 	OWN_AUTHZ_URL, OWN_AUTHZ_API_KEY
 } from './config';
+
+const {createLogger, createExpressLogger} = Utils;
 
 // Aleph creates partial subfields...
 MarcRecord.setValidationOptions({subfieldValues: false});
