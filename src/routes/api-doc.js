@@ -26,24 +26,16 @@
 *
 */
 
-import {Utils} from '@natlibfi/melinda-commons';
+import fs from 'fs';
+import path from 'path';
+import {Router} from 'express';
 
-const {readEnvironmentVariable} = Utils;
+export default function () {
+	const apiDoc = fs.readFileSync(path.join(__dirname, '..', 'api.json'), 'utf8');
 
-export const HTTP_PORT = readEnvironmentVariable('HTTP_PORT', '8080');
-export const ENABLE_PROXY = readEnvironmentVariable('ENABLE_PROXY', '');
-
-export const IP_FILTER_BIB = readEnvironmentVariable('IP_FILTER_BIB', '[".*"]');
-
-export const ALEPH_X_SVC_URL = readEnvironmentVariable('ALEPH_X_SVC_URL');
-export const ALEPH_USER_LIBRARY = readEnvironmentVariable('ALEPH_USER_LIBRARY');
-
-export const ALEPH_LIBRARY_BIB = readEnvironmentVariable('ALEPH_LIBRARY_BIB');
-
-export const OWN_AUTHZ_URL = readEnvironmentVariable('OWN_AUTHZ_URL');
-export const OWN_AUTHZ_API_KEY = readEnvironmentVariable('OWN_AUTHZ_API_KEY');
-
-export const RECORD_LOAD_URL = readEnvironmentVariable('RECORD_LOAD_URL');
-export const RECORD_LOAD_API_KEY = readEnvironmentVariable('RECORD_LOAD_API_KEY');
-
-export const SRU_URL_BIB = readEnvironmentVariable('SRU_URL_BIB');
+	return new Router()
+		.get('/', (req, res) => {
+			res.set('Content-Type', 'application/json');
+			res.send(apiDoc);
+		});
+}
