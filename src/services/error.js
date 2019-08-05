@@ -1,12 +1,10 @@
-/* eslint-disable no-unused-vars, valid-jsdoc */
-
 /**
 *
 * @licstart  The following is the entire license notice for the JavaScript code in this file.
 *
 * RESTful API for Melinda
 *
-* Copyright (C) 2018 University Of Helsinki (The National Library Of Finland)
+* Copyright (C) 2018-2019 University Of Helsinki (The National Library Of Finland)
 *
 * This file is part of melinda-rest-api
 *
