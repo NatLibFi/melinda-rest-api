@@ -16,7 +16,7 @@ steps:
 - name: docker 
   image: plugins/docker
   settings:
-    repo: quay.io/natlibfi/melinda-record-import-api
+    repo: quay.io/natlibfi/melinda-rest-api
     registry: quay.io
     username:
       from_secret: docker_username
