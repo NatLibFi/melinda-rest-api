@@ -26,10 +26,7 @@
 *
 */
 
-export default class extends Error {
-	constructor(status, payload, ...params) {
-		super(params);
-		this.status = status;
-		this.payload = payload;
-	}
-}
+import createBibRouter from './bib';
+import createApiDocRouter from './api-doc';
+
+export {createBibRouter, createApiDocRouter};

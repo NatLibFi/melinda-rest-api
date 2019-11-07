@@ -26,10 +26,16 @@
 *
 */
 
-export default class extends Error {
-	constructor(status, payload, ...params) {
-		super(params);
-		this.status = status;
-		this.payload = payload;
-	}
+import fs from 'fs';
+import path from 'path';
+import {Router} from 'express';
+
+export default function () {
+	const apiDoc = fs.readFileSync(path.join(__dirname, '..', 'api.json'), 'utf8');
+
+	return new Router()
+		.get('/', (req, res) => {
+			res.set('Content-Type', 'application/json');
+			res.send(apiDoc);
+		});
 }

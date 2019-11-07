@@ -6,7 +6,7 @@
 *
 * RESTful API for Melinda
 *
-* Copyright (C) 2018 University Of Helsinki (The National Library Of Finland)
+* Copyright (C) 2018-2019 University Of Helsinki (The National Library Of Finland)
 *
 * This file is part of melinda-rest-api
 *
@@ -28,7 +28,6 @@
 *
 */
 
-import {MarcRecord} from '@natlibfi/marc-record';
 import {MARCXML, ISO2709, Json} from '@natlibfi/marc-record-serializers';
 
 export const FORMATS = {

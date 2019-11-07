@@ -4,7 +4,7 @@
 *
 * RESTful API for Melinda
 *
-* Copyright (C) 2018 University Of Helsinki (The National Library Of Finland)
+* Copyright (C) 2018-2019 University Of Helsinki (The National Library Of Finland)
 *
 * This file is part of melinda-rest-api
 *
@@ -47,5 +47,3 @@ export const RECORD_LOAD_URL = readEnvironmentVariable('RECORD_LOAD_URL');
 export const RECORD_LOAD_API_KEY = readEnvironmentVariable('RECORD_LOAD_API_KEY');
 
 export const SRU_URL_BIB = readEnvironmentVariable('SRU_URL_BIB');
-
-export const SWAGGER_UI_URL = readEnvironmentVariable('SWAGGER_UI_URL');
