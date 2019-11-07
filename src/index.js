@@ -64,7 +64,7 @@ async function run() {
 		app.enable('trust proxy', true);
 	}
 
-	passport.use(new Authentication.MelindaStrategy({
+	passport.use(new Authentication.AlephStrategy({
 		xServiceURL: ALEPH_X_SVC_URL, userLibrary: ALEPH_USER_LIBRARY,
 		ownAuthzURL: OWN_AUTHZ_URL, ownAuthzApiKey: OWN_AUTHZ_API_KEY
 	}));
