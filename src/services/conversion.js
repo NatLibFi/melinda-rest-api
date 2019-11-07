@@ -26,6 +26,8 @@
 *
 */
 
+/* eslint-disable no-unused-vars */
+
 import {MARCXML, ISO2709, Json} from '@natlibfi/marc-record-serializers';
 
 export const FORMATS = {
