@@ -4,7 +4,7 @@ steps:
 - name: generate-tags
   image: quay.io/natlibfi/drone-gen-tags
 - name: build
-  image: node:8
+  image: node:10
   commands:
   - npm install
   - npm test
