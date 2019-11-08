@@ -1,4 +1,4 @@
-/* eslint-disable no-unused-vars, valid-jsdoc, import/default */
+/* eslint-disable no-unused-vars */
 
 /**
 *

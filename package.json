@@ -17,7 +17,7 @@
 	"version": "1.0.0",
 	"main": "./dist/index.js",
 	"engines": {
-		"node": ">=8"
+		"node": ">=10"
 	},
 	"scripts": {
 		"start": "node ./dist/index",
@@ -35,18 +35,18 @@
 	},
 	"dependencies": {
 		"@natlibfi/marc-record": "^4.0.1",
-		"@natlibfi/marc-record-serializers": "^3.0.5",
-		"@natlibfi/marc-record-validate": "^4.0.0",
-		"@natlibfi/marc-record-validators-melinda": "^5.1.2",
-		"@natlibfi/melinda-commons": "^3.2.0",
-		"body-parser": "^1.18.3",
+		"@natlibfi/marc-record-serializers": "^5.0.0",
+		"@natlibfi/marc-record-validate": "^5.0.0",
+		"@natlibfi/marc-record-validators-melinda": "^8.1.2",
+		"@natlibfi/melinda-commons": "^7.1.0",
+		"body-parser": "^1.19.0",
 		"deep-eql": "^4.0.0",
-		"express": "^4.16.4",
+		"express": "^4.17.1",
 		"express-ip-filter": "^2.0.0",
 		"express-winston": "^3.0.1",
-		"http-status": "^1.3.1",
+		"http-status": "^1.4.0",
 		"moment": "^2.23.0",
-		"node-fetch": "^2.3.0",
+		"node-fetch": "^2.6.0",
 		"passport": ">=0.4.0 <1.0.0",
 		"passport-http": ">=0.3.0 <1.0.0",
 		"synaptic": "^1.1.4",
@@ -54,26 +54,26 @@
 		"xmldom": "^>=0.1.27 <1.0.0"
 	},
 	"devDependencies": {
-		"@babel/cli": "^7.2.0",
-		"@babel/core": "^7.2.2",
-		"@babel/node": "^7.2.2",
-		"@babel/preset-env": "^7.2.0",
-		"@babel/register": "^7.0.0",
-		"babel-eslint": "^10.0.1",
-		"babel-plugin-istanbul": "^5.1.0",
+		"@babel/cli": "^7.7.0",
+		"@babel/core": "^7.7.2",
+		"@babel/node": "^7.7.0",
+		"@babel/preset-env": "^7.7.1",
+		"@babel/register": "^7.7.0",
+		"babel-eslint": "^10.0.3",
+		"babel-plugin-istanbul": "^5.2.0",
 		"babel-plugin-rewire": "^1.2.0",
 		"chai": "^4.2.0",
 		"chokidar-cli": "^1.2.1",
 		"cross-env": "^5.2.0",
-		"eslint": "^5.9.0",
-		"eslint-config-xo": ">=0.25.0 <1.0.0",
-		"eslint-plugin-import": "^2.14.0",
+		"eslint": "^6.6.0",
+		"eslint-config-xo": ">=0.27.2 < 1.0.0",
+		"eslint-plugin-import": "^2.18.2",
 		"istanbul": ">=0.4.5 <1.0.0",
 		"mocha": "^5.2.0",
 		"nock": "^10.0.3",
 		"npm-check": "^5.9.0",
 		"nyc": "^13.1.0",
-		"sinon": "^7.2.2",
+		"sinon": "^7.5.0",
 		"sinon-chai": "^3.3.0"
 	},
 	"eslintConfig": {
@@ -100,7 +100,7 @@
 				"@babel/preset-env",
 				{
 					"targets": {
-						"node": "8"
+						"node": "10"
 					}
 				}
 			]

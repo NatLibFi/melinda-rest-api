@@ -8,8 +8,8 @@ steps:
   commands:
   - chmod o+w /drone/src
 - name: test
-  image: node:8
-  user: node  
+  image: node:10
+  user: node
   commands:
   - npm install
   - npm test
