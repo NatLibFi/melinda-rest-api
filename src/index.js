@@ -70,7 +70,7 @@ async function run() {
 	app.use(passport.initialize());
 
 	app.use('/', createApiDocRouter());
-	app.use('/bib', createBibRouter());
+	app.use('/bib', await createBibRouter());
 	app.use(handleError);
 
 	app.listen(HTTP_PORT, () => Logger.log('info', 'Started Melinda REST API'));

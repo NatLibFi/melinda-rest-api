@@ -59,15 +59,13 @@ export default async () => {
 		.post('/', createResource)
 		.get('/:id', readResource)
 		.post('/:id', updateResource)
-		.use(handleError);
-
-	async function handleError(err, req, res, next) {
-		if (err instanceof ServiceError) {
-			res.status(err.status).send(err.payload);
-		} else {
-			next(err);
-		}
-	}
+		.use((err, req, res, next) => {
+			if (err instanceof ServiceError) {
+				res.status(err.status).send(err.payload);
+			} else {
+				next(err);
+			}
+		});
 
 	async function readResource(req, res, next) {
 		try {
