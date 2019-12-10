@@ -30,10 +30,29 @@ import {Utils} from '@natlibfi/melinda-commons';
 
 const {readEnvironmentVariable} = Utils;
 
-export const HTTP_PORT = readEnvironmentVariable('HTTP_PORT', '8080');
+export const HTTP_PORT = readEnvironmentVariable('HTTP_PORT', {defaultValue: '8080'});
 export const ENABLE_PROXY = readEnvironmentVariable('ENABLE_PROXY', '');
 
 export const IP_FILTER_BIB = readEnvironmentVariable('IP_FILTER_BIB', '[".*"]');
+
+// BIB-BULK
+export const IP_FILTER_BIB_BULK = readEnvironmentVariable('IP_FILTER_BIB_BULK', '[".*"]');
+export const TMP_FILE_LOCATION = readEnvironmentVariable('TMP_FILE_LOCATION', {defaultValue: 'dist/tmp/'});
+export const CHUNK_SIZE = readEnvironmentVariable('CHUNK_SIZE', {defaultValue: 50, format: v => Number(v)});
+
+export const AMQP_URL = {
+	protocol: 'amqp',
+	hostname: 'localhost',
+	port: 5672,
+	username: 'melinda',
+	password: 'test12',
+	frameMax: 0,
+	heartbeat: 0,
+	vhost: '/'
+};
+
+export const NAME_QUEUE_PRIORITY = 'PRIORITY';
+export const NAME_QUEUE_BULK = 'BULK';
 
 export const ALEPH_X_SVC_URL = readEnvironmentVariable('ALEPH_X_SVC_URL');
 export const ALEPH_USER_LIBRARY = readEnvironmentVariable('ALEPH_USER_LIBRARY');

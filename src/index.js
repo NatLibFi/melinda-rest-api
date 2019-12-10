@@ -33,7 +33,7 @@ import passport from 'passport';
 import {MarcRecord} from '@natlibfi/marc-record';
 import {Authentication, Utils} from '@natlibfi/melinda-commons';
 
-import {createBibRouter, createApiDocRouter} from './routes';
+import {createBibRouter, createBibBulkRouter, createApiDocRouter} from './routes';
 
 import {
 	HTTP_PORT, ENABLE_PROXY,
@@ -66,9 +66,9 @@ async function run() {
 	}));
 
 	app.use(createExpressLogger());
-	app.use(bodyParser.text({limit: '5MB', type: '*/*'}));
 	app.use(passport.initialize());
-
+	app.use('/bib-bulk', await createBibBulkRouter());
+	app.use(bodyParser.text({limit: '5MB', type: '*/*'}));
 	app.use('/', createApiDocRouter());
 	app.use('/bib', await createBibRouter());
 	app.use(handleError);
