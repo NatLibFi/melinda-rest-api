@@ -42,6 +42,7 @@ import {
 } from './config';
 
 const {createLogger, createExpressLogger} = Utils;
+const logger = createLogger(); // eslint-disable-line no-unused-vars
 
 // Aleph creates partial subfields...
 MarcRecord.setValidationOptions({subfieldValues: false});
@@ -53,7 +54,6 @@ process.on('SIGINT', () => {
 run();
 
 async function run() {
-	const Logger = createLogger();
 	const app = express();
 
 	if (ENABLE_PROXY) {
@@ -67,13 +67,13 @@ async function run() {
 
 	app.use(createExpressLogger());
 	app.use(passport.initialize());
-	app.use('/bib-bulk', await createBibBulkRouter());
+	app.use('/bib-bulk', await createBibBulkRouter()); // Must be here to avoid bodyparser
 	app.use(bodyParser.text({limit: '5MB', type: '*/*'}));
 	app.use('/', createApiDocRouter());
 	app.use('/bib', await createBibRouter());
 	app.use(handleError);
 
-	app.listen(HTTP_PORT, () => Logger.log('info', 'Started Melinda REST API'));
+	app.listen(HTTP_PORT, () => logger.log('info', 'Started Melinda REST API'));
 
 	function handleError(err, req, res, next) {
 		if (res.headersSent) {

@@ -1,4 +1,4 @@
-/* eslint-disable no-warning-comments */
+/* eslint-disable no-warning-comments, no-unused-vars */
 
 /**
 *
@@ -47,7 +47,7 @@ import {
 } from '../config';
 
 const {createLogger} = Utils;
-const logger = createLogger();
+const logger = createLogger(); // eslint-disable-line no-unused-vars
 
 export default async () => {
 	const ipFilterList = JSON.parse(IP_FILTER_BIB_BULK).map(rule => new RegExp(rule));
@@ -96,9 +96,17 @@ export default async () => {
 			});
 
 			rl.on('line', async line => {
+				// Number of queues
+				/* Queues are single-threaded in RabbitMQ, and one queue can handle up to about 50 thousand messages.
+				You will achieve better throughput on a multi-core system if you have multiple queues
+				and consumers and if you have as many queues as cores on the underlying node(s).
+
+				The RabbitMQ management interface collects and calculates metrics for every queue in the cluster.
+				This might slow down the server if you have thousands upon thousands of active queues and consumers.
+				The CPU and RAM usage may also be affected negatively if you have too many queues.
+				https://www.cloudamqp.com/blog/2017-12-29-part1-rabbitmq-best-practice.html */
 				const validation = await validateLine(line, index, operation);
 				// Check validation result logger.log('debug', JSON.stringify(validation));
-				logger.log('debug', JSON.stringify(validation));
 				if (validation.valid) {
 					if (currentRecordId === '') {
 						currentRecordId = validation.id;
@@ -110,7 +118,7 @@ export default async () => {
 						if (records.length > CHUNK_SIZE) {
 							const chunk = records.splice(0, CHUNK_SIZE);
 							amount += chunk.length;
-							await pushToQueue({queue: NAME_QUEUE_BULK, QUEUEID, format: 'alephseq', chunk, operation});
+							await pushToQueue({queue: NAME_QUEUE_BULK, user: req.user, QUEUEID, format: 'alephseq', chunk, operation});
 						}
 
 						currentRecordId = validation.id;
@@ -122,7 +130,7 @@ export default async () => {
 				if (record.length > 0) {
 					records.push(record);
 					amount += records.length;
-					await pushToQueue({queue: NAME_QUEUE_BULK, QUEUEID, format: 'alephseq', records, operation});
+					await pushToQueue({queue: NAME_QUEUE_BULK, user: req.user, QUEUEID, format: 'alephseq', records, operation});
 				}
 			});
 

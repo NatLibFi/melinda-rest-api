@@ -53,6 +53,7 @@ export const AMQP_URL = {
 
 export const NAME_QUEUE_PRIORITY = 'PRIORITY';
 export const NAME_QUEUE_BULK = 'BULK';
+export const NAME_QUEUE_REPLY = 'REPLY';
 
 export const ALEPH_X_SVC_URL = readEnvironmentVariable('ALEPH_X_SVC_URL');
 export const ALEPH_USER_LIBRARY = readEnvironmentVariable('ALEPH_USER_LIBRARY');

@@ -32,6 +32,7 @@ import HttpStatus from 'http-status';
 import {Utils} from '@natlibfi/melinda-commons';
 
 const {createLogger, toAlephId} = Utils;
+const logger = createLogger(); // eslint-disable-line no-unused-vars
 
 export function formatRequestBoolean(value) {
 	if (Number.isNaN(Number(value))) {
@@ -54,7 +55,6 @@ export function createWhitelistMiddleware(whitelist) {
 }
 
 export function logError(err) {
-	const logger = createLogger();
 	if (err !== 'SIGINT') {
 		logger.log('error', 'stack' in err ? err.stack : err);
 	}
@@ -63,7 +63,6 @@ export function logError(err) {
 }
 
 export async function validateLine(line, index, operation) {
-	const logger = createLogger();
 	const lineId = line.slice(0, 9).trim();
 	const regex = /^d{9}$/;
 	const valid = !new RegExp(regex).test(lineId);
@@ -73,6 +72,6 @@ export async function validateLine(line, index, operation) {
 		return {valid, old: false, id: toAlephId(index)};
 	}
 
-	logger.log('debug', `Line is valid: ${valid}`);
+	// Check if valid: logger.log('debug', `Line is valid: ${valid}`);
 	return {valid, old, id: lineId};
 }

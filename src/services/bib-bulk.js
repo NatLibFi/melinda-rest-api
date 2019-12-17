@@ -30,46 +30,54 @@
 
 import {Utils} from '@natlibfi/melinda-commons';
 import amqplib from 'amqplib';
-import {AMQP_URL} from '../config';
+import {AMQP_URL, NAME_QUEUE_REPLY} from '../config';
 import {logError} from '../utils';
 
 const {createLogger} = Utils;
-const logger = createLogger();
+const logger = createLogger(); // eslint-disable-line no-unused-vars
 
-export async function pushToQueue({queue, QUEUEID, format, records, operation}) {
+export async function pushToQueue({queue, user, QUEUEID, format, records, operation}) {
 	// TODO send to queue!!
 	let connection;
 	let channel;
+
+	// TODO: operation update -> Check OWN auth
 
 	try {
 		connection = await amqplib.connect(AMQP_URL);
 		channel = await connection.createChannel();
 
 		// Logger.log('debug', `Record queue ${queue}`);
+		// logger.log('debug', `Record user.id ${user.id}`)
 		// logger.log('debug', `Record QUEUEID ${QUEUEID}`);
 		// logger.log('debug', `Record format ${format}`);
 		// logger.log('debug', `Record records ${records}`);
 		// logger.log('debug', `Record operation ${operation}`);
 
-		records.forEach(async record => {
-			const message = JSON.stringify({
-				queue,
-				QUEUEID,
-				format,
-				record,
-				operation
-			});
-
-			// Logger.log('debug', `Record message ${message}`);
-
-			await channel.sendToQueue(
-				queue,
-				Buffer.from(message),
-				{persistent: true}
-			);
+		const message = JSON.stringify({
+			queue,
+			cataloger: user.id,
+			QUEUEID,
+			format,
+			records,
+			operation
 		});
+		// Logger.log('debug', `Record message ${message}`);
 
-		logger.log('debug', 'Records has been set in queue');
+		await channel.sendToQueue(
+			queue,
+			Buffer.from(message),
+			{
+				persistent: true,
+				correlationId: QUEUEID
+			}
+		);
+
+		logger.log('debug', `${records.length} Record(s) has been sent in queue`);
+
+		const reply = checkReply();
+
+		await Promise.all([reply]);
 	} catch (err) {
 		logError(err);
 	} finally {
@@ -79,6 +87,33 @@ export async function pushToQueue({queue, QUEUEID, format, records, operation}) 
 
 		if (connection) {
 			await connection.close();
+		}
+	}
+
+	// Move to log server?
+	function checkReply() {
+		return new Promise((resolve, reject) => {
+			let timeOut;
+			try {
+				logger.log('debug', `Checkking reply for ${QUEUEID}`);
+				channel.consume(NAME_QUEUE_REPLY, reply => {
+					if (reply.properties.correlationId === QUEUEID) {
+						logger.log('info', reply.content.toString());
+						// TODO Write to db to be requested?
+						clearMyTimeOut(timeOut);
+						channel.ack(reply);
+						resolve(true);
+					}
+				});
+				timeOut = setTimeout(checkReply, 3000);
+			} catch (err) {
+				clearMyTimeOut(timeOut);
+				reject(err);
+			}
+		});
+
+		function clearMyTimeOut(timeOut) {
+			clearTimeout(timeOut);
 		}
 	}
 }
