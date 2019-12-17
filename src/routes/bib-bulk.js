@@ -45,6 +45,7 @@ import {once} from 'events';
 import {
 	IP_FILTER_BIB_BULK, TMP_FILE_LOCATION, CHUNK_SIZE, NAME_QUEUE_BULK
 } from '../config';
+import {toAlephId} from '@natlibfi/melinda-commons/dist/utils';
 
 const {createLogger} = Utils;
 const logger = createLogger(); // eslint-disable-line no-unused-vars
@@ -72,7 +73,7 @@ export default async () => {
 		let operation = req.params.operation;
 		const QUEUEID = uuid.v1();
 
-		if (operation !== undefined && operation.toLowerCase() !== 'update' && operation.toLowerCase() !== 'create') {
+		if (operation === undefined && operation.toLowerCase() !== 'update' && operation.toLowerCase() !== 'create') {
 			return res.sendStatus(HttpStatus[400]);
 		}
 
@@ -83,7 +84,6 @@ export default async () => {
 		try {
 			logger.log('debug', 'Sending now!');
 			let amount = 0;
-			let index = 1;
 			const records = [];
 			let record = [];
 			let currentRecordId = '';
@@ -95,7 +95,7 @@ export default async () => {
 				crlfDelay: Infinity
 			});
 
-			rl.on('line', async line => {
+			rl.on('line', line => {
 				// Number of queues
 				/* Queues are single-threaded in RabbitMQ, and one queue can handle up to about 50 thousand messages.
 				You will achieve better throughput on a multi-core system if you have multiple queues
@@ -105,7 +105,8 @@ export default async () => {
 				This might slow down the server if you have thousands upon thousands of active queues and consumers.
 				The CPU and RAM usage may also be affected negatively if you have too many queues.
 				https://www.cloudamqp.com/blog/2017-12-29-part1-rabbitmq-best-practice.html */
-				const validation = await validateLine(line, index, operation);
+
+				const validation = validateLine(line, operation);
 				// Check validation result logger.log('debug', JSON.stringify(validation));
 				if (validation.valid) {
 					if (currentRecordId === '') {
@@ -118,19 +119,23 @@ export default async () => {
 						if (records.length > CHUNK_SIZE) {
 							const chunk = records.splice(0, CHUNK_SIZE);
 							amount += chunk.length;
-							await pushToQueue({queue: NAME_QUEUE_BULK, user: req.user, QUEUEID, format: 'alephseq', chunk, operation});
+							pushToQueue({queue: NAME_QUEUE_BULK, user: req.user, QUEUEID, format: 'alephseq', chunk, operation});
 						}
 
 						currentRecordId = validation.id;
 					}
 
+					if (operation.toLowerCase() === 'create') {
+						line = toAlephId(`${records.length}`) + line.substr(validation.id.length);
+					}
+
 					record.push(line);
 				}
-			}).on('close', async () => {
+			}).on('close', () => {
 				if (record.length > 0) {
 					records.push(record);
 					amount += records.length;
-					await pushToQueue({queue: NAME_QUEUE_BULK, user: req.user, QUEUEID, format: 'alephseq', records, operation});
+					pushToQueue({queue: NAME_QUEUE_BULK, user: req.user, QUEUEID, format: 'alephseq', records, operation});
 				}
 			});
 

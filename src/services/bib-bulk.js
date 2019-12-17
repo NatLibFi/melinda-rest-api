@@ -57,7 +57,6 @@ export async function pushToQueue({queue, user, QUEUEID, format, records, operat
 		const message = JSON.stringify({
 			queue,
 			cataloger: user.id,
-			QUEUEID,
 			format,
 			records,
 			operation

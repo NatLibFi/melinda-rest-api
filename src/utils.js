@@ -31,7 +31,7 @@
 import HttpStatus from 'http-status';
 import {Utils} from '@natlibfi/melinda-commons';
 
-const {createLogger, toAlephId} = Utils;
+const {createLogger} = Utils;
 const logger = createLogger(); // eslint-disable-line no-unused-vars
 
 export function formatRequestBoolean(value) {
@@ -62,16 +62,11 @@ export function logError(err) {
 	logger.log('error', err);
 }
 
-export async function validateLine(line, index, operation) {
+export function validateLine(line) {
 	const lineId = line.slice(0, 9).trim();
 	const regex = /^d{9}$/;
 	const valid = !new RegExp(regex).test(lineId);
 	const old = lineId > 0;
-
-	if (operation === 'create') {
-		return {valid, old: false, id: toAlephId(index)};
-	}
-
 	// Check if valid: logger.log('debug', `Line is valid: ${valid}`);
 	return {valid, old, id: lineId};
 }
