@@ -1,4 +1,4 @@
-/* eslint-disable no-warning-comments */
+/* eslint-disable no-unused-vars, no-warning-comments */
 
 /**
 *
@@ -28,91 +28,133 @@
 *
 */
 
+/*
+Queues are single-threaded in RabbitMQ, and one queue can handle up to about 50 thousand messages.
+You will achieve better throughput on a multi-core system if you have multiple queues
+and consumers and if you have as many queues as cores on the underlying node(s).
+
+The RabbitMQ management interface collects and calculates metrics for every queue in the cluster.
+This might slow down the server if you have thousands upon thousands of active queues and consumers.
+The CPU and RAM usage may also be affected negatively if you have too many queues.
+https://www.cloudamqp.com/blog/2017-12-29-part1-rabbitmq-best-practice.html
+*/
+
+// COMMON
 import {Utils} from '@natlibfi/melinda-commons';
-import amqplib from 'amqplib';
-import {AMQP_URL, NAME_QUEUE_REPLY} from '../config';
+import {CHUNK_SIZE, NAME_QUEUE_BULK} from '../config';
 import {logError} from '../utils';
+import {toAlephId} from '@natlibfi/melinda-commons/dist/utils';
+import {pushToQueue} from './toQueueService';
+import {create, addBlob, queryBulk} from './mongoService';
 
 const {createLogger} = Utils;
-const logger = createLogger(); // eslint-disable-line no-unused-vars
 
-export async function pushToQueue({queue, user, QUEUEID, format, records, operation}) {
-	// TODO send to queue!!
-	let connection;
-	let channel;
+export default async function () {
+	const logger = createLogger(); // eslint-disable-line no-unused-vars
 
-	// TODO: operation update -> Check OWN auth
+	return {handleTransformation, doQuerry};
 
-	try {
-		connection = await amqplib.connect(AMQP_URL);
-		channel = await connection.createChannel();
+	async function handleTransformation(reader, {operation, QUEUEID, user}) {
+		try {
+			const records = [];
+			const promises = [];
 
-		// Logger.log('debug', `Record queue ${queue}`);
-		// logger.log('debug', `Record user.id ${user.id}`)
-		// logger.log('debug', `Record QUEUEID ${QUEUEID}`);
-		// logger.log('debug', `Record format ${format}`);
-		// logger.log('debug', `Record records ${records}`);
-		// logger.log('debug', `Record operation ${operation}`);
+			create({id: QUEUEID, user, operation, queue: NAME_QUEUE_BULK});
+			await new Promise((res, rej) => {
+				let blobNumber = 0;
+				reader.on('data', record => {
+					promises.push(transform(record));
+					async function transform(value) {
+						// TODO Validation
+						// TODO: operation update -> Check OWN auth
+						// Operation Create -> f001 new value
+						if (operation.toLowerCase() === 'create') {
+							// Field 001 value -> 000000000, 000000001, 000000002....
+							updateField001ToParamId(`${records.length + 1}`, value);
+						}
 
-		const message = JSON.stringify({
-			queue,
-			cataloger: user.id,
-			format,
-			records,
-			operation
-		});
-		// Logger.log('debug', `Record message ${message}`);
+						records.push(value.toObject());
+						if (records.length >= CHUNK_SIZE) {
+							blobNumber++;
+							const chunk = records.splice(0, CHUNK_SIZE);
+							console.log('chunk pushed');
+							pushToQueue({queue: NAME_QUEUE_BULK, user, QUEUEID, records: chunk, operation, blobNumber});
+							await addBlob({id: QUEUEID, blobNumber, numberOfRecords: chunk.length});
+						}
+					}
+				}).on('end', async () => {
+					logger.log('debug', `Readed ${promises.length} records from stream`);
+					const total = promises.length;
+					await Promise.all(promises);
+					console.log('Promises done!');
+					if (records !== undefined && records.length > 0) {
+						pushToQueue({queue: NAME_QUEUE_BULK, user, QUEUEID, records, operation, blobNumber});
+						addBlob({id: QUEUEID, blobNumber, numberOfRecords: records.length});
+					}
 
-		await channel.sendToQueue(
-			queue,
-			Buffer.from(message),
-			{
-				persistent: true,
-				correlationId: QUEUEID
-			}
-		);
-
-		logger.log('debug', `${records.length} Record(s) has been sent in queue`);
-
-		const reply = checkReply();
-
-		await Promise.all([reply]);
-	} catch (err) {
-		logError(err);
-	} finally {
-		if (channel) {
-			await channel.close();
-		}
-
-		if (connection) {
-			await connection.close();
+					res();
+				})
+					.on('error', err => {
+						console.log(err);
+						rej(err);
+					});
+			});
+		} catch (err) {
+			logError(err);
+			throw err;
 		}
 	}
 
-	// Move to log server?
-	function checkReply() {
-		return new Promise((resolve, reject) => {
-			let timeOut;
-			try {
-				logger.log('debug', `Checkking reply for ${QUEUEID}`);
-				channel.consume(NAME_QUEUE_REPLY, reply => {
-					if (reply.properties.correlationId === QUEUEID) {
-						logger.log('info', reply.content.toString());
-						// TODO Write to db to be requested?
-						clearMyTimeOut(timeOut);
-						channel.ack(reply);
-						resolve(true);
-					}
-				});
-				timeOut = setTimeout(checkReply, 3000);
-			} catch (err) {
-				clearMyTimeOut(timeOut);
-				reject(err);
+	async function doQuerry({user, query}) {
+		// USER, ID, OPERATION, creationTime, modificationTime
+		console.log(user);
+		console.log(query);
+		let creationTime;
+		if (query.creationTime) {
+			if (query.creationTime.indexOf(';') >= 0) {
+				console.log('found ;');
+				creationTime = query.creationTime.split(';');
+			} else {
+				creationTime = [query.creationTime];
 			}
-		});
-
-		function clearMyTimeOut(timeOut) {
-			clearTimeout(timeOut);
+		} else {
+			creationTime = null;
 		}
+
+		let modificationTime = [];
+		if (query.modificationTime) {
+			if (query.modificationTime.indexOf(';') >= 0) {
+				modificationTime = query.modificationTime.split(';');
+			} else {
+				modificationTime = [query.modificationTime];
+			}
+		} else {
+			modificationTime = null;
+		}
+
+		const params = {
+			user,
+			id: query.id || null,
+			operation: query.operation || null,
+			creationTime,
+			modificationTime
+		};
+
+		console.log(params);
+		return queryBulk(params);
+	}
+
+	function updateField001ToParamId(id, record) {
+		const fields = record.get(/^001$/);
+
+		if (fields.length === 0) {
+			// Return to break out of function
+			return record.insertField({tag: '001', value: toAlephId(id)});
+		}
+
+		fields.map(field => {
+			field.value = toAlephId(id);
+			return field;
+		});
 	}
 }

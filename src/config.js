@@ -33,23 +33,17 @@ const {readEnvironmentVariable} = Utils;
 export const HTTP_PORT = readEnvironmentVariable('HTTP_PORT', {defaultValue: '8080'});
 export const ENABLE_PROXY = readEnvironmentVariable('ENABLE_PROXY', '');
 
-export const IP_FILTER_BIB = readEnvironmentVariable('IP_FILTER_BIB', '[".*"]');
-
 // BIB-BULK
 export const IP_FILTER_BIB_BULK = readEnvironmentVariable('IP_FILTER_BIB_BULK', '[".*"]');
 export const TMP_FILE_LOCATION = readEnvironmentVariable('TMP_FILE_LOCATION', {defaultValue: 'dist/tmp/'});
+export const TMP_FILE_MAX_SIZE = readEnvironmentVariable('TMP_FILE_MAX_SIZE', {defaultValue: (50 * 1024 * 1024), format: v => Number(v)}); // X * kb * mb
 export const CHUNK_SIZE = readEnvironmentVariable('CHUNK_SIZE', {defaultValue: 50, format: v => Number(v)});
 
-export const AMQP_URL = {
-	protocol: 'amqp',
-	hostname: 'localhost',
-	port: 5672,
-	username: 'melinda',
-	password: 'test12',
-	frameMax: 0,
-	heartbeat: 0,
-	vhost: '/'
-};
+export const AMQP_URL = JSON.parse(readEnvironmentVariable('AMQP_URL'));
+
+export const MONGO_URI = readEnvironmentVariable('MONGO_URI', {defaultValue: 'mongodb://localhost:27017/db'});
+export const MONGO_POOLSIZE = readEnvironmentVariable('MONGO_POOLSIZE', {defaultValue: 200, format: v => Number(v)});
+export const MONGO_DEBUG = readEnvironmentVariable('MONGO_DEBUG', {defaultValue: true});
 
 export const NAME_QUEUE_PRIORITY = 'PRIORITY';
 export const NAME_QUEUE_BULK = 'BULK';
@@ -63,7 +57,14 @@ export const ALEPH_LIBRARY_BIB = readEnvironmentVariable('ALEPH_LIBRARY_BIB');
 export const OWN_AUTHZ_URL = readEnvironmentVariable('OWN_AUTHZ_URL');
 export const OWN_AUTHZ_API_KEY = readEnvironmentVariable('OWN_AUTHZ_API_KEY');
 
-export const RECORD_LOAD_URL = readEnvironmentVariable('RECORD_LOAD_URL');
-export const RECORD_LOAD_API_KEY = readEnvironmentVariable('RECORD_LOAD_API_KEY');
-
 export const SRU_URL_BIB = readEnvironmentVariable('SRU_URL_BIB');
+
+export const BLOB_STATE = {
+	IN_QUEUE: 'IN_QUEUE',
+	DONE: 'DONE'
+};
+
+export const OPERATIONS = [
+	'update',
+	'create'
+];

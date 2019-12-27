@@ -28,7 +28,6 @@
 
 /* istanbul ignore file */
 
-import HttpStatus from 'http-status';
 import {Utils} from '@natlibfi/melinda-commons';
 
 const {createLogger} = Utils;
@@ -42,31 +41,10 @@ export function formatRequestBoolean(value) {
 	return Boolean(Number(value));
 }
 
-export function createWhitelistMiddleware(whitelist) {
-	return (req, res, next) => {
-		const ip = req.ip.split(/:/).pop();
-
-		if (whitelist.some(pattern => pattern.test(ip))) {
-			return next();
-		}
-
-		res.sendStatus(HttpStatus.FORBIDDEN);
-	};
-}
-
 export function logError(err) {
 	if (err !== 'SIGINT') {
 		logger.log('error', 'stack' in err ? err.stack : err);
 	}
 
 	logger.log('error', err);
-}
-
-export function validateLine(line) {
-	const lineId = line.slice(0, 9).trim();
-	const regex = /^d{9}$/;
-	const valid = !new RegExp(regex).test(lineId);
-	const old = lineId > 0;
-	// Check if valid: logger.log('debug', `Line is valid: ${valid}`);
-	return {valid, old, id: lineId};
 }

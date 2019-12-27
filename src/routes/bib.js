@@ -31,11 +31,11 @@ import passport from 'passport';
 import HttpStatus from 'http-status';
 import ServiceError from '../services/error';
 import createService, {FORMATS} from '../services/bib';
-import {formatRequestBoolean, createWhitelistMiddleware} from '../utils';
+import {formatRequestBoolean} from '../utils';
+import uuid from 'uuid';
 
 import {
-	IP_FILTER_BIB, SRU_URL_BIB, ALEPH_LIBRARY_BIB,
-	RECORD_LOAD_URL, RECORD_LOAD_API_KEY
+	SRU_URL_BIB
 } from '../config';
 
 export default async () => {
@@ -45,16 +45,11 @@ export default async () => {
 		'application/xml': FORMATS.MARCXML
 	};
 
-	const ipFilterList = JSON.parse(IP_FILTER_BIB).map(rule => new RegExp(rule));
 	const Service = await createService({
-		sruURL: SRU_URL_BIB,
-		recordLoadURL: RECORD_LOAD_URL,
-		recordLoadApiKey: RECORD_LOAD_API_KEY,
-		recordLoadLibrary: ALEPH_LIBRARY_BIB
+		sruURL: SRU_URL_BIB
 	});
 
 	return new Router()
-		.use(createWhitelistMiddleware(ipFilterList))
 		.use(passport.authenticate('melinda', {session: false}))
 		.post('/', createResource)
 		.get('/:id', readResource)
@@ -87,6 +82,7 @@ export default async () => {
 		try {
 			const type = req.headers['content-type'];
 			const format = CONTENT_TYPES[type];
+			const QUEUEID = uuid.v1();
 
 			if (!format) {
 				return res.sendStatus(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
@@ -97,7 +93,8 @@ export default async () => {
 			const {messages, id} = await Service.create({
 				format, unique, noop,
 				data: req.body,
-				user: req.user
+				user: req.user,
+				QUEUEID
 			});
 
 			if (!noop) {
@@ -114,6 +111,7 @@ export default async () => {
 		try {
 			const type = req.headers['content-type'];
 			const format = CONTENT_TYPES[type];
+			const QUEUEID = uuid.v1();
 
 			if (!format) {
 				return res.sendStatus(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
@@ -124,7 +122,8 @@ export default async () => {
 				format, noop,
 				data: req.body,
 				id: req.params.id,
-				user: req.user
+				user: req.user,
+				QUEUEID
 			});
 
 			res.type('application/json').send(messages);

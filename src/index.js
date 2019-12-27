@@ -32,13 +32,15 @@ import bodyParser from 'body-parser';
 import passport from 'passport';
 import {MarcRecord} from '@natlibfi/marc-record';
 import {Authentication, Utils} from '@natlibfi/melinda-commons';
-
+import Mongoose from 'mongoose';
+import {checkReplyQueue} from './services/replyToService';
 import {createBibRouter, createBibBulkRouter, createApiDocRouter} from './routes';
 
 import {
 	HTTP_PORT, ENABLE_PROXY,
 	ALEPH_X_SVC_URL, ALEPH_USER_LIBRARY,
-	OWN_AUTHZ_URL, OWN_AUTHZ_API_KEY
+	OWN_AUTHZ_URL, OWN_AUTHZ_API_KEY,
+	MONGO_URI, MONGO_POOLSIZE, MONGO_DEBUG
 } from './config';
 
 const {createLogger, createExpressLogger} = Utils;
@@ -48,6 +50,7 @@ const logger = createLogger(); // eslint-disable-line no-unused-vars
 MarcRecord.setValidationOptions({subfieldValues: false});
 
 process.on('SIGINT', () => {
+	Mongoose.disconnect();
 	process.exit(1);
 });
 
@@ -65,15 +68,23 @@ async function run() {
 		ownAuthzURL: OWN_AUTHZ_URL, ownAuthzApiKey: OWN_AUTHZ_API_KEY
 	}));
 
+	Mongoose.set('debug', MONGO_DEBUG);
+	try {
+		await Mongoose.connect(MONGO_URI, {useNewUrlParser: true, poolSize: MONGO_POOLSIZE});
+	} catch (err) {
+		throw new Error(`Failed connecting to MongoDB: ${err instanceof Error ? err.stack : err}`);
+	}
+
 	app.use(createExpressLogger());
 	app.use(passport.initialize());
-	app.use('/bib-bulk', await createBibBulkRouter()); // Must be here to avoid bodyparser
+	app.use('/bulk', await createBibBulkRouter()); // Must be here to avoid bodyparser
 	app.use(bodyParser.text({limit: '5MB', type: '*/*'}));
-	app.use('/', createApiDocRouter());
-	app.use('/bib', await createBibRouter());
+	app.use('/api', createApiDocRouter());
+	app.use('/', await createBibRouter());
 	app.use(handleError);
 
 	app.listen(HTTP_PORT, () => logger.log('info', 'Started Melinda REST API'));
+	checkReplyQueue();
 
 	function handleError(err, req, res, next) {
 		if (res.headersSent) {
