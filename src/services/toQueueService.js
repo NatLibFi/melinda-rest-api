@@ -7,7 +7,7 @@ import {logError} from '../utils';
 const {createLogger} = Utils;
 const logger = createLogger(); // eslint-disable-line no-unused-vars
 
-export async function pushToQueue({queue, user, QUEUEID, records, operation, blobNumber = 0}) {
+export async function pushToQueue({queue, user, QUEUEID, records, operation, chunkNumber = 0}) {
 	let connection;
 	let channel;
 
@@ -25,7 +25,7 @@ export async function pushToQueue({queue, user, QUEUEID, records, operation, blo
 			cataloger: user,
 			records,
 			operation,
-			blobNumber
+			chunkNumber
 		});
 		// Logger.log('debug', `Record message ${message}`);
 
@@ -37,7 +37,6 @@ export async function pushToQueue({queue, user, QUEUEID, records, operation, blo
 				correlationId: QUEUEID
 			}
 		);
-		// TODO: (id: QUEUEID, user: catalogger_id, operation, queue, queuedBlobs: [blobnumber, failedRecords:[], numberOfRecords])
 	} catch (err) {
 		logError(err);
 	} finally {

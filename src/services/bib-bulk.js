@@ -45,7 +45,7 @@ import {CHUNK_SIZE, NAME_QUEUE_BULK} from '../config';
 import {logError} from '../utils';
 import {toAlephId} from '@natlibfi/melinda-commons/dist/utils';
 import {pushToQueue} from './toQueueService';
-import {createQueueItem, addBlob, queryBulk} from './mongoService';
+import {createQueueItem, addChunk, queryBulk} from './mongoService';
 
 const {createLogger} = Utils;
 
@@ -61,7 +61,7 @@ export default async function () {
 
 			createQueueItem({id: QUEUEID, user, operation, queue: NAME_QUEUE_BULK});
 			await new Promise((res, rej) => {
-				let blobNumber = 0;
+				let chunkNumber = 0;
 				reader.on('data', record => {
 					promises.push(transform(record));
 					async function transform(value) {
@@ -75,11 +75,11 @@ export default async function () {
 
 						records.push(value.toObject());
 						if (records.length >= CHUNK_SIZE) {
-							blobNumber++;
+							chunkNumber++;
 							const chunk = records.splice(0, CHUNK_SIZE);
 							logger.log('debug', 'chunk pushed');
-							pushToQueue({queue: NAME_QUEUE_BULK, user, QUEUEID, records: chunk, operation, blobNumber});
-							await addBlob({id: QUEUEID, blobNumber, numberOfRecords: chunk.length});
+							pushToQueue({queue: NAME_QUEUE_BULK, user, QUEUEID, records: chunk, operation, chunkNumber});
+							await addChunk({id: QUEUEID, chunkNumber, numberOfRecords: chunk.length});
 						}
 					}
 				}).on('end', async () => {
@@ -87,8 +87,8 @@ export default async function () {
 					await Promise.all(promises);
 					logger.log('info', 'Request handling done!');
 					if (records !== undefined && records.length > 0) {
-						pushToQueue({queue: NAME_QUEUE_BULK, user, QUEUEID, records, operation, blobNumber});
-						addBlob({id: QUEUEID, blobNumber, numberOfRecords: records.length});
+						pushToQueue({queue: NAME_QUEUE_BULK, user, QUEUEID, records, operation, chunkNumber});
+						addChunk({id: QUEUEID, chunkNumber, numberOfRecords: records.length});
 					}
 
 					res();

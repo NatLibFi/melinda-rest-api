@@ -62,7 +62,7 @@ export const OWN_AUTHZ_API_KEY = readEnvironmentVariable('OWN_AUTHZ_API_KEY');
 export const SRU_URL_BIB = readEnvironmentVariable('SRU_URL_BIB');
 
 // About same as in import -> Move to melinda-record-import-commons constants?
-export const BLOB_STATE = {
+export const CHUNK_STATE = {
 	IN_QUEUE: 'IN_QUEUE',
 	CREATED: 'CREATED',
 	UPDATED: 'UPDATED',

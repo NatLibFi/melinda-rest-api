@@ -38,7 +38,7 @@ import {pushToQueue} from './toQueueService';
 import {NAME_QUEUE_PRIORITY} from '../config';
 import {MARCXML} from '@natlibfi/marc-record-serializers';
 import {EMITTER} from './replyToService';
-import {createQueueItem, addBlob} from './mongoService';
+import {createQueueItem, addChunk} from './mongoService';
 
 export {FORMATS} from './conversion';
 
@@ -95,7 +95,7 @@ export default async function ({sruURL}) {
 			const operation = 'create';
 			createQueueItem({id: QUEUEID, user: user.id, operation, queue: NAME_QUEUE_PRIORITY});
 			pushToQueue({queue: NAME_QUEUE_PRIORITY, user: user.id, QUEUEID, records: [record], operation});
-			addBlob({id: QUEUEID, blobNumber: 1, numberOfRecords: 1});
+			addChunk({id: QUEUEID, chunkNumber: 0, numberOfRecords: 1});
 
 			const messages = {};
 			await new Promise((res, rej) => {
@@ -146,7 +146,7 @@ export default async function ({sruURL}) {
 			logger.log('debug', `Sending updating task for record ${id} to queue`);
 			await createQueueItem({id: QUEUEID, user: user.id, operation, queue: NAME_QUEUE_PRIORITY});
 			pushToQueue({queue: NAME_QUEUE_PRIORITY, user: user.id, QUEUEID, records: [record], operation});
-			addBlob({id: QUEUEID, blobNumber: 0, numberOfRecords: 1});
+			addChunk({id: QUEUEID, chunkNumber: 0, numberOfRecords: 1});
 
 			const messages = {};
 			await new Promise((res, rej) => {

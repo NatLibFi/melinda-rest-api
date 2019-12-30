@@ -3,7 +3,6 @@ import Mongoose from 'mongoose';
 import {QueueBlobModel} from '../models';
 import moment from 'moment';
 import {Utils} from '@natlibfi/melinda-commons';
-import {BLOB_STATE} from '../config';
 
 Mongoose.model('QueueBlobModel', QueueBlobModel);
 const {createLogger} = Utils;
@@ -13,41 +12,41 @@ export async function createQueueItem({id, user, operation, queue}) {
 	await Mongoose.models.QueueBlobModel.create({id, user, operation, queue});
 }
 
-export async function addBlob({id, blobNumber, numberOfRecords}) {
-	const blobInfo = {
+export async function addChunk({id, chunkNumber, numberOfRecords}) {
+	const chunkInfo = {
 		modificationTime: moment(),
 		$push: {
-			queuedBlobs: {
-				blobNumber: blobNumber,
+			queuedChunks: {
+				chunkNumber: chunkNumber,
 				numberOfRecords: numberOfRecords
 			}
 		}
 	};
-	const {nModified} = await Mongoose.models.QueueBlobModel.updateOne({id}, blobInfo);
+	const {nModified} = await Mongoose.models.QueueBlobModel.updateOne({id}, chunkInfo);
 
 	if (nModified === 0) {
 		throw new Error('409');
 	}
 }
 
-export async function updateBlob({id, content}) {
+export async function updateChunk({id, content}) {
 	const data = await Mongoose.models.QueueBlobModel.findOne({id}).exec();
-	const blobIndex = data.queuedBlobs.findIndex(checkBlobNumber);
-	const marker = `queuedBlobs.${blobIndex}`;
+	const chunkIndex = data.queuedChunks.findIndex(checkChunkNumber);
+	const marker = `queuedChunks.${chunkIndex}`;
 
 	// Pick failed records from content
-	data.queuedBlobs[blobIndex].failedRecords = content.metadata.failedRecords;
-	data.queuedBlobs[blobIndex].blobState = content.status;
+	data.queuedChunks[chunkIndex].failedRecords = content.metadata.failedRecords;
+	data.queuedChunks[chunkIndex].chunkState = content.status;
 	const update = {
 		modificationTime: moment(),
 		$set: {}
 	};
-	update.$set[marker] = data.queuedBlobs[blobIndex];
+	update.$set[marker] = data.queuedChunks[chunkIndex];
 	const {nModified} = Mongoose.models.QueueBlobModel.updateOne({id}, update);
-	logger.log('info', `${nModified} blob/s received confirmation`);
+	logger.log('info', `${nModified} chunk/s received confirmation`);
 
-	function checkBlobNumber(blob) {
-		return blob.blobNumber === content.blobNumber;
+	function checkChunkNumber(chunk) {
+		return chunk.chunkNumber === content.chunkNumber;
 	}
 }
 

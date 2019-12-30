@@ -2,7 +2,7 @@ import amqplib from 'amqplib';
 import {Utils} from '@natlibfi/melinda-commons';
 import {EventEmitter} from 'events';
 import {AMQP_URL, NAME_QUEUE_REPLY_BULK, NAME_QUEUE_REPLY_PRIO, NAME_QUEUE_BULK} from '../config';
-import {updateBlob} from './mongoService';
+import {updateChunk} from './mongoService';
 
 class ReplyEmitter extends EventEmitter {}
 export const EMITTER = new ReplyEmitter();
@@ -32,9 +32,9 @@ async function operateQueue() {
 		}
 
 		channelInfo.prio = await channel.checkQueue(NAME_QUEUE_REPLY_PRIO);
-		logger.log('debug', `${NAME_QUEUE_REPLY_PRIO} queue: ${channelInfo.prio.messageCount} blobs`);
+		logger.log('debug', `${NAME_QUEUE_REPLY_PRIO} queue: ${channelInfo.prio.messageCount} chunks`);
 		channelInfo.bulk = await channel.checkQueue(NAME_QUEUE_REPLY_BULK);
-		logger.log('debug', `${NAME_QUEUE_REPLY_BULK} queue: ${channelInfo.bulk.messageCount} blobs`);
+		logger.log('debug', `${NAME_QUEUE_REPLY_BULK} queue: ${channelInfo.bulk.messageCount} chunks`);
 
 		let consumeQueue;
 		if (channelInfo.prio.messageCount > 0) {
@@ -58,7 +58,7 @@ async function operateQueue() {
 				// Notify possible listenres that their job is done!
 				EMITTER.emit(correlationId, content);
 				// Save response to db to be querried
-				await updateBlob({id: correlationId, content});
+				await updateChunk({id: correlationId, content});
 				// Ack message when all done
 				channel.ack(queData);
 			}
