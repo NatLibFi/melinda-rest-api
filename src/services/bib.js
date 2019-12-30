@@ -38,6 +38,7 @@ import {pushToQueue} from './toQueueService';
 import {NAME_QUEUE_PRIORITY} from '../config';
 import {MARCXML} from '@natlibfi/marc-record-serializers';
 import {EMITTER} from './replyToService';
+import {createQueueItem, addBlob} from './mongoService';
 
 export {FORMATS} from './conversion';
 
@@ -91,12 +92,15 @@ export default async function ({sruURL}) {
 
 			updateField001ToParamId('1', record);
 			logger.log('debug', 'Sending a new record to QUEUE');
-			pushToQueue({queue: NAME_QUEUE_PRIORITY, user: user.id, QUEUEID, records: [record], operation: 'create'});
+			const operation = 'create';
+			createQueueItem({id: QUEUEID, user: user.id, operation, queue: NAME_QUEUE_PRIORITY});
+			pushToQueue({queue: NAME_QUEUE_PRIORITY, user: user.id, QUEUEID, records: [record], operation});
+			addBlob({id: QUEUEID, blobNumber: 1, numberOfRecords: 1});
 
 			const messages = {};
 			await new Promise((res, rej) => {
 				EMITTER.on(QUEUEID, reply => {
-					console.log(reply);
+					logger.log('debug', `Priority data: ${JSON.stringify(reply)}`);
 					messages.status = reply.status;
 					messages.id = reply.metadata.ids[0];
 					res();
@@ -138,14 +142,16 @@ export default async function ({sruURL}) {
 			}
 
 			updateField001ToParamId(id, record);
+			const operation = 'update';
 			logger.log('debug', `Sending updating task for record ${id} to queue`);
-			pushToQueue({queue: NAME_QUEUE_PRIORITY, user: user.id, QUEUEID, records: [record], operation: 'update'});
-			// OLD await DatastoreService.update({id, record, cataloger: user.id});
+			await createQueueItem({id: QUEUEID, user: user.id, operation, queue: NAME_QUEUE_PRIORITY});
+			pushToQueue({queue: NAME_QUEUE_PRIORITY, user: user.id, QUEUEID, records: [record], operation});
+			addBlob({id: QUEUEID, blobNumber: 0, numberOfRecords: 1});
 
 			const messages = {};
 			await new Promise((res, rej) => {
 				EMITTER.on(QUEUEID, reply => {
-					console.log(reply);
+					logger.log('debug', `Priority data: ${JSON.stringify(reply)}`);
 					messages.status = reply.status;
 					messages.id = reply.metadata.ids[0];
 					res();

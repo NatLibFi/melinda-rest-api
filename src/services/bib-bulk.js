@@ -45,7 +45,7 @@ import {CHUNK_SIZE, NAME_QUEUE_BULK} from '../config';
 import {logError} from '../utils';
 import {toAlephId} from '@natlibfi/melinda-commons/dist/utils';
 import {pushToQueue} from './toQueueService';
-import {create, addBlob, queryBulk} from './mongoService';
+import {createQueueItem, addBlob, queryBulk} from './mongoService';
 
 const {createLogger} = Utils;
 
@@ -59,7 +59,7 @@ export default async function () {
 			const records = [];
 			const promises = [];
 
-			create({id: QUEUEID, user, operation, queue: NAME_QUEUE_BULK});
+			createQueueItem({id: QUEUEID, user, operation, queue: NAME_QUEUE_BULK});
 			await new Promise((res, rej) => {
 				let blobNumber = 0;
 				reader.on('data', record => {
@@ -77,27 +77,25 @@ export default async function () {
 						if (records.length >= CHUNK_SIZE) {
 							blobNumber++;
 							const chunk = records.splice(0, CHUNK_SIZE);
-							console.log('chunk pushed');
+							logger.log('debug', 'chunk pushed');
 							pushToQueue({queue: NAME_QUEUE_BULK, user, QUEUEID, records: chunk, operation, blobNumber});
 							await addBlob({id: QUEUEID, blobNumber, numberOfRecords: chunk.length});
 						}
 					}
 				}).on('end', async () => {
 					logger.log('debug', `Readed ${promises.length} records from stream`);
-					const total = promises.length;
 					await Promise.all(promises);
-					console.log('Promises done!');
+					logger.log('info', 'Request handling done!');
 					if (records !== undefined && records.length > 0) {
 						pushToQueue({queue: NAME_QUEUE_BULK, user, QUEUEID, records, operation, blobNumber});
 						addBlob({id: QUEUEID, blobNumber, numberOfRecords: records.length});
 					}
 
 					res();
-				})
-					.on('error', err => {
-						console.log(err);
-						rej(err);
-					});
+				}).on('error', err => {
+					logError(err);
+					rej(err);
+				});
 			});
 		} catch (err) {
 			logError(err);
@@ -107,12 +105,9 @@ export default async function () {
 
 	async function doQuerry({user, query}) {
 		// USER, ID, OPERATION, creationTime, modificationTime
-		console.log(user);
-		console.log(query);
 		let creationTime;
 		if (query.creationTime) {
 			if (query.creationTime.indexOf(';') >= 0) {
-				console.log('found ;');
 				creationTime = query.creationTime.split(';');
 			} else {
 				creationTime = [query.creationTime];

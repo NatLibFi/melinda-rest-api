@@ -1,8 +1,9 @@
 import amqplib from 'amqplib';
 import {Utils} from '@natlibfi/melinda-commons';
 import {EventEmitter} from 'events';
-import {NAME_QUEUE_REPLY, AMQP_URL, NAME_QUEUE_BULK} from '../config';
+import {AMQP_URL, NAME_QUEUE_REPLY_BULK, NAME_QUEUE_REPLY_PRIO, NAME_QUEUE_BULK} from '../config';
 import {updateBlob} from './mongoService';
+
 class ReplyEmitter extends EventEmitter {}
 export const EMITTER = new ReplyEmitter();
 
@@ -18,36 +19,52 @@ export async function checkReplyQueue() {
 async function operateQueue() {
 	let connection;
 	let channel;
-	let replyQueueCount;
+	const channelInfo = {};
+	const purge = false;
 
 	try {
 		connection = await amqplib.connect(AMQP_URL);
 		channel = await connection.createChannel();
 
-		const replyChannel = await channel.checkQueue(NAME_QUEUE_REPLY);
-		replyQueueCount = replyChannel.messageCount;
-		logger.log('debug', `${NAME_QUEUE_REPLY} queue: ${replyQueueCount} blobs`);
+		if (purge) {
+			await channel.purgeQueue(NAME_QUEUE_REPLY_PRIO);
+			await channel.purgeQueue(NAME_QUEUE_REPLY_BULK);
+		}
 
-		if (replyQueueCount > 0) {
+		channelInfo.prio = await channel.checkQueue(NAME_QUEUE_REPLY_PRIO);
+		logger.log('debug', `${NAME_QUEUE_REPLY_PRIO} queue: ${channelInfo.prio.messageCount} blobs`);
+		channelInfo.bulk = await channel.checkQueue(NAME_QUEUE_REPLY_BULK);
+		logger.log('debug', `${NAME_QUEUE_REPLY_BULK} queue: ${channelInfo.bulk.messageCount} blobs`);
+
+		let consumeQueue;
+		if (channelInfo.prio.messageCount > 0) {
+			consumeQueue = NAME_QUEUE_REPLY_PRIO;
+		} else if (channelInfo.bulk.messageCount > 0) {
+			consumeQueue = NAME_QUEUE_REPLY_BULK;
+		}
+
+		if (consumeQueue) {
 			channel.prefetch(1); // Per consumer limit
-			const queData = await channel.get(NAME_QUEUE_REPLY);
+			const queData = await channel.get(consumeQueue);
 			if (queData) {
 				const correlationId = queData.properties.correlationId;
 				const content = JSON.parse(queData.content.toString());
 
-				// Notify possible listenres that their job is done!
-				logger.log('debug', `Reading reply: ${correlationId}, ${content}`);
+				logger.log('debug', `Reading reply: ${correlationId}, ${JSON.stringify(content)}`);
 				if (content.queue === NAME_QUEUE_BULK) {
-					// Save response to db to be querried;
 					logger.log('debug', 'Bulk response');
 				}
 
-				updateBlob({id: correlationId, content});
+				// Notify possible listenres that their job is done!
 				EMITTER.emit(correlationId, content);
-				channel.ack(queData); // TODO: dont ack before data is saved
+				// Save response to db to be querried
+				await updateBlob({id: correlationId, content});
+				// Ack message when all done
+				channel.ack(queData);
 			}
 		}
 	} catch (err) {
+		checkReplyQueue();
 		throw err;
 	} finally {
 		if (channel) {

@@ -45,9 +45,11 @@ export const MONGO_URI = readEnvironmentVariable('MONGO_URI', {defaultValue: 'mo
 export const MONGO_POOLSIZE = readEnvironmentVariable('MONGO_POOLSIZE', {defaultValue: 200, format: v => Number(v)});
 export const MONGO_DEBUG = readEnvironmentVariable('MONGO_DEBUG', {defaultValue: true});
 
+// Same as in import -> Move to melinda-record-import-commons constants?
 export const NAME_QUEUE_PRIORITY = 'PRIORITY';
 export const NAME_QUEUE_BULK = 'BULK';
-export const NAME_QUEUE_REPLY = 'REPLY';
+export const NAME_QUEUE_REPLY_BULK = 'REPLY_BULK';
+export const NAME_QUEUE_REPLY_PRIO = 'REPLY_PRIO';
 
 export const ALEPH_X_SVC_URL = readEnvironmentVariable('ALEPH_X_SVC_URL');
 export const ALEPH_USER_LIBRARY = readEnvironmentVariable('ALEPH_USER_LIBRARY');
@@ -59,9 +61,13 @@ export const OWN_AUTHZ_API_KEY = readEnvironmentVariable('OWN_AUTHZ_API_KEY');
 
 export const SRU_URL_BIB = readEnvironmentVariable('SRU_URL_BIB');
 
+// About same as in import -> Move to melinda-record-import-commons constants?
 export const BLOB_STATE = {
 	IN_QUEUE: 'IN_QUEUE',
-	DONE: 'DONE'
+	CREATED: 'CREATED',
+	UPDATED: 'UPDATED',
+	ACTION_NEEDED: 'ACTION_NEEDED',
+	ERROR: 'ERROR'
 };
 
 export const OPERATIONS = [

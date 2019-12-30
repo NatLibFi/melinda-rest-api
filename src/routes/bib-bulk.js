@@ -81,27 +81,21 @@ export default async () => {
 				return res.sendStatus(HttpStatus[400]);
 			}
 
-			// Make params
-			let reader;
-
 			if (params.type === 'application/alephseq') {
-				reader = new AlephSequential.Reader(req);
+				await Service.handleTransformation(new AlephSequential.Reader(req), params);
 			}
 
 			if (params.type === 'application/json') {
-				reader = new Json.Reader(req);
+				await Service.handleTransformation(new Json.Reader(req), params);
 			}
 
 			if (params.type === 'application/xml') {
-				reader = new MARCXML.Reader(req);
+				await Service.handleTransformation(new MARCXML.Reader(req), params);
 			}
 
 			if (params.type === 'application/marc') {
-				reader = new ISO2709.Reader(req);
+				await Service.handleTransformation(new ISO2709.Reader(req), params);
 			}
-
-			// TODO: FIX! DOES NOT AWAIT
-			await Service.handleTransformation(reader, params);
 
 			res.type('application/json').json(params).end();
 		} catch (err) {

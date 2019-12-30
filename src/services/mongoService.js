@@ -2,11 +2,14 @@
 import Mongoose from 'mongoose';
 import {QueueBlobModel} from '../models';
 import moment from 'moment';
+import {Utils} from '@natlibfi/melinda-commons';
 import {BLOB_STATE} from '../config';
 
 Mongoose.model('QueueBlobModel', QueueBlobModel);
+const {createLogger} = Utils;
+const logger = createLogger();
 
-export async function create({id, user, operation, queue}) {
+export async function createQueueItem({id, user, operation, queue}) {
 	await Mongoose.models.QueueBlobModel.create({id, user, operation, queue});
 }
 
@@ -31,18 +34,18 @@ export async function updateBlob({id, content}) {
 	const data = await Mongoose.models.QueueBlobModel.findOne({id}).exec();
 	const blobIndex = data.queuedBlobs.findIndex(checkBlobNumber);
 	const marker = `queuedBlobs.${blobIndex}`;
-	data.queuedBlobs[blobIndex].failedRecords = ['1', '2'];
-	data.queuedBlobs[blobIndex].blobState = BLOB_STATE.DONE;
+
+	// Pick failed records from content
+	data.queuedBlobs[blobIndex].failedRecords = content.metadata.failedRecords;
+	data.queuedBlobs[blobIndex].blobState = content.status;
 	const update = {
 		modificationTime: moment(),
-		$set: {
-		}};
+		$set: {}
+	};
 	update.$set[marker] = data.queuedBlobs[blobIndex];
-	const {nModified} = await Mongoose.models.QueueBlobModel.updateOne({id}, update);
-	console.log(nModified);
+	const {nModified} = Mongoose.models.QueueBlobModel.updateOne({id}, update);
+	logger.log('info', `${nModified} blob/s received confirmation`);
 
-	const data2 = await Mongoose.models.QueueBlobModel.findOne({id}).exec();
-	console.log(data2);
 	function checkBlobNumber(blob) {
 		return blob.blobNumber === content.blobNumber;
 	}
