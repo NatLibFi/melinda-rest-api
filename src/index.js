@@ -29,6 +29,7 @@
 import HttpStatus from 'http-status';
 import express from 'express';
 import bodyParser from 'body-parser';
+import ServiceError from './services/error';
 import passport from 'passport';
 import {MarcRecord} from '@natlibfi/marc-record';
 import {Authentication, Utils} from '@natlibfi/melinda-commons';
@@ -42,6 +43,7 @@ import {
 	OWN_AUTHZ_URL, OWN_AUTHZ_API_KEY,
 	MONGO_URI, MONGO_POOLSIZE, MONGO_DEBUG
 } from './config';
+import {logError} from './utils';
 
 const {createLogger, createExpressLogger} = Utils;
 const logger = createLogger(); // eslint-disable-line no-unused-vars
@@ -91,7 +93,11 @@ async function run() {
 			return next(err);
 		}
 
-		console.log(err.stack);
-		res.sendStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+		logError(err);
+		if (err instanceof ServiceError) {
+			res.status(err.status).send(err.payload).end();
+		} else {
+			res.sendStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
 }

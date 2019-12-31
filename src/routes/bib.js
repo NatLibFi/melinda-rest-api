@@ -35,7 +35,7 @@ import {formatRequestBoolean} from '../utils';
 import uuid from 'uuid';
 
 import {
-	SRU_URL_BIB
+	SRU_URL_BIB, CHUNK_STATE
 } from '../config';
 
 export default async () => {
@@ -126,7 +126,11 @@ export default async () => {
 				QUEUEID
 			});
 
-			res.type('application/json').send(messages);
+			if (messages.status === CHUNK_STATE.ERROR) {
+				res.sendStatus(422).json(messages.failedRecords).end();
+			}
+
+			res.type('application/json').json(messages).end();
 		} catch (err) {
 			next(err);
 		}

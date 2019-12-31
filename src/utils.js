@@ -42,9 +42,9 @@ export function formatRequestBoolean(value) {
 }
 
 export function logError(err) {
-	if (err !== 'SIGINT') {
+	if (err === 'SIGINT') {
+		logger.log('error', err);
+	} else {
 		logger.log('error', 'stack' in err ? err.stack : err);
 	}
-
-	logger.log('error', err);
 }

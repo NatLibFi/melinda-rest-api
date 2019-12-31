@@ -102,10 +102,20 @@ export default async function ({sruURL}) {
 				EMITTER.on(QUEUEID, reply => {
 					logger.log('debug', `Priority data: ${JSON.stringify(reply)}`);
 					messages.status = reply.status;
-					messages.id = reply.metadata.ids[0];
+
+					if (reply.metadata.ids) {
+						messages.id = reply.metadata.ids[0];
+					}
+
+					if (reply.metadata.failedRecords) {
+						rej(new ServiceError(HttpStatus.UNPROCESSABLE_ENTITY, reply.metadata.failedRecords));
+					}
+
 					res();
 				}).on('error', err => {
-					rej(err);
+					if (err.id === QUEUEID) {
+						rej(err.error);
+					}
 				});
 			});
 
@@ -153,7 +163,15 @@ export default async function ({sruURL}) {
 				EMITTER.on(QUEUEID, reply => {
 					logger.log('debug', `Priority data: ${JSON.stringify(reply)}`);
 					messages.status = reply.status;
-					messages.id = reply.metadata.ids[0];
+
+					if (reply.metadata.ids) {
+						messages.id = reply.metadata.ids[0];
+					}
+
+					if (reply.metadata.error) {
+						rej(reply.metadata.error);
+					}
+
 					res();
 				}).on('error', err => {
 					rej(err);

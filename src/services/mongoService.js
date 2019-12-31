@@ -3,6 +3,7 @@ import Mongoose from 'mongoose';
 import {QueueBlobModel} from '../models';
 import moment from 'moment';
 import {Utils} from '@natlibfi/melinda-commons';
+import {CHUNK_STATE} from '../config';
 
 Mongoose.model('QueueBlobModel', QueueBlobModel);
 const {createLogger} = Utils;
@@ -34,15 +35,18 @@ export async function updateChunk({id, content}) {
 	const chunkIndex = data.queuedChunks.findIndex(checkChunkNumber);
 	const marker = `queuedChunks.${chunkIndex}`;
 
-	// Pick failed records from content
-	data.queuedChunks[chunkIndex].failedRecords = content.metadata.failedRecords;
 	data.queuedChunks[chunkIndex].chunkState = content.status;
+	if (content.status !== CHUNK_STATE.ERROR || content.metadata.failedRecords) {
+		// Pick failed records from content
+		data.queuedChunks[chunkIndex].failedRecords = content.metadata.failedRecords;
+	}
+
 	const update = {
 		modificationTime: moment(),
 		$set: {}
 	};
 	update.$set[marker] = data.queuedChunks[chunkIndex];
-	const {nModified} = Mongoose.models.QueueBlobModel.updateOne({id}, update);
+	const {nModified} = await Mongoose.models.QueueBlobModel.updateOne({id}, update);
 	logger.log('info', `${nModified} chunk/s received confirmation`);
 
 	function checkChunkNumber(chunk) {
