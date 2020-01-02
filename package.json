@@ -48,6 +48,7 @@
 		"express-ip-filter": "^2.0.0",
 		"express-winston": "^3.0.1",
 		"http-status": "^1.4.0",
+		"moment": "^2.24.0",
 		"mongodb": "^3.4.1",
 		"mongoose": "^5.8.2",
 		"node-fetch": "^2.6.0",

@@ -6,16 +6,20 @@
   },
   "tags": [
     {
-      "name": "/bib",
+      "name": "/",
       "description": "Operate on bibliographic records"
+    },
+    {
+      "name": "/bulk/",
+      "description": "Operate on bibliographic records in bulk format"
     }
   ],
   "paths": {
-    "/bib": {
+    "/": {
       "post": {
         "summary": "Create a record",
         "tags": [
-          "/bib"
+          "/"
         ],
         "parameters": [
           {
@@ -131,11 +135,11 @@
         }
       }
     },
-    "/bib/{id}": {
+    "/{id}": {
       "post": {
         "summary": "Update a record",
         "tags": [
-          "/bib"
+          "/"
         ],
         "parameters": [
           {
@@ -231,7 +235,7 @@
       "get": {
         "summary": "Retrieve a record",
         "tags": [
-          "/bib"
+          "/"
         ],
         "parameters": [
           {
@@ -281,6 +285,288 @@
                 "schema": {
                   "type": "string"
                 }
+              }
+            }
+          },
+          "401": {
+            "description": "Credentials are invalid or missing"
+          },
+          "403": {
+            "description": "The credentials are not authorized for this operation"
+          },
+          "404": {
+            "description": "The record does not exist"
+          }
+        }
+      }
+    },
+    "/bulk/create": {
+      "post": {
+        "summary": "Create bulk ",
+        "tags": [
+          "/bulk/"
+        ],
+        "requestBody": {
+          "description": "Contains an array of records",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarcRecord"
+              }
+            },
+            "application/xml": {
+              "schema": {
+                "type": "string"
+              },
+              "example": {
+                "$ref": "#/components/examples/MARCXML"
+              }
+            },
+            "application/marc": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              },
+              "example": {
+                "$ref": "#/components/examples/ISO2709"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "httpBasic": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record was not actually created (The parameter **noop** was set to true)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecordValidationReport"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "The record was created succesfully",
+            "headers": {
+              "Record-ID": {
+                "description": "The Record's identifier",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecordValidationReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The record data is malformed or has unsupported format"
+          },
+          "401": {
+            "description": "Credentials are invalid or missing"
+          },
+          "403": {
+            "description": "The credentials are not authorized for this operation, i.e. the user does not have the permission to change the owner metadata of the record"
+          },
+          "409": {
+            "description": "The record has a duplicate in the datastore and **unique** was set to true",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecordDuplicateReport"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The record does not pass validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecordValidationReport"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bulk/update": {
+      "post": {
+        "summary": "Update a record",
+        "tags": [
+          "/bulk/"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "description": "The identifier of the record that's going to be updated",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "noop",
+            "description": "Do not actually do the update the record",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Contains a single record",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarcRecord"
+              }
+            },
+            "application/xml": {
+              "schema": {
+                "type": "string"
+              },
+              "example": {
+                "$ref": "#/components/examples/MARCXML"
+              }
+            },
+            "application/marc": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              },
+              "example": {
+                "$ref": "#/components/examples/ISO2709"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "httpBasic": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record was succesfully updated (Unless parameter **noop** was set to true)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecordValidationReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The record data is malformed or has unsupported format"
+          },
+          "401": {
+            "description": "Credentials are invalid or missing"
+          },
+          "403": {
+            "description": "The credentials are not authorized for this operation, i.e. the user does not have the permission to change the owner metadata of the record"
+          },
+          "404": {
+            "description": "The record does not exist"
+          },
+          "409": {
+            "description": "The record has changed in datastore"
+          },
+          "422": {
+            "description": "The record does not pass validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecordValidationReport"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Retrieve a bulk request information",
+        "tags": [
+          "/bulk/"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "description": "The identifier of the request",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "operation",
+            "description": "The identifier of the request type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "create",
+                "update"
+              ]
+            }
+          },
+          {
+            "name": "creationTime",
+            "description": "The identifier of the request creation time. The query is done using a time range if the parameter is provided twice",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "DATE",
+              "examples": [
+                "2020-01-01",
+                "2020-01-01T00:00:00"
+              ]
+            }
+          },
+          {
+            "name": "modificationTime",
+            "description": "The identifier of the request's last modification time. The query is done using a time range if the parameter is provided twice",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "DATE",
+              "examples": [
+                "2020-01-01",
+                "2020-01-01T00:00:00"
+              ]
+            }
+          }
+        ],
+        "security": [
+          {
+            "httpBasic": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueueItem"
+                },
+                "description": "A list of Queue item objects. Empty list if no resources were found"
               }
             }
           },
@@ -396,13 +682,175 @@
             }
           ]
         }
+      },
+      "QueueItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The identifier of the request"
+          },
+          "user": {
+            "type": "string",
+            "description": "The identifier of cataloger"
+          },
+          "operation": {
+            "type": "string",
+            "description": "The request operation type",
+            "enum": [
+              "create",
+              "update"
+            ]
+          },
+          "queue": {
+            "type": "string",
+            "description": "The request queue type",
+            "enum": [
+              "PRIORITY",
+              "BULK"
+            ]
+          },
+          "creationTime": {
+            "type": "string",
+            "description": "The request creation time"
+          },
+          "modificationTime": {
+            "type": "string",
+            "description": "Last modification time of the request"
+          },
+          "queuedChunks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChunkItem"
+            }
+          }
+        }
       }
     },
-    "examples": {
-      "MARCXML": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><record><leader>00000cam a22003494i 4500</leader><datafield tag=\"245\" ind1=\"0\" ind2=\" \"><subfield code=\"a\">foo</subfield></datafield></record>",
-      "ISO2709": {
-        "externalValue": "https://raw.githubusercontent.com/NatLibFi/melinda-rest-api/master/test-fixtures/conversion/iso2709_1"
+    "ChunkItem": {
+      "type": "object",
+      "properties": {
+        "failedRecords": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "record": {
+                "type": "string",
+                "description": "Contains a record melinda id"
+              },
+              "error": {
+                "type": "string",
+                "description": "Contains info about why record save has failed"
+              }
+            }
+          }
+        },
+        "chunkState": {
+          "type": "string",
+          "enum": [
+            "IN_QUEUE",
+            "CREATED",
+            "UPDATED",
+            "ERROR",
+            "ACTION_NEEDED"
+          ]
+        },
+        "chunkNumber": {
+          "type": "integer",
+          "description": "The identifier of chunk in Queue item"
+        },
+        "numberOfRecords": {
+          "type": "integer",
+          "description": "Size of chunk"
+        }
       }
+    },
+    "BulkQueryResponse": {
+      "type": "object",
+      "properties": {
+        "request": {
+          "type": "object",
+          "description": "Query parametters",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "The identifier of the request"
+            },
+            "operation": {
+              "type": "string",
+              "description": "The request operation type"
+            },
+            "creationTime": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "description": "The request creation time. The query is done using a time range if array contains more than one item"
+              }
+            },
+            "modificationTime": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "description": "Last modification time of the request. The query is done using a time range if array contains more than one item"
+              }
+            }
+          }
+        },
+        "response": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "schema": {
+              "$ref": "#/components/schemas/QueueItem"
+            }
+          }
+        }
+      },
+      "example": {
+        "request": {
+          "operation": "create",
+          "creationTime": [
+            "2019-12-27T10:35",
+            "2019-12-30T10:40"
+          ]
+        },
+        "response": [
+          {
+            "id": "x0x0x0x0-x0x0-x0x0-x0x0-x0x0x0x0x0x0",
+            "user": "XXX0000",
+            "operation": "create",
+            "queue": "BULK",
+            "creationTime": "2019-01-01T00:00:00.000Z",
+            "modificationTime": "2019-01-01T00:00:01.155Z",
+            "queuedChunks": [
+              {
+                "failedRecords": [
+                  {
+                    "record": "000059297",
+                    "error": "Invalid modification history!"
+                  }
+                ],
+                "chunkState": "ERROR",
+                "chunkNumber": 0,
+                "numberOfRecords": 1
+              },
+              {
+                "failedRecords": [],
+                "chunkState": "CREATED",
+                "chunkNumber": 1,
+                "numberOfRecords": 1
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "examples": {
+    "MARCXML": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><record><leader>00000cam a22003494i 4500</leader><datafield tag=\"245\" ind1=\"0\" ind2=\" \"><subfield code=\"a\">foo</subfield></datafield></record>",
+    "ISO2709": {
+      "externalValue": "https://raw.githubusercontent.com/NatLibFi/melinda-rest-api/master/test-fixtures/conversion/iso2709_1"
     }
   }
 }

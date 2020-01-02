@@ -105,35 +105,24 @@ export default async function () {
 
 	async function doQuerry({user, query}) {
 		// USER, ID, OPERATION, creationTime, modificationTime
-		let creationTime;
-		if (query.creationTime) {
-			if (query.creationTime.indexOf(';') >= 0) {
-				creationTime = query.creationTime.split(';');
-			} else {
-				creationTime = [query.creationTime];
-			}
-		} else {
-			creationTime = null;
-		}
-
-		let modificationTime = [];
-		if (query.modificationTime) {
-			if (query.modificationTime.indexOf(';') >= 0) {
-				modificationTime = query.modificationTime.split(';');
-			} else {
-				modificationTime = [query.modificationTime];
-			}
-		} else {
-			modificationTime = null;
-		}
-
 		const params = {
-			user,
-			id: query.id || null,
-			operation: query.operation || null,
-			creationTime,
-			modificationTime
+			user
 		};
+		if (query.id) {
+			params.id = query.id;
+		}
+
+		if (query.operation) {
+			params.operation = query.operation;
+		}
+
+		if (query.creationTime) {
+			params.creationTime = query.creationTime;
+		}
+
+		if (query.modificationTime) {
+			params.modificationTime = query.modificationTime;
+		}
 
 		console.log(params);
 		return queryBulk(params);

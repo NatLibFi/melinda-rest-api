@@ -71,14 +71,12 @@ export default async () => {
 				params.operation.toLowerCase() !== 'update' &&
 				params.operation.toLowerCase() !== 'create')
 			) {
-				// Throw new Error({status: 400, message:'Invalid operation'});
-				return res.sendStatus(HttpStatus[400]);
+				throw new ServiceError(HttpStatus[400], 'Invalid operation');
 			}
 
 			// Custom content-types? or just: application/text, application/json, application/marc & application/xml
 			if (params.type === undefined || !CONTENT_TYPES.includes(params.type)) {
-				// Throw new Error({status: 400, message:'Invalid content-type});
-				return res.sendStatus(HttpStatus[400]);
+				throw new ServiceError(HttpStatus[400], 'Invalid content-type');
 			}
 
 			if (params.type === 'application/alephseq') {
