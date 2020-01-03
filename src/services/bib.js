@@ -65,13 +65,13 @@ export default async function ({sruURL}) {
 		}
 	}
 
-	async function create({data, format, user, noop, unique, QUEUEID}) {
+	async function create({data, format, cataloger, noop, unique, QUEUEID}) {
 		try {
 			logger.log('debug', 'Unserializing record');
 			const record = ConversionService.unserialize(data, format);
 
 			logger.log('debug', 'Checking LOW-tag authorization');
-			OwnAuthorization.validateChanges(user.authorization, record);
+			OwnAuthorization.validateChanges(cataloger.authorization, record);
 
 			if (unique) {
 				logger.log('debug', 'Attempting to find matching records in the datastore');
@@ -92,8 +92,8 @@ export default async function ({sruURL}) {
 			updateField001ToParamId('1', record);
 			logger.log('debug', 'Sending a new record to QUEUE');
 			const operation = 'create';
-			createQueueItem({id: QUEUEID, user: user.id, operation, queue});
-			pushToQueue({queue, user: user.id, QUEUEID, records: [record], operation});
+			createQueueItem({id: QUEUEID, cataloger: cataloger.id, operation, queue});
+			pushToQueue({queue, cataloger: cataloger.id, QUEUEID, records: [record], operation});
 			addChunk({id: QUEUEID, chunkNumber: 0, numberOfRecords: 1});
 
 			const messages = {};
@@ -132,7 +132,7 @@ export default async function ({sruURL}) {
 		}
 	}
 
-	async function update({id, data, format, user, noop, QUEUEID}) {
+	async function update({id, data, format, cataloger, noop, QUEUEID}) {
 		try {
 			logger.log('debug', 'Unserializing record');
 			const record = ConversionService.unserialize(data, format);
@@ -141,7 +141,7 @@ export default async function ({sruURL}) {
 			const existingRecord = await getRecord(id);
 
 			logger.log('debug', 'Checking LOW-tag authorization');
-			OwnAuthorization.validateChanges(user.authorization, record, existingRecord);
+			OwnAuthorization.validateChanges(cataloger.authorization, record, existingRecord);
 
 			logger.log('debug', 'Validating the record');
 			const validationResults = await ValidationService.validate(record);
@@ -153,8 +153,8 @@ export default async function ({sruURL}) {
 			updateField001ToParamId(id, record);
 			const operation = 'update';
 			logger.log('debug', `Sending updating task for record ${id} to queue`);
-			await createQueueItem({id: QUEUEID, user: user.id, operation, queue});
-			pushToQueue({queue, user: user.id, QUEUEID, records: [record], operation});
+			await createQueueItem({id: QUEUEID, cataloger: cataloger.id, operation, queue});
+			pushToQueue({queue, cataloger: cataloger.id, QUEUEID, records: [record], operation});
 			addChunk({id: QUEUEID, chunkNumber: 0, numberOfRecords: 1});
 
 			const messages = await new Promise((res, rej) => {

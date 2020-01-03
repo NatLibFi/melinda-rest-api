@@ -91,7 +91,7 @@ export default async () => {
 			const {messages, id} = await Service.create({
 				format, unique, noop,
 				data: req.body,
-				user: req.user,
+				cataloger: req.user,
 				QUEUEID
 			});
 
@@ -120,7 +120,7 @@ export default async () => {
 				format, noop,
 				data: req.body,
 				id: req.params.id,
-				user: req.user,
+				cataloger: req.user,
 				QUEUEID
 			});
 

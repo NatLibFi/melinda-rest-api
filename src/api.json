@@ -690,7 +690,7 @@
             "type": "string",
             "description": "The identifier of the request"
           },
-          "user": {
+          "cataloger": {
             "type": "string",
             "description": "The identifier of cataloger"
           },
@@ -818,7 +818,7 @@
         "response": [
           {
             "id": "x0x0x0x0-x0x0-x0x0-x0x0-x0x0x0x0x0x0",
-            "user": "XXX0000",
+            "cataloger": "XXX0000",
             "operation": "create",
             "queue": "BULK",
             "creationTime": "2019-01-01T00:00:00.000Z",

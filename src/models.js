@@ -8,7 +8,7 @@ import {CHUNK_STATE} from '@natlibfi/melinda-record-import-commons';
     modificationTime: 2019-10-23T04:17:18.000+03:00,
     operation: 'update', // Update || create
     queue: 'BULK',
-    user: 'KVP3032', // Catalogger_id
+    cataloger: 'XXX0000', // Catalogger_id
     queuedChunks: [{
 		chunkNumber: 1,
 		chunkState: 'IN_QUEUE'
@@ -20,12 +20,12 @@ import {CHUNK_STATE} from '@natlibfi/melinda-record-import-commons';
 */
 
 export const QueueBlobModel = new Schema({
-	id: {type: String, required: true, unique: true},
+	id: {type: String, required: true},
 	creationTime: {type: Date, default: Date.now},
 	modificationTime: {type: Date, default: Date.now},
 	operation: {type: String, required: true},
 	queue: {type: String, required: true},
-	user: {type: String, required: true},
+	cataloger: {type: String, required: true},
 	queuedChunks: [new Schema({
 		type: Object,
 		chunkNumber: {type: Number},

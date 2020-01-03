@@ -35,7 +35,6 @@ import HttpStatus from 'http-status';
 import ServiceError from '../services/error';
 import uuid from 'uuid';
 import createService from '../services/bib-bulk';
-import {Json, MARCXML, AlephSequential, ISO2709} from '@natlibfi/marc-record-serializers';
 import {OPERATIONS} from '@natlibfi/melinda-record-import-commons';
 
 const {createLogger} = Utils;
@@ -65,7 +64,7 @@ export default async () => {
 				type: req.headers['content-type'],
 				operation: req.params.operation,
 				QUEUEID: req.query.id || uuid.v1(),
-				user: req.user.id
+				cataloger: req.user.id
 			};
 			logger.log('debug', 'Params done');
 
@@ -80,21 +79,7 @@ export default async () => {
 				throw new ServiceError(HttpStatus.BAD_REQUEST, 'Invalid content-type');
 			}
 
-			if (params.type === 'application/alephseq') {
-				await Service.handleTransformation(new AlephSequential.Reader(req), params);
-			}
-
-			if (params.type === 'application/json') {
-				await Service.handleTransformation(new Json.Reader(req), params);
-			}
-
-			if (params.type === 'application/xml') {
-				await Service.handleTransformation(new MARCXML.Reader(req), params);
-			}
-
-			if (params.type === 'application/marc') {
-				await Service.handleTransformation(new ISO2709.Reader(req), params);
-			}
+			await Service.handleTransformation(req, params);
 
 			res.type('application/json').json(params).end();
 		} catch (err) {
@@ -104,7 +89,7 @@ export default async () => {
 
 	async function doQuerry(req, res, next) {
 		try {
-			const response = await Service.doQuerry({user: req.user.id, query: req.query});
+			const response = await Service.doQuerry({cataloger: req.user.id, query: req.query});
 			console.log(response);
 			res.json({request: req.query, response}).end();
 		} catch (err) {

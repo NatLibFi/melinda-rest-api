@@ -7,7 +7,7 @@ import {logError} from '../utils';
 const {createLogger} = Utils;
 const logger = createLogger(); // eslint-disable-line no-unused-vars
 
-export async function pushToQueue({queue, user, QUEUEID, records, operation, chunkNumber = 0}) {
+export async function pushToQueue({queue, cataloger, QUEUEID, records, operation, chunkNumber = 0}) {
 	let connection;
 	let channel;
 
@@ -16,13 +16,13 @@ export async function pushToQueue({queue, user, QUEUEID, records, operation, chu
 		channel = await connection.createChannel();
 
 		// Logger.log('debug', `Record queue ${queue}`);
-		// logger.log('debug', `Record user ${user}`)
+		// logger.log('debug', `Record cataloger ${cataloger}`)
 		// logger.log('debug', `Record QUEUEID ${QUEUEID}`);
 		// logger.log('debug', `Record records ${records}`);
 		// logger.log('debug', `Record operation ${operation}`);
 
 		const message = JSON.stringify({
-			cataloger: user,
+			cataloger,
 			records,
 			operation,
 			chunkNumber

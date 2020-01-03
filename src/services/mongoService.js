@@ -9,11 +9,12 @@ Mongoose.model('QueueBlobModel', QueueBlobModel);
 const {createLogger} = Utils;
 const logger = createLogger();
 
-export async function createQueueItem({id, user, operation, queue}) {
-	await Mongoose.models.QueueBlobModel.create({id, user, operation, queue});
+export async function createQueueItem({id, cataloger, operation, queue}) {
+	// TODO: if id, cataloger, operation combo is used -> replace id -> UUID.v1?
+	await Mongoose.models.QueueBlobModel.create({id, cataloger, operation, queue});
 }
 
-export async function addChunk({id, operation, user, chunkNumber, numberOfRecords}) {
+export async function addChunk({id, operation, cataloger, chunkNumber, numberOfRecords}) {
 	const chunkInfo = {
 		modificationTime: moment(),
 		$push: {
@@ -24,16 +25,16 @@ export async function addChunk({id, operation, user, chunkNumber, numberOfRecord
 		}
 	};
 
-	// Updates Queue blob where id, operation and user match
-	const {nModified} = await Mongoose.models.QueueBlobModel.updateOne({id, operation, user}, chunkInfo);
+	// Updates Queue blob where id, operation and cataloger match
+	const {nModified} = await Mongoose.models.QueueBlobModel.updateOne({id, operation, cataloger}, chunkInfo);
 
 	if (nModified === 0) {
 		throw new Error('409');
 	}
 }
 
-export async function updateChunk({id, operation, user, content}) {
-	const data = await Mongoose.models.QueueBlobModel.findOne({id, operation, user}).exec();
+export async function updateChunk({id, operation, cataloger, content}) {
+	const data = await Mongoose.models.QueueBlobModel.findOne({id, operation, cataloger}).exec();
 	const chunkIndex = data.queuedChunks.findIndex(checkChunkNumber);
 	const marker = `queuedChunks.${chunkIndex}`;
 
@@ -48,7 +49,7 @@ export async function updateChunk({id, operation, user, content}) {
 		$set: {}
 	};
 	update.$set[marker] = data.queuedChunks[chunkIndex];
-	const {nModified} = await Mongoose.models.QueueBlobModel.updateOne({id, operation, user}, update);
+	const {nModified} = await Mongoose.models.QueueBlobModel.updateOne({id, operation, cataloger}, update);
 	logger.log('info', `${nModified} chunk/s received confirmation`);
 
 	function checkChunkNumber(chunk) {
@@ -56,7 +57,7 @@ export async function updateChunk({id, operation, user, content}) {
 	}
 }
 
-export async function queryBulk({user, id, operation, creationTime, modificationTime}) {
+export async function queryBulk({cataloger, id, operation, creationTime, modificationTime}) {
 	const queryOpts = {
 		limit: 100
 	};
@@ -69,8 +70,8 @@ export async function queryBulk({user, id, operation, creationTime, modification
 	async function generateQuery() {
 		const doc = {};
 
-		if (user) {
-			doc.user = {$in: user};
+		if (cataloger) {
+			doc.cataloger = {$in: cataloger};
 		} else {
 			return false;
 		}

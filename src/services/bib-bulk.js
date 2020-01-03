@@ -46,6 +46,7 @@ import {logError} from '../utils';
 import {toAlephId} from '@natlibfi/melinda-commons/dist/utils';
 import {pushToQueue} from './toQueueService';
 import {createQueueItem, addChunk, queryBulk} from './mongoService';
+import {Json, MARCXML, AlephSequential, ISO2709} from '@natlibfi/marc-record-serializers';
 
 const {createLogger} = Utils;
 
@@ -54,18 +55,41 @@ export default async function () {
 
 	return {handleTransformation, doQuerry};
 
-	async function handleTransformation(reader, {operation, QUEUEID, user}) {
+	async function handleTransformation(req, {type, operation, QUEUEID, cataloger}) {
 		try {
 			const records = [];
 			const promises = [];
 			const queue = QUEUE_NAME_BULK;
+			let reader;
+			let chunkNumber = -1;
 
-			// TODO: Check if Queue blob already exists id + operation + user
-			// if true get blob numbers
+			// Check if Queue blob already exists id + operation + cataloger
+			const dbData = await queryBulk({cataloger, id: QUEUEID, operation});
+			if (dbData.length > 0) {
+				console.log(dbData[0]);
+				chunkNumber = dbData[0].queuedChunks.length - 1;
+			} else {
+				createQueueItem({id: QUEUEID, cataloger, operation, queue});
+			}
 
-			createQueueItem({id: QUEUEID, user, operation, queue});
+			// TODO: FIX initialize reader here
+			if (type === 'application/alephseq') {
+				reader = new AlephSequential.Reader(req);
+			}
+
+			if (type === 'application/json') {
+				reader = new Json.Reader(req);
+			}
+
+			if (type === 'application/xml') {
+				reader = new MARCXML.Reader(req);
+			}
+
+			if (type === 'application/marc') {
+				reader = new ISO2709.Reader(req);
+			}
+
 			await new Promise((res, rej) => {
-				let chunkNumber = 0;
 				reader.on('data', record => {
 					promises.push(transform(record));
 					async function transform(value) {
@@ -82,8 +106,8 @@ export default async function () {
 							chunkNumber++;
 							const chunk = records.splice(0, CHUNK_SIZE);
 							logger.log('debug', 'chunk pushed');
-							pushToQueue({queue, user, QUEUEID, records: chunk, operation, chunkNumber});
-							await addChunk({id: QUEUEID, operation, user, chunkNumber, numberOfRecords: chunk.length});
+							pushToQueue({queue, cataloger, QUEUEID, records: chunk, operation, chunkNumber});
+							await addChunk({id: QUEUEID, operation, cataloger, chunkNumber, numberOfRecords: chunk.length});
 						}
 					}
 				}).on('end', async () => {
@@ -91,8 +115,9 @@ export default async function () {
 					await Promise.all(promises);
 					logger.log('info', 'Request handling done!');
 					if (records !== undefined && records.length > 0) {
-						pushToQueue({queue, user, QUEUEID, records, operation, chunkNumber});
-						addChunk({id: QUEUEID, operation, user, chunkNumber, numberOfRecords: records.length});
+						chunkNumber++;
+						pushToQueue({queue, cataloger, QUEUEID, records, operation, chunkNumber});
+						addChunk({id: QUEUEID, operation, cataloger, chunkNumber, numberOfRecords: records.length});
 					}
 
 					res();
@@ -107,10 +132,10 @@ export default async function () {
 		}
 	}
 
-	async function doQuerry({user, query}) {
-		// USER, ID, OPERATION, creationTime, modificationTime
+	async function doQuerry({cataloger, query}) {
+		// Query filters cataloger, id, operation, creationTime, modificationTime
 		const params = {
-			user
+			cataloger
 		};
 		if (query.id) {
 			params.id = query.id;
@@ -128,7 +153,7 @@ export default async function () {
 			params.modificationTime = query.modificationTime;
 		}
 
-		console.log(params);
+		logger.log('debug', `Queue blobs querried: ${params}`);
 		return queryBulk(params);
 	}
 
