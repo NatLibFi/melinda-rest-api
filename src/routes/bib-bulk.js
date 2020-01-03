@@ -70,8 +70,6 @@ export default async () => {
 			logger.log('debug', 'Params done');
 
 			if (params.operation === undefined || !OPERATIONS.includes(params.operation)) {
-				console.log(OPERATIONS);
-				console.log(params.operation);
 				logger.log('debug', 'Invalid operation');
 				throw new ServiceError(HttpStatus.BAD_REQUEST, 'Invalid operation');
 			}

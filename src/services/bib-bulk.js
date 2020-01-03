@@ -60,6 +60,9 @@ export default async function () {
 			const promises = [];
 			const queue = QUEUE_NAME_BULK;
 
+			// TODO: Check if Queue blob already exists id + operation + user
+			// if true get blob numbers
+
 			createQueueItem({id: QUEUEID, user, operation, queue});
 			await new Promise((res, rej) => {
 				let chunkNumber = 0;
@@ -80,7 +83,7 @@ export default async function () {
 							const chunk = records.splice(0, CHUNK_SIZE);
 							logger.log('debug', 'chunk pushed');
 							pushToQueue({queue, user, QUEUEID, records: chunk, operation, chunkNumber});
-							await addChunk({id: QUEUEID, chunkNumber, numberOfRecords: chunk.length});
+							await addChunk({id: QUEUEID, operation, user, chunkNumber, numberOfRecords: chunk.length});
 						}
 					}
 				}).on('end', async () => {
@@ -89,7 +92,7 @@ export default async function () {
 					logger.log('info', 'Request handling done!');
 					if (records !== undefined && records.length > 0) {
 						pushToQueue({queue, user, QUEUEID, records, operation, chunkNumber});
-						addChunk({id: QUEUEID, chunkNumber, numberOfRecords: records.length});
+						addChunk({id: QUEUEID, operation, user, chunkNumber, numberOfRecords: records.length});
 					}
 
 					res();

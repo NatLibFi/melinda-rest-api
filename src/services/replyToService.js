@@ -80,7 +80,7 @@ async function consumeQueue(queue) {
 
 			// Save response to db to be querried
 			// If error pass all records to failed records?
-			await updateChunk({id: correlationId, content});
+			await updateChunk({id: correlationId, operation: content.operation, user: content.cataloger, content});
 
 			// Ack message when all done
 			channel.ack(queData);

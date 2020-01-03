@@ -13,7 +13,7 @@ export async function createQueueItem({id, user, operation, queue}) {
 	await Mongoose.models.QueueBlobModel.create({id, user, operation, queue});
 }
 
-export async function addChunk({id, chunkNumber, numberOfRecords}) {
+export async function addChunk({id, operation, user, chunkNumber, numberOfRecords}) {
 	const chunkInfo = {
 		modificationTime: moment(),
 		$push: {
@@ -23,15 +23,17 @@ export async function addChunk({id, chunkNumber, numberOfRecords}) {
 			}
 		}
 	};
-	const {nModified} = await Mongoose.models.QueueBlobModel.updateOne({id}, chunkInfo);
+
+	// Updates Queue blob where id, operation and user match
+	const {nModified} = await Mongoose.models.QueueBlobModel.updateOne({id, operation, user}, chunkInfo);
 
 	if (nModified === 0) {
 		throw new Error('409');
 	}
 }
 
-export async function updateChunk({id, content}) {
-	const data = await Mongoose.models.QueueBlobModel.findOne({id}).exec();
+export async function updateChunk({id, operation, user, content}) {
+	const data = await Mongoose.models.QueueBlobModel.findOne({id, operation, user}).exec();
 	const chunkIndex = data.queuedChunks.findIndex(checkChunkNumber);
 	const marker = `queuedChunks.${chunkIndex}`;
 
@@ -46,7 +48,7 @@ export async function updateChunk({id, content}) {
 		$set: {}
 	};
 	update.$set[marker] = data.queuedChunks[chunkIndex];
-	const {nModified} = await Mongoose.models.QueueBlobModel.updateOne({id}, update);
+	const {nModified} = await Mongoose.models.QueueBlobModel.updateOne({id, operation, user}, update);
 	logger.log('info', `${nModified} chunk/s received confirmation`);
 
 	function checkChunkNumber(chunk) {
