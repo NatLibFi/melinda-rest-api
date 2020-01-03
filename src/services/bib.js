@@ -183,8 +183,6 @@ export default async function ({sruURL}) {
 
 			return messages;
 		} catch (err) {
-			console.log('bib update');
-			console.log(err);
 			if (err instanceof ConversionError) {
 				throw new ServiceError(HttpStatus.BAD_REQUEST);
 			} else if (err instanceof OwnAuthorizationError) {

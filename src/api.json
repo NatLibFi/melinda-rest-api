@@ -683,7 +683,7 @@
           ]
         }
       },
-      "QueueItem": {
+      "DBQueueItem": {
         "type": "object",
         "properties": {
           "id": {

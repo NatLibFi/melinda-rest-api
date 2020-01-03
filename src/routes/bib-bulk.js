@@ -36,6 +36,7 @@ import ServiceError from '../services/error';
 import uuid from 'uuid';
 import createService from '../services/bib-bulk';
 import {Json, MARCXML, AlephSequential, ISO2709} from '@natlibfi/marc-record-serializers';
+import {OPERATIONS} from '@natlibfi/melinda-record-import-commons';
 
 const {createLogger} = Utils;
 const logger = createLogger(); // eslint-disable-line no-unused-vars
@@ -63,20 +64,22 @@ export default async () => {
 			const params = {
 				type: req.headers['content-type'],
 				operation: req.params.operation,
-				QUEUEID: uuid.v1(),
+				QUEUEID: req.query.id || uuid.v1(),
 				user: req.user.id
 			};
+			logger.log('debug', 'Params done');
 
-			if (params.operation === undefined || (
-				params.operation.toLowerCase() !== 'update' &&
-				params.operation.toLowerCase() !== 'create')
-			) {
-				throw new ServiceError(HttpStatus[400], 'Invalid operation');
+			if (params.operation === undefined || !OPERATIONS.includes(params.operation)) {
+				console.log(OPERATIONS);
+				console.log(params.operation);
+				logger.log('debug', 'Invalid operation');
+				throw new ServiceError(HttpStatus.BAD_REQUEST, 'Invalid operation');
 			}
 
 			// Custom content-types? or just: application/text, application/json, application/marc & application/xml
 			if (params.type === undefined || !CONTENT_TYPES.includes(params.type)) {
-				throw new ServiceError(HttpStatus[400], 'Invalid content-type');
+				logger.log('debug', 'Invalid content type');
+				throw new ServiceError(HttpStatus.BAD_REQUEST, 'Invalid content-type');
 			}
 
 			if (params.type === 'application/alephseq') {
