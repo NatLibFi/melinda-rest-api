@@ -39,6 +39,7 @@
 		"@natlibfi/marc-record-serializers": "^5.0.0",
 		"@natlibfi/marc-record-validate": "^5.0.0",
 		"@natlibfi/marc-record-validators-melinda": "^8.1.2",
+		"@natlibfi/melinda-record-import-commons": "git+https://github.com/NatLibFi/melinda-record-import-commons.git#melkehitys-1054-1117",
 		"@natlibfi/melinda-commons": "^7.1.0",
 		"@natlibfi/sru-client": "^3.1.2",
 		"amqplib": "^0.5.5",

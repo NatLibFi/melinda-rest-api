@@ -41,7 +41,7 @@ https://www.cloudamqp.com/blog/2017-12-29-part1-rabbitmq-best-practice.html
 
 // COMMON
 import {Utils} from '@natlibfi/melinda-commons';
-import {CHUNK_SIZE, NAME_QUEUE_BULK} from '../config';
+import {CHUNK_SIZE, QUEUE_NAME_BULK} from '@natlibfi/melinda-record-import-commons';
 import {logError} from '../utils';
 import {toAlephId} from '@natlibfi/melinda-commons/dist/utils';
 import {pushToQueue} from './toQueueService';
@@ -58,8 +58,9 @@ export default async function () {
 		try {
 			const records = [];
 			const promises = [];
+			const queue = QUEUE_NAME_BULK;
 
-			createQueueItem({id: QUEUEID, user, operation, queue: NAME_QUEUE_BULK});
+			createQueueItem({id: QUEUEID, user, operation, queue});
 			await new Promise((res, rej) => {
 				let chunkNumber = 0;
 				reader.on('data', record => {
@@ -78,7 +79,7 @@ export default async function () {
 							chunkNumber++;
 							const chunk = records.splice(0, CHUNK_SIZE);
 							logger.log('debug', 'chunk pushed');
-							pushToQueue({queue: NAME_QUEUE_BULK, user, QUEUEID, records: chunk, operation, chunkNumber});
+							pushToQueue({queue, user, QUEUEID, records: chunk, operation, chunkNumber});
 							await addChunk({id: QUEUEID, chunkNumber, numberOfRecords: chunk.length});
 						}
 					}
@@ -87,7 +88,7 @@ export default async function () {
 					await Promise.all(promises);
 					logger.log('info', 'Request handling done!');
 					if (records !== undefined && records.length > 0) {
-						pushToQueue({queue: NAME_QUEUE_BULK, user, QUEUEID, records, operation, chunkNumber});
+						pushToQueue({queue, user, QUEUEID, records, operation, chunkNumber});
 						addChunk({id: QUEUEID, chunkNumber, numberOfRecords: records.length});
 					}
 

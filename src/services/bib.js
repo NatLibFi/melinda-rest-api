@@ -27,20 +27,18 @@
 */
 
 import HttpStatus from 'http-status';
-import {RecordMatching, OwnAuthorization} from '@natlibfi/melinda-commons';
+import {Utils, RecordMatching, OwnAuthorization} from '@natlibfi/melinda-commons';
+import {QUEUE_NAME_PRIO} from '@natlibfi/melinda-record-import-commons';
 import createSruClient from '@natlibfi/sru-client';
+import {MARCXML} from '@natlibfi/marc-record-serializers';
 
+export {FORMATS} from './conversion';
 import createConversionService, {ConversionError} from './conversion';
 import createValidationService, {ValidationError} from './validation';
 import ServiceError from './error';
-import {Utils} from '@natlibfi/melinda-commons';
 import {pushToQueue} from './toQueueService';
-import {NAME_QUEUE_PRIORITY} from '../config';
-import {MARCXML} from '@natlibfi/marc-record-serializers';
-import {EMITTER} from './replyToService';
 import {createQueueItem, addChunk} from './mongoService';
-
-export {FORMATS} from './conversion';
+import {EMITTER} from './replyToService';
 
 const {createLogger, toAlephId} = Utils;
 
@@ -51,6 +49,7 @@ export default async function ({sruURL}) {
 	const ValidationService = await createValidationService();
 	const sruClient = createSruClient({serverUrl: 'https://sru.api.melinda-test.kansalliskirjasto.fi/bib', version: '2.0', maximumRecords: '1'});
 	const RecordMatchingService = RecordMatching.createBibService({sruURL});
+	const queue = QUEUE_NAME_PRIO;
 
 	return {read, create, update};
 
@@ -93,8 +92,8 @@ export default async function ({sruURL}) {
 			updateField001ToParamId('1', record);
 			logger.log('debug', 'Sending a new record to QUEUE');
 			const operation = 'create';
-			createQueueItem({id: QUEUEID, user: user.id, operation, queue: NAME_QUEUE_PRIORITY});
-			pushToQueue({queue: NAME_QUEUE_PRIORITY, user: user.id, QUEUEID, records: [record], operation});
+			createQueueItem({id: QUEUEID, user: user.id, operation, queue});
+			pushToQueue({queue, user: user.id, QUEUEID, records: [record], operation});
 			addChunk({id: QUEUEID, chunkNumber: 0, numberOfRecords: 1});
 
 			const messages = {};
@@ -154,32 +153,38 @@ export default async function ({sruURL}) {
 			updateField001ToParamId(id, record);
 			const operation = 'update';
 			logger.log('debug', `Sending updating task for record ${id} to queue`);
-			await createQueueItem({id: QUEUEID, user: user.id, operation, queue: NAME_QUEUE_PRIORITY});
-			pushToQueue({queue: NAME_QUEUE_PRIORITY, user: user.id, QUEUEID, records: [record], operation});
+			await createQueueItem({id: QUEUEID, user: user.id, operation, queue});
+			pushToQueue({queue, user: user.id, QUEUEID, records: [record], operation});
 			addChunk({id: QUEUEID, chunkNumber: 0, numberOfRecords: 1});
 
-			const messages = {};
-			await new Promise((res, rej) => {
+			const messages = await new Promise((res, rej) => {
 				EMITTER.on(QUEUEID, reply => {
 					logger.log('debug', `Priority data: ${JSON.stringify(reply)}`);
-					messages.status = reply.status;
+					const data = {};
+					data.status = reply.status;
 
 					if (reply.metadata.ids) {
-						messages.id = reply.metadata.ids[0];
+						data.id = reply.metadata.ids[0];
 					}
 
 					if (reply.metadata.error) {
-						rej(reply.metadata.error);
+						rej(new ServiceError(reply.metadata.error.status, reply.metadata.error.payload));
 					}
 
-					res();
+					res(data);
 				}).on('error', err => {
 					rej(err);
 				});
 			});
 
+			if (messages.status === 'ERROR') {
+				throw new ServiceError(messages.error.status, messages.error.payload);
+			}
+
 			return messages;
 		} catch (err) {
+			console.log('bib update');
+			console.log(err);
 			if (err instanceof ConversionError) {
 				throw new ServiceError(HttpStatus.BAD_REQUEST);
 			} else if (err instanceof OwnAuthorizationError) {

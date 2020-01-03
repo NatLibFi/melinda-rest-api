@@ -95,8 +95,10 @@ async function run() {
 
 		logError(err);
 		if (err instanceof ServiceError) {
+			console.log('responding service');
 			res.status(err.status).send(err.payload).end();
 		} else {
+			console.log('responding internal');
 			res.sendStatus(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}

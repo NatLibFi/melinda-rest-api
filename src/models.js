@@ -1,5 +1,5 @@
 import {Schema} from 'mongoose';
-import {CHUNK_STATE} from './config';
+import {CHUNK_STATE} from '@natlibfi/melinda-record-import-commons';
 
 /* Example:
 {

@@ -33,10 +33,8 @@ import ServiceError from '../services/error';
 import createService, {FORMATS} from '../services/bib';
 import {formatRequestBoolean} from '../utils';
 import uuid from 'uuid';
-
-import {
-	SRU_URL_BIB, CHUNK_STATE
-} from '../config';
+import {SRU_URL_BIB} from '../config';
+import {CHUNK_STATE} from '@natlibfi/melinda-record-import-commons';
 
 export default async () => {
 	const CONTENT_TYPES = {

@@ -3,7 +3,7 @@ import Mongoose from 'mongoose';
 import {QueueBlobModel} from '../models';
 import moment from 'moment';
 import {Utils} from '@natlibfi/melinda-commons';
-import {CHUNK_STATE} from '../config';
+import {CHUNK_STATE} from '@natlibfi/melinda-record-import-commons';
 
 Mongoose.model('QueueBlobModel', QueueBlobModel);
 const {createLogger} = Utils;

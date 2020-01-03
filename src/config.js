@@ -33,23 +33,11 @@ const {readEnvironmentVariable} = Utils;
 export const HTTP_PORT = readEnvironmentVariable('HTTP_PORT', {defaultValue: '8080'});
 export const ENABLE_PROXY = readEnvironmentVariable('ENABLE_PROXY', '');
 
-// BIB-BULK
-export const IP_FILTER_BIB_BULK = readEnvironmentVariable('IP_FILTER_BIB_BULK', '[".*"]');
-export const TMP_FILE_LOCATION = readEnvironmentVariable('TMP_FILE_LOCATION', {defaultValue: 'dist/tmp/'});
-export const TMP_FILE_MAX_SIZE = readEnvironmentVariable('TMP_FILE_MAX_SIZE', {defaultValue: (50 * 1024 * 1024), format: v => Number(v)}); // X * kb * mb
-export const CHUNK_SIZE = readEnvironmentVariable('CHUNK_SIZE', {defaultValue: 50, format: v => Number(v)});
-
 export const AMQP_URL = JSON.parse(readEnvironmentVariable('AMQP_URL'));
 
 export const MONGO_URI = readEnvironmentVariable('MONGO_URI', {defaultValue: 'mongodb://localhost:27017/db'});
 export const MONGO_POOLSIZE = readEnvironmentVariable('MONGO_POOLSIZE', {defaultValue: 200, format: v => Number(v)});
 export const MONGO_DEBUG = readEnvironmentVariable('MONGO_DEBUG', {defaultValue: true});
-
-// Same as in import -> Move to melinda-record-import-commons constants?
-export const NAME_QUEUE_PRIORITY = 'PRIORITY';
-export const NAME_QUEUE_BULK = 'BULK';
-export const NAME_QUEUE_REPLY_BULK = 'REPLY_BULK';
-export const NAME_QUEUE_REPLY_PRIO = 'REPLY_PRIO';
 
 export const ALEPH_X_SVC_URL = readEnvironmentVariable('ALEPH_X_SVC_URL');
 export const ALEPH_USER_LIBRARY = readEnvironmentVariable('ALEPH_USER_LIBRARY');
@@ -60,17 +48,3 @@ export const OWN_AUTHZ_URL = readEnvironmentVariable('OWN_AUTHZ_URL');
 export const OWN_AUTHZ_API_KEY = readEnvironmentVariable('OWN_AUTHZ_API_KEY');
 
 export const SRU_URL_BIB = readEnvironmentVariable('SRU_URL_BIB');
-
-// About same as in import -> Move to melinda-record-import-commons constants?
-export const CHUNK_STATE = {
-	IN_QUEUE: 'IN_QUEUE',
-	CREATED: 'CREATED',
-	UPDATED: 'UPDATED',
-	ACTION_NEEDED: 'ACTION_NEEDED',
-	ERROR: 'ERROR'
-};
-
-export const OPERATIONS = [
-	'update',
-	'create'
-];
