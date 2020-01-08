@@ -30,7 +30,7 @@ import {Router} from 'express';
 import passport from 'passport';
 import HttpStatus from 'http-status';
 import ServiceError from '../services/error';
-import createService, {FORMATS} from '../services/bib';
+import createService, {FORMATS} from '../services/prio';
 import {formatRequestBoolean} from '../utils';
 import uuid from 'uuid';
 import {SRU_URL_BIB} from '../config';

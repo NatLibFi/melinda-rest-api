@@ -41,7 +41,7 @@ https://www.cloudamqp.com/blog/2017-12-29-part1-rabbitmq-best-practice.html
 
 // COMMON
 import {Utils} from '@natlibfi/melinda-commons';
-import {CHUNK_SIZE, QUEUE_NAME_BULK} from '@natlibfi/melinda-record-import-commons';
+import {CHUNK_SIZE, IMPORT_QUEUES} from '@natlibfi/melinda-record-import-commons';
 import {logError} from '../utils';
 import {toAlephId} from '@natlibfi/melinda-commons/dist/utils';
 import {pushToQueue} from './toQueueService';
@@ -49,6 +49,7 @@ import {createQueueItem, addChunk, queryBulk} from './mongoService';
 import {Json, MARCXML, AlephSequential, ISO2709} from '@natlibfi/marc-record-serializers';
 
 const {createLogger} = Utils;
+const {BULK_CREATE, BULK_UPDATE} = IMPORT_QUEUES;
 
 export default async function () {
 	const logger = createLogger(); // eslint-disable-line no-unused-vars
@@ -59,14 +60,13 @@ export default async function () {
 		try {
 			const records = [];
 			const promises = [];
-			const queue = QUEUE_NAME_BULK;
+			const queue = (operation === 'create') ? BULK_CREATE : BULK_UPDATE;
 			let reader;
 			let chunkNumber = -1;
 
 			// Check if Queue blob already exists id + operation + cataloger
 			const dbData = await queryBulk({cataloger, id: QUEUEID, operation});
 			if (dbData.length > 0) {
-				console.log(dbData[0]);
 				chunkNumber = dbData[0].queuedChunks.length - 1;
 			} else {
 				createQueueItem({id: QUEUEID, cataloger, operation, queue});

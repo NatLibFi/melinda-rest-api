@@ -28,7 +28,7 @@
 
 import HttpStatus from 'http-status';
 import {Utils, RecordMatching, OwnAuthorization} from '@natlibfi/melinda-commons';
-import {QUEUE_NAME_PRIO} from '@natlibfi/melinda-record-import-commons';
+import {IMPORT_QUEUES} from '@natlibfi/melinda-record-import-commons';
 import createSruClient from '@natlibfi/sru-client';
 import {MARCXML} from '@natlibfi/marc-record-serializers';
 
@@ -41,6 +41,7 @@ import {createQueueItem, addChunk} from './mongoService';
 import {EMITTER} from './replyToService';
 
 const {createLogger, toAlephId} = Utils;
+const {PRIO_CREATE, PRIO_UPDATE} = IMPORT_QUEUES;
 
 export default async function ({sruURL}) {
 	const logger = createLogger();
@@ -49,7 +50,6 @@ export default async function ({sruURL}) {
 	const ValidationService = await createValidationService();
 	const sruClient = createSruClient({serverUrl: 'https://sru.api.melinda-test.kansalliskirjasto.fi/bib', version: '2.0', maximumRecords: '1'});
 	const RecordMatchingService = RecordMatching.createBibService({sruURL});
-	const queue = QUEUE_NAME_PRIO;
 
 	return {read, create, update};
 
@@ -92,8 +92,8 @@ export default async function ({sruURL}) {
 			updateField001ToParamId('1', record);
 			logger.log('debug', 'Sending a new record to QUEUE');
 			const operation = 'create';
-			createQueueItem({id: QUEUEID, cataloger: cataloger.id, operation, queue});
-			pushToQueue({queue, cataloger: cataloger.id, QUEUEID, records: [record], operation});
+			createQueueItem({id: QUEUEID, cataloger: cataloger.id, operation, PRIO_CREATE});
+			pushToQueue({PRIO_CREATE, cataloger: cataloger.id, QUEUEID, records: [record], operation});
 			addChunk({id: QUEUEID, chunkNumber: 0, numberOfRecords: 1});
 
 			const messages = {};
@@ -153,8 +153,8 @@ export default async function ({sruURL}) {
 			updateField001ToParamId(id, record);
 			const operation = 'update';
 			logger.log('debug', `Sending updating task for record ${id} to queue`);
-			await createQueueItem({id: QUEUEID, cataloger: cataloger.id, operation, queue});
-			pushToQueue({queue, cataloger: cataloger.id, QUEUEID, records: [record], operation});
+			await createQueueItem({id: QUEUEID, cataloger: cataloger.id, operation, PRIO_UPDATE});
+			pushToQueue({PRIO_UPDATE, cataloger: cataloger.id, QUEUEID, records: [record], operation});
 			addChunk({id: QUEUEID, chunkNumber: 0, numberOfRecords: 1});
 
 			const messages = await new Promise((res, rej) => {

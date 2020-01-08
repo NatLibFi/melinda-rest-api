@@ -2,7 +2,7 @@ import amqplib from 'amqplib';
 import {Utils} from '@natlibfi/melinda-commons';
 import {EventEmitter} from 'events';
 import {AMQP_URL} from '../config';
-import {QUEUE_NAME_REPLY_BULK, QUEUE_NAME_REPLY_PRIO} from '@natlibfi/melinda-record-import-commons';
+import {IMPORT_QUEUES} from '@natlibfi/melinda-record-import-commons';
 
 import {updateChunk} from './mongoService';
 
@@ -11,14 +11,15 @@ export const EMITTER = new ReplyEmitter();
 
 const {createLogger} = Utils;
 const logger = createLogger();
+const {PRIO_REPLY, BULK_REPLY} = IMPORT_QUEUES;
 
 export async function checkReplyQueue() {
 	const {prio, bulk} = await operateQueue();
 
 	if (prio > 0) {
-		await consumeQueue(QUEUE_NAME_REPLY_PRIO);
+		await consumeQueue(PRIO_REPLY);
 	} else if (bulk > 0) {
-		await consumeQueue(QUEUE_NAME_REPLY_BULK);
+		await consumeQueue(BULK_REPLY);
 	} else {
 		setTimeout(checkReplyQueue, 1000);
 	}
@@ -35,14 +36,14 @@ async function operateQueue() {
 		channel = await connection.createChannel();
 
 		if (purge) {
-			await channel.purgeQueue(QUEUE_NAME_REPLY_PRIO);
-			await channel.purgeQueue(QUEUE_NAME_REPLY_BULK);
+			await channel.purgeQueue(PRIO_REPLY);
+			await channel.purgeQueue(BULK_REPLY);
 		}
 
-		channelInfo.prio = await channel.checkQueue(QUEUE_NAME_REPLY_PRIO);
-		logger.log('debug', `${QUEUE_NAME_REPLY_PRIO} queue: ${channelInfo.prio.messageCount} chunks`);
-		channelInfo.bulk = await channel.checkQueue(QUEUE_NAME_REPLY_BULK);
-		logger.log('debug', `${QUEUE_NAME_REPLY_BULK} queue: ${channelInfo.bulk.messageCount} chunks`);
+		channelInfo.prio = await channel.checkQueue(PRIO_REPLY);
+		logger.log('debug', `${PRIO_REPLY} queue: ${channelInfo.prio.messageCount} chunks`);
+		channelInfo.bulk = await channel.checkQueue(BULK_REPLY);
+		logger.log('debug', `${BULK_REPLY} queue: ${channelInfo.bulk.messageCount} chunks`);
 	} catch (err) {
 		checkReplyQueue();
 		throw err;
@@ -74,7 +75,7 @@ async function consumeQueue(queue) {
 
 			logger.log('debug', `Reading reply: ${correlationId}, ${JSON.stringify(content)}`);
 			// Notify possible listenres that their job is done!
-			if (queue === QUEUE_NAME_REPLY_PRIO) {
+			if (queue === PRIO_REPLY) {
 				EMITTER.emit(correlationId, content);
 			}
 

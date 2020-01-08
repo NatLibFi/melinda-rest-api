@@ -26,8 +26,8 @@
 *
 */
 
-import createBibRouter from './bib';
-import createBibBulkRouter from './bib-bulk.js';
+import createPrioRouter from './prio';
+import createBulkRouter from './bulk';
 import createApiDocRouter from './api-doc';
 
-export {createBibRouter, createBibBulkRouter, createApiDocRouter};
+export {createPrioRouter, createBulkRouter, createApiDocRouter};

@@ -34,7 +34,7 @@ import passport from 'passport';
 import HttpStatus from 'http-status';
 import ServiceError from '../services/error';
 import uuid from 'uuid';
-import createService from '../services/bib-bulk';
+import createService from '../services/bulk';
 import {OPERATIONS} from '@natlibfi/melinda-record-import-commons';
 
 const {createLogger} = Utils;
@@ -90,7 +90,6 @@ export default async () => {
 	async function doQuerry(req, res, next) {
 		try {
 			const response = await Service.doQuerry({cataloger: req.user.id, query: req.query});
-			console.log(response);
 			res.json({request: req.query, response}).end();
 		} catch (err) {
 			next(err);

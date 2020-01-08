@@ -35,7 +35,7 @@ import {MarcRecord} from '@natlibfi/marc-record';
 import {Authentication, Utils} from '@natlibfi/melinda-commons';
 import Mongoose from 'mongoose';
 import {checkReplyQueue} from './services/replyToService';
-import {createBibRouter, createBibBulkRouter, createApiDocRouter} from './routes';
+import {createPrioRouter, createBulkRouter, createApiDocRouter} from './routes';
 
 import {
 	HTTP_PORT, ENABLE_PROXY,
@@ -79,10 +79,10 @@ async function run() {
 
 	app.use(createExpressLogger());
 	app.use(passport.initialize());
-	app.use('/bulk', await createBibBulkRouter()); // Must be here to avoid bodyparser
+	app.use('/bulk', await createBulkRouter()); // Must be here to avoid bodyparser
 	app.use(bodyParser.text({limit: '5MB', type: '*/*'}));
 	app.use('/api', createApiDocRouter());
-	app.use('/', await createBibRouter());
+	app.use('/', await createPrioRouter());
 	app.use(handleError);
 
 	app.listen(HTTP_PORT, () => logger.log('info', 'Started Melinda REST API'));

@@ -33,6 +33,7 @@ export async function pushToQueue({queue, cataloger, QUEUEID, records, operation
 			queue,
 			Buffer.from(message),
 			{
+				type: queue,
 				persistent: true,
 				correlationId: QUEUEID
 			}
