@@ -29,12 +29,12 @@
 import {Router} from 'express';
 import passport from 'passport';
 import HttpStatus from 'http-status';
-import ServiceError from '../services/error';
 import createService, {FORMATS} from '../services/prio';
 import {formatRequestBoolean} from '../utils';
 import uuid from 'uuid';
 import {SRU_URL_BIB} from '../config';
 import {CHUNK_STATE} from '@natlibfi/melinda-record-import-commons';
+import ServiceError from '@natlibfi/melinda-commons';
 
 export default async () => {
 	const CONTENT_TYPES = {
@@ -69,7 +69,7 @@ export default async () => {
 				const record = await Service.read({id: req.params.id, format});
 				res.type(type).status(HttpStatus.OK).send(record);
 			} else {
-				res.sendStatus(HttpStatus.NOT_ACCEPTABLE);
+				throw new ServiceError(HttpStatus.NOT_ACCEPTABLE);
 			}
 		} catch (err) {
 			next(err);
@@ -83,7 +83,7 @@ export default async () => {
 			const QUEUEID = uuid.v1();
 
 			if (!format) {
-				return res.sendStatus(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+				throw new ServiceError(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
 			}
 
 			const unique = req.query.unique === undefined ? true : formatRequestBoolean(req.query.unique);
@@ -112,7 +112,7 @@ export default async () => {
 			const QUEUEID = uuid.v1();
 
 			if (!format) {
-				return res.sendStatus(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+				throw new ServiceError(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
 			}
 
 			const noop = formatRequestBoolean(req.query.noop);
@@ -125,10 +125,10 @@ export default async () => {
 			});
 
 			if (messages.status === CHUNK_STATE.ERROR) {
-				res.sendStatus(422).json(messages.failedRecords).end();
+				throw new ServiceError(HttpStatus.UNPROCESSABLE_ENTITY, messages.failedRecords);
 			}
 
-			res.type('application/json').json(messages).end();
+			res.type('application/json').json(messages);
 		} catch (err) {
 			next(err);
 		}

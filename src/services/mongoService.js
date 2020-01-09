@@ -2,7 +2,7 @@
 import Mongoose from 'mongoose';
 import {QueueBlobModel} from '../models';
 import moment from 'moment';
-import {Utils} from '@natlibfi/melinda-commons';
+import DatabaseError, {Utils} from '@natlibfi/melinda-commons';
 import {CHUNK_STATE} from '@natlibfi/melinda-record-import-commons';
 
 Mongoose.model('QueueBlobModel', QueueBlobModel);
@@ -29,7 +29,7 @@ export async function addChunk({id, operation, cataloger, chunkNumber, numberOfR
 	const {nModified} = await Mongoose.models.QueueBlobModel.updateOne({id, operation, cataloger}, chunkInfo);
 
 	if (nModified === 0) {
-		throw new Error('409');
+		throw new DatabaseError(409);
 	}
 }
 

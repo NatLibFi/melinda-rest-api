@@ -28,11 +28,10 @@
 *
 */
 
-import {Utils} from '@natlibfi/melinda-commons';
+import {MelindaError as ServiceError, Utils} from '@natlibfi/melinda-commons';
 import {Router} from 'express';
 import passport from 'passport';
 import HttpStatus from 'http-status';
-import ServiceError from '../services/error';
 import uuid from 'uuid';
 import createService from '../services/bulk';
 import {OPERATIONS} from '@natlibfi/melinda-record-import-commons';

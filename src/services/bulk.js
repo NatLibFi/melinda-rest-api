@@ -43,12 +43,11 @@ https://www.cloudamqp.com/blog/2017-12-29-part1-rabbitmq-best-practice.html
 import {Utils} from '@natlibfi/melinda-commons';
 import {CHUNK_SIZE, IMPORT_QUEUES} from '@natlibfi/melinda-record-import-commons';
 import {logError} from '../utils';
-import {toAlephId} from '@natlibfi/melinda-commons/dist/utils';
 import {pushToQueue} from './toQueueService';
 import {createQueueItem, addChunk, queryBulk} from './mongoService';
 import {Json, MARCXML, AlephSequential, ISO2709} from '@natlibfi/marc-record-serializers';
 
-const {createLogger} = Utils;
+const {createLogger, toAlephId} = Utils;
 const {BULK_CREATE, BULK_UPDATE} = IMPORT_QUEUES;
 
 export default async function () {

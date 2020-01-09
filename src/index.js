@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /**
 *
 * @licstart  The following is the entire license notice for the JavaScript code in this file.
@@ -29,10 +30,9 @@
 import HttpStatus from 'http-status';
 import express from 'express';
 import bodyParser from 'body-parser';
-import ServiceError from './services/error';
 import passport from 'passport';
 import {MarcRecord} from '@natlibfi/marc-record';
-import {Authentication, Utils} from '@natlibfi/melinda-commons';
+import ServiceError, {Authentication, Utils} from '@natlibfi/melinda-commons';
 import Mongoose from 'mongoose';
 import {checkReplyQueue} from './services/replyToService';
 import {createPrioRouter, createBulkRouter, createApiDocRouter} from './routes';
@@ -78,12 +78,12 @@ async function run() {
 	}
 
 	app.use(createExpressLogger());
-	app.use(passport.initialize());
 	app.use('/bulk', await createBulkRouter()); // Must be here to avoid bodyparser
 	app.use(bodyParser.text({limit: '5MB', type: '*/*'}));
 	app.use('/api', createApiDocRouter());
 	app.use('/', await createPrioRouter());
 	app.use(handleError);
+	app.use(passport.initialize());
 
 	app.listen(HTTP_PORT, () => logger.log('info', 'Started Melinda REST API'));
 	checkReplyQueue();
@@ -94,6 +94,7 @@ async function run() {
 		}
 
 		logError(err);
+		console.log(err);
 		if (err instanceof ServiceError) {
 			console.log('responding service');
 			res.status(err.status).send(err.payload).end();

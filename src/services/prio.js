@@ -27,7 +27,7 @@
 */
 
 import HttpStatus from 'http-status';
-import {Utils, RecordMatching, OwnAuthorization} from '@natlibfi/melinda-commons';
+import ServiceError, {Utils, RecordMatching, OwnAuthorization} from '@natlibfi/melinda-commons';
 import {IMPORT_QUEUES} from '@natlibfi/melinda-record-import-commons';
 import createSruClient from '@natlibfi/sru-client';
 import {MARCXML} from '@natlibfi/marc-record-serializers';
@@ -35,7 +35,6 @@ import {MARCXML} from '@natlibfi/marc-record-serializers';
 export {FORMATS} from './conversion';
 import createConversionService, {ConversionError} from './conversion';
 import createValidationService, {ValidationError} from './validation';
-import ServiceError from './error';
 import {pushToQueue} from './toQueueService';
 import {createQueueItem, addChunk} from './mongoService';
 import {EMITTER} from './replyToService';
@@ -45,7 +44,6 @@ const {PRIO_CREATE, PRIO_UPDATE} = IMPORT_QUEUES;
 
 export default async function ({sruURL}) {
 	const logger = createLogger();
-	const {OwnAuthorizationError} = OwnAuthorization;
 	const ConversionService = createConversionService();
 	const ValidationService = await createValidationService();
 	const sruClient = createSruClient({serverUrl: 'https://sru.api.melinda-test.kansalliskirjasto.fi/bib', version: '2.0', maximumRecords: '1'});
@@ -92,9 +90,9 @@ export default async function ({sruURL}) {
 			updateField001ToParamId('1', record);
 			logger.log('debug', 'Sending a new record to QUEUE');
 			const operation = 'create';
-			createQueueItem({id: QUEUEID, cataloger: cataloger.id, operation, PRIO_CREATE});
-			pushToQueue({PRIO_CREATE, cataloger: cataloger.id, QUEUEID, records: [record], operation});
-			addChunk({id: QUEUEID, chunkNumber: 0, numberOfRecords: 1});
+			createQueueItem({id: QUEUEID, cataloger: cataloger.id, operation, queue: PRIO_CREATE});
+			pushToQueue({queue: PRIO_CREATE, cataloger: cataloger.id, QUEUEID, records: [record], operation});
+			addChunk({id: QUEUEID, cataloger: cataloger.id, operation, chunkNumber: 0, numberOfRecords: 1});
 
 			const messages = {};
 			await new Promise((res, rej) => {
@@ -122,7 +120,7 @@ export default async function ({sruURL}) {
 		} catch (err) {
 			if (err instanceof ConversionError) {
 				throw new ServiceError(HttpStatus.BAD_REQUEST);
-			} else if (err instanceof OwnAuthorizationError) {
+			} else if (err.status === 403) {
 				throw new ServiceError(HttpStatus.FORBIDDEN);
 			} else if (err instanceof ValidationError) {
 				throw new ServiceError(HttpStatus.UNPROCESSABLE_ENTITY, err.messages);
@@ -153,9 +151,9 @@ export default async function ({sruURL}) {
 			updateField001ToParamId(id, record);
 			const operation = 'update';
 			logger.log('debug', `Sending updating task for record ${id} to queue`);
-			await createQueueItem({id: QUEUEID, cataloger: cataloger.id, operation, PRIO_UPDATE});
-			pushToQueue({PRIO_UPDATE, cataloger: cataloger.id, QUEUEID, records: [record], operation});
-			addChunk({id: QUEUEID, chunkNumber: 0, numberOfRecords: 1});
+			await createQueueItem({id: QUEUEID, cataloger: cataloger.id, operation, queue: PRIO_UPDATE});
+			pushToQueue({queue: PRIO_UPDATE, cataloger: cataloger.id, QUEUEID, records: [record], operation});
+			addChunk({id: QUEUEID, cataloger: cataloger.id, operation, chunkNumber: 0, numberOfRecords: 1});
 
 			const messages = await new Promise((res, rej) => {
 				EMITTER.on(QUEUEID, reply => {
@@ -185,7 +183,7 @@ export default async function ({sruURL}) {
 		} catch (err) {
 			if (err instanceof ConversionError) {
 				throw new ServiceError(HttpStatus.BAD_REQUEST);
-			} else if (err instanceof OwnAuthorizationError) {
+			} else if (err.status === 403) {
 				throw new ServiceError(HttpStatus.FORBIDDEN);
 			} else if (err instanceof ValidationError) {
 				throw new ServiceError(HttpStatus.UNPROCESSABLE_ENTITY, err.messages);

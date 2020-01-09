@@ -69,6 +69,7 @@ async function consumeQueue(queue) {
 
 		channel.prefetch(1); // Per consumer limit
 		const queData = await channel.get(queue);
+
 		if (queData) {
 			const correlationId = queData.properties.correlationId;
 			const content = JSON.parse(queData.content.toString());
@@ -85,12 +86,10 @@ async function consumeQueue(queue) {
 
 			// Ack message when all done
 			channel.ack(queData);
-			checkReplyQueue();
-		} else {
-			throw new Error(`Error while consuming data from queue ${queue}`);
 		}
-	} catch (err) {
+
 		checkReplyQueue();
+	} catch (err) {
 		throw err;
 	} finally {
 		if (channel) {
