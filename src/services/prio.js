@@ -26,28 +26,21 @@
 *
 */
 
-import HttpStatus from 'http-status';
-import ServiceError, {Utils, RecordMatching, OwnAuthorization} from '@natlibfi/melinda-commons';
-import {IMPORT_QUEUES} from '@natlibfi/melinda-record-import-commons';
-import createSruClient from '@natlibfi/sru-client';
 import {MARCXML} from '@natlibfi/marc-record-serializers';
-
-export {FORMATS} from './conversion';
+import ServiceError, {Utils} from '@natlibfi/melinda-commons';
+import createSruClient from '@natlibfi/sru-client';
+import HttpStatus from 'http-status';
 import createConversionService, {ConversionError} from './conversion';
-import createValidationService, {ValidationError} from './validation';
-import {pushToQueue} from './toQueueService';
-import {createQueueItem, addChunk} from './mongoService';
-import {EMITTER} from './replyToService';
+import {pushToQueue} from './toQueue';
+import {SRU_URL_BIB} from '../config';
+import {EMITTER} from '../interfaces/reply';
 
-const {createLogger, toAlephId} = Utils;
-const {PRIO_CREATE, PRIO_UPDATE} = IMPORT_QUEUES;
+const {createLogger} = Utils;
 
-export default async function ({sruURL}) {
+export default async function () {
 	const logger = createLogger();
 	const ConversionService = createConversionService();
-	const ValidationService = await createValidationService();
-	const sruClient = createSruClient({serverUrl: 'https://sru.api.melinda-test.kansalliskirjasto.fi/bib', version: '2.0', maximumRecords: '1'});
-	const RecordMatchingService = RecordMatching.createBibService({sruURL});
+	const sruClient = createSruClient({serverUrl: SRU_URL_BIB, version: '2.0', maximumRecords: '1'});
 
 	return {read, create, update};
 
@@ -63,40 +56,22 @@ export default async function ({sruURL}) {
 		}
 	}
 
-	async function create({data, format, cataloger, noop, unique, QUEUEID}) {
+	async function create({data, format, cataloger, noop, unique, qid}) {
 		try {
-			logger.log('debug', 'Unserializing record');
-			const record = ConversionService.unserialize(data, format);
+			logger.log('debug', 'Sending a new record to queue');
+			const headers = {
+				operation: 'create',
+				format,
+				cataloger,
+				noop,
+				unique
+			};
 
-			logger.log('debug', 'Checking LOW-tag authorization');
-			OwnAuthorization.validateChanges(cataloger.authorization, record);
-
-			if (unique) {
-				logger.log('debug', 'Attempting to find matching records in the datastore');
-				const matchingIds = await RecordMatchingService.find(record);
-
-				if (matchingIds.length > 0) {
-					throw new ServiceError(HttpStatus.CONFLICT, matchingIds);
-				}
-			}
-
-			logger.log('debug', 'Validating the record');
-			const validationResults = await ValidationService.validate(record);
-
-			if (noop) {
-				return validationResults;
-			}
-
-			updateField001ToParamId('1', record);
-			logger.log('debug', 'Sending a new record to QUEUE');
-			const operation = 'create';
-			createQueueItem({id: QUEUEID, cataloger: cataloger.id, operation, queue: PRIO_CREATE});
-			pushToQueue({queue: PRIO_CREATE, cataloger: cataloger.id, QUEUEID, records: [record], operation});
-			addChunk({id: QUEUEID, cataloger: cataloger.id, operation, chunkNumber: 0, numberOfRecords: 1});
+			pushToQueue({headers, qid, data});
 
 			const messages = {};
 			await new Promise((res, rej) => {
-				EMITTER.on(QUEUEID, reply => {
+				EMITTER.on(qid, reply => {
 					logger.log('debug', `Priority data: ${JSON.stringify(reply)}`);
 					messages.status = reply.status;
 
@@ -110,7 +85,7 @@ export default async function ({sruURL}) {
 
 					res();
 				}).on('error', err => {
-					if (err.id === QUEUEID) {
+					if (err.id === qid) {
 						rej(err.error);
 					}
 				});
@@ -122,62 +97,38 @@ export default async function ({sruURL}) {
 				throw new ServiceError(HttpStatus.BAD_REQUEST);
 			} else if (err.status === 403) {
 				throw new ServiceError(HttpStatus.FORBIDDEN);
-			} else if (err instanceof ValidationError) {
-				throw new ServiceError(HttpStatus.UNPROCESSABLE_ENTITY, err.messages);
 			}
 
 			throw err;
 		}
 	}
 
-	async function update({id, data, format, cataloger, noop, QUEUEID}) {
+	async function update({id, data, format, cataloger, noop, qid}) {
+		// TODO: Move validation to validator
 		try {
-			logger.log('debug', 'Unserializing record');
-			const record = ConversionService.unserialize(data, format);
-
-			logger.log('debug', `Reading record ${id} from datastore`);
-			const existingRecord = await getRecord(id);
-
-			logger.log('debug', 'Checking LOW-tag authorization');
-			OwnAuthorization.validateChanges(cataloger.authorization, record, existingRecord);
-
-			logger.log('debug', 'Validating the record');
-			const validationResults = await ValidationService.validate(record);
-
-			if (noop) {
-				return validationResults;
-			}
-
-			updateField001ToParamId(id, record);
-			const operation = 'update';
 			logger.log('debug', `Sending updating task for record ${id} to queue`);
-			await createQueueItem({id: QUEUEID, cataloger: cataloger.id, operation, queue: PRIO_UPDATE});
-			pushToQueue({queue: PRIO_UPDATE, cataloger: cataloger.id, QUEUEID, records: [record], operation});
-			addChunk({id: QUEUEID, cataloger: cataloger.id, operation, chunkNumber: 0, numberOfRecords: 1});
+			const headers = {
+				operation: 'update',
+				id,
+				format,
+				cataloger,
+				noop
+			};
 
-			const messages = await new Promise((res, rej) => {
-				EMITTER.on(QUEUEID, reply => {
+			pushToQueue({headers, qid, data});
+
+			const messages = {};
+			logger.log('debug', `weiting response to id: ${qid}`);
+			await new Promise((res, rej) => {
+				EMITTER.on(qid, reply => {
 					logger.log('debug', `Priority data: ${JSON.stringify(reply)}`);
-					const data = {};
-					data.status = reply.status;
+					messages.id = reply.data;
 
-					if (reply.metadata.ids) {
-						data.id = reply.metadata.ids[0];
-					}
-
-					if (reply.metadata.error) {
-						rej(new ServiceError(reply.metadata.error.status, reply.metadata.error.payload));
-					}
-
-					res(data);
+					res();
 				}).on('error', err => {
 					rej(err);
 				});
 			});
-
-			if (messages.status === 'ERROR') {
-				throw new ServiceError(messages.error.status, messages.error.payload);
-			}
 
 			return messages;
 		} catch (err) {
@@ -185,8 +136,6 @@ export default async function ({sruURL}) {
 				throw new ServiceError(HttpStatus.BAD_REQUEST);
 			} else if (err.status === 403) {
 				throw new ServiceError(HttpStatus.FORBIDDEN);
-			} else if (err instanceof ValidationError) {
-				throw new ServiceError(HttpStatus.UNPROCESSABLE_ENTITY, err.messages);
 			}
 
 			throw err;
@@ -205,19 +154,5 @@ export default async function ({sruURL}) {
 		});
 
 		return record;
-	}
-
-	function updateField001ToParamId(id, record) {
-		const fields = record.get(/^001$/);
-
-		if (fields.length === 0) {
-			// Return to break out of function
-			return record.insertField({tag: '001', value: toAlephId(id)});
-		}
-
-		fields.map(field => {
-			field.value = toAlephId(id);
-			return field;
-		});
 	}
 }

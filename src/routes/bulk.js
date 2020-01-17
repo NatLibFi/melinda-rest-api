@@ -28,7 +28,7 @@
 *
 */
 
-import {MelindaError as ServiceError, Utils} from '@natlibfi/melinda-commons';
+import ServiceError, {Utils} from '@natlibfi/melinda-commons';
 import {Router} from 'express';
 import passport from 'passport';
 import HttpStatus from 'http-status';
@@ -46,8 +46,11 @@ export default async () => {
 
 	return new Router()
 		.use(passport.authenticate('melinda', {session: false}))
-		.post('/:operation', handleStream)
+		.post('/:operation', create)
 		.get('/', doQuerry)
+		.get('/:id', readContent)
+		.delete('/', remove)
+		.delete('/:id', removeContent)
 		.use((err, req, res, next) => {
 			if (err instanceof ServiceError) {
 				res.status(err.status).send(err.payload);
@@ -56,13 +59,13 @@ export default async () => {
 			}
 		});
 
-	async function handleStream(req, res, next) {
+	async function create(req, res, next) {
 		try {
 			logger.log('debug', 'Bulk blob');
 			const params = {
-				type: req.headers['content-type'],
+				contentType: req.headers['content-type'],
 				operation: req.params.operation,
-				QUEUEID: req.query.id || uuid.v1(),
+				id: req.query.id || uuid.v1(),
 				cataloger: req.user.id
 			};
 			logger.log('debug', 'Params done');
@@ -73,14 +76,14 @@ export default async () => {
 			}
 
 			// Custom content-types? or just: application/text, application/json, application/marc & application/xml
-			if (params.type === undefined || !CONTENT_TYPES.includes(params.type)) {
+			if (params.contentType === undefined || !CONTENT_TYPES.includes(params.contentType)) {
 				logger.log('debug', 'Invalid content type');
 				throw new ServiceError(HttpStatus.BAD_REQUEST, 'Invalid content-type');
 			}
 
-			await Service.handleTransformation(req, params);
+			const response = await Service.create(req, params);
 
-			res.type('application/json').json(params).end();
+			res.type('application/json').json(response);
 		} catch (err) {
 			next(err);
 		}
@@ -89,7 +92,36 @@ export default async () => {
 	async function doQuerry(req, res, next) {
 		try {
 			const response = await Service.doQuerry({cataloger: req.user.id, query: req.query});
-			res.json({request: req.query, response}).end();
+			res.json({request: req.query, result: response});
+		} catch (err) {
+			next(err);
+		}
+	}
+
+	/* Functions after this are here only to test purposes */
+	async function readContent(req, res, next) {
+		try {
+			const {contentType, readStream} = await Service.readContent({cataloger: req.user.id, id: req.params.id});
+			res.set('Content-Type', contentType);
+			readStream.pipe(res);
+		} catch (err) {
+			next(err);
+		}
+	}
+
+	async function remove(req, res, next) {
+		try {
+			const response = await Service.remove({cataloger: req.user.id, id: req.query.id});
+			res.json({request: req.query, result: response});
+		} catch (err) {
+			next(err);
+		}
+	}
+
+	async function removeContent(req, res, next) {
+		try {
+			await Service.removeContent({cataloger: req.user.id, id: req.params.id});
+			res.sendStatus(204);
 		} catch (err) {
 			next(err);
 		}

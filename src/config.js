@@ -36,8 +36,6 @@ export const ENABLE_PROXY = readEnvironmentVariable('ENABLE_PROXY', '');
 export const AMQP_URL = JSON.parse(readEnvironmentVariable('AMQP_URL'));
 
 export const MONGO_URI = readEnvironmentVariable('MONGO_URI', {defaultValue: 'mongodb://localhost:27017/db'});
-export const MONGO_POOLSIZE = readEnvironmentVariable('MONGO_POOLSIZE', {defaultValue: 200, format: v => Number(v)});
-export const MONGO_DEBUG = readEnvironmentVariable('MONGO_DEBUG', {defaultValue: true});
 
 export const ALEPH_X_SVC_URL = readEnvironmentVariable('ALEPH_X_SVC_URL');
 export const ALEPH_USER_LIBRARY = readEnvironmentVariable('ALEPH_USER_LIBRARY');

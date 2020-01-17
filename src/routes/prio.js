@@ -29,11 +29,11 @@
 import {Router} from 'express';
 import passport from 'passport';
 import HttpStatus from 'http-status';
-import createService, {FORMATS} from '../services/prio';
+import createService from '../services/prio';
+import {FORMATS} from '../services/conversion';
 import {formatRequestBoolean} from '../utils';
 import uuid from 'uuid';
 import {SRU_URL_BIB} from '../config';
-import {CHUNK_STATE} from '@natlibfi/melinda-record-import-commons';
 import ServiceError from '@natlibfi/melinda-commons';
 
 export default async () => {
@@ -80,7 +80,7 @@ export default async () => {
 		try {
 			const type = req.headers['content-type'];
 			const format = CONTENT_TYPES[type];
-			const QUEUEID = uuid.v1();
+			const qid = uuid.v1();
 
 			if (!format) {
 				throw new ServiceError(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
@@ -92,7 +92,7 @@ export default async () => {
 				format, unique, noop,
 				data: req.body,
 				cataloger: req.user,
-				QUEUEID
+				qid
 			});
 
 			if (!noop) {
@@ -109,7 +109,7 @@ export default async () => {
 		try {
 			const type = req.headers['content-type'];
 			const format = CONTENT_TYPES[type];
-			const QUEUEID = uuid.v1();
+			const qid = uuid.v1();
 
 			if (!format) {
 				throw new ServiceError(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
@@ -117,16 +117,13 @@ export default async () => {
 
 			const noop = formatRequestBoolean(req.query.noop);
 			const messages = await Service.update({
-				format, noop,
-				data: req.body,
 				id: req.params.id,
+				data: req.body,
+				format,
 				cataloger: req.user,
-				QUEUEID
+				noop,
+				qid
 			});
-
-			if (messages.status === CHUNK_STATE.ERROR) {
-				throw new ServiceError(HttpStatus.UNPROCESSABLE_ENTITY, messages.failedRecords);
-			}
 
 			res.type('application/json').json(messages);
 		} catch (err) {

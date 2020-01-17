@@ -40,133 +40,112 @@ https://www.cloudamqp.com/blog/2017-12-29-part1-rabbitmq-best-practice.html
 */
 
 // COMMON
-import {Utils} from '@natlibfi/melinda-commons';
-import {CHUNK_SIZE, IMPORT_QUEUES} from '@natlibfi/melinda-record-import-commons';
+import ServiceError, {Utils} from '@natlibfi/melinda-commons';
+import moment from 'moment';
 import {logError} from '../utils';
-import {pushToQueue} from './toQueueService';
-import {createQueueItem, addChunk, queryBulk} from './mongoService';
-import {Json, MARCXML, AlephSequential, ISO2709} from '@natlibfi/marc-record-serializers';
+import {mongoFactory} from '../interfaces';
+import {QUEUE_ITEM_STATE} from '@natlibfi/melinda-record-import-commons/dist/constants';
 
-const {createLogger, toAlephId} = Utils;
-const {BULK_CREATE, BULK_UPDATE} = IMPORT_QUEUES;
+const {createLogger} = Utils;
 
 export default async function () {
 	const logger = createLogger(); // eslint-disable-line no-unused-vars
+	const mongoOperator = await mongoFactory();
 
-	return {handleTransformation, doQuerry};
+	return {create, doQuerry, readContent, remove, removeContent};
 
-	async function handleTransformation(req, {type, operation, QUEUEID, cataloger}) {
+	async function create(req, {contentType, operation, id, cataloger}) {
 		try {
-			const records = [];
-			const promises = [];
-			const queue = (operation === 'create') ? BULK_CREATE : BULK_UPDATE;
-			let reader;
-			let chunkNumber = -1;
-
-			// Check if Queue blob already exists id + operation + cataloger
-			const dbData = await queryBulk({cataloger, id: QUEUEID, operation});
-			if (dbData.length > 0) {
-				chunkNumber = dbData[0].queuedChunks.length - 1;
-			} else {
-				createQueueItem({id: QUEUEID, cataloger, operation, queue});
-			}
-
-			// TODO: FIX initialize reader here
-			if (type === 'application/alephseq') {
-				reader = new AlephSequential.Reader(req);
-			}
-
-			if (type === 'application/json') {
-				reader = new Json.Reader(req);
-			}
-
-			if (type === 'application/xml') {
-				reader = new MARCXML.Reader(req);
-			}
-
-			if (type === 'application/marc') {
-				reader = new ISO2709.Reader(req);
-			}
-
-			await new Promise((res, rej) => {
-				reader.on('data', record => {
-					promises.push(transform(record));
-					async function transform(value) {
-						// TODO Validation
-						// TODO: operation update -> Check OWN auth
-						// Operation Create -> f001 new value
-						if (operation.toLowerCase() === 'create') {
-							// Field 001 value -> 000000000, 000000001, 000000002....
-							updateField001ToParamId(`${records.length + 1}`, value);
-						}
-
-						records.push(value.toObject());
-						if (records.length >= CHUNK_SIZE) {
-							chunkNumber++;
-							const chunk = records.splice(0, CHUNK_SIZE);
-							logger.log('debug', 'chunk pushed');
-							pushToQueue({queue, cataloger, QUEUEID, records: chunk, operation, chunkNumber});
-							await addChunk({id: QUEUEID, operation, cataloger, chunkNumber, numberOfRecords: chunk.length});
-						}
-					}
-				}).on('end', async () => {
-					logger.log('debug', `Readed ${promises.length} records from stream`);
-					await Promise.all(promises);
-					logger.log('info', 'Request handling done!');
-					if (records !== undefined && records.length > 0) {
-						chunkNumber++;
-						pushToQueue({queue, cataloger, QUEUEID, records, operation, chunkNumber});
-						addChunk({id: QUEUEID, operation, cataloger, chunkNumber, numberOfRecords: records.length});
-					}
-
-					res();
-				}).on('error', err => {
-					logError(err);
-					rej(err);
-				});
-			});
-		} catch (err) {
-			logError(err);
-			throw err;
+			await mongoOperator.create({id, cataloger, operation, contentType, stream: req});
+			console.log('Stream uploaded!');
+			return mongoOperator.setState({id, cataloger, operation, state: QUEUE_ITEM_STATE.PENDING_QUEUING});
+		} catch (error) {
+			logError(error);
 		}
+	}
+
+	async function readContent({cataloger, id}) {
+		if (id) {
+			return mongoOperator.readContent({cataloger, id});
+		}
+
+		throw new ServiceError(400);
+	}
+
+	async function remove({cataloger, id}) {
+		if (id) {
+			return mongoOperator.remove({cataloger, id});
+		}
+
+		throw new ServiceError(400);
+	}
+
+	async function removeContent({cataloger, id}) {
+		if (id) {
+			return mongoOperator.removeContent({cataloger, id});
+		}
+
+		throw new ServiceError(400);
 	}
 
 	async function doQuerry({cataloger, query}) {
 		// Query filters cataloger, id, operation, creationTime, modificationTime
-		const params = {
-			cataloger
-		};
-		if (query.id) {
-			params.id = query.id;
-		}
-
-		if (query.operation) {
-			params.operation = query.operation;
-		}
-
-		if (query.creationTime) {
-			params.creationTime = query.creationTime;
-		}
-
-		if (query.modificationTime) {
-			params.modificationTime = query.modificationTime;
-		}
+		const params = await generateQuery();
 
 		logger.log('debug', `Queue blobs querried: ${params}`);
-		return queryBulk(params);
-	}
 
-	function updateField001ToParamId(id, record) {
-		const fields = record.get(/^001$/);
-
-		if (fields.length === 0) {
-			// Return to break out of function
-			return record.insertField({tag: '001', value: toAlephId(id)});
+		if (params) {
+			return mongoOperator.query(params);
 		}
 
-		fields.map(field => {
-			field.value = toAlephId(id);
-			return field;
-		});
+		throw new ServiceError(400);
+
+		async function generateQuery() {
+			const doc = {};
+
+			if (cataloger) {
+				doc.cataloger = cataloger;
+			} else {
+				return false;
+			}
+
+			if (query.id) {
+				doc.id = query.id;
+			}
+
+			if (query.operation) {
+				doc.operation = query.operation;
+			}
+
+			if (query.creationTime) {
+				if (query.creationTime.length === 1) {
+					doc.creationTime = formatTime(query.creationTime[0]);
+				} else {
+					doc.$and = [
+						{creationTime: {$gte: formatTime(query.creationTime[0])}},
+						{creationTime: {$lte: formatTime(query.creationTime[1])}}
+					];
+				}
+			}
+
+			if (query.modificationTime) {
+				if (query.modificationTime.length === 1) {
+					doc.modificationTime = formatTime(query.modificationTime[0]);
+				} else {
+					doc.$and = [
+						{modificationTime: {$gte: formatTime(query.modificationTime[0])}},
+						{modificationTime: {$lte: formatTime(query.modificationTime[1])}}
+					];
+				}
+			}
+
+			return doc;
+		}
+
+		function formatTime(timestamp) {
+			// Ditch the timezone
+			const time = moment.utc(timestamp);
+			return time.toDate();
+		}
 	}
 }
