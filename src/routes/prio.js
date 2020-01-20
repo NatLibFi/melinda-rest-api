@@ -80,7 +80,7 @@ export default async () => {
 		try {
 			const type = req.headers['content-type'];
 			const format = CONTENT_TYPES[type];
-			const qid = uuid.v1();
+			const correlationId = uuid.v1();
 
 			if (!format) {
 				throw new ServiceError(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
@@ -92,7 +92,7 @@ export default async () => {
 				format, unique, noop,
 				data: req.body,
 				cataloger: req.user,
-				qid
+				correlationId
 			});
 
 			if (!noop) {
@@ -109,7 +109,7 @@ export default async () => {
 		try {
 			const type = req.headers['content-type'];
 			const format = CONTENT_TYPES[type];
-			const qid = uuid.v1();
+			const correlationId = uuid.v1();
 
 			if (!format) {
 				throw new ServiceError(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
@@ -122,7 +122,7 @@ export default async () => {
 				format,
 				cataloger: req.user,
 				noop,
-				qid
+				correlationId
 			});
 
 			res.type('application/json').json(messages);

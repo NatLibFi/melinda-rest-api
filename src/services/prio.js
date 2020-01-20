@@ -56,7 +56,7 @@ export default async function () {
 		}
 	}
 
-	async function create({data, format, cataloger, noop, unique, qid}) {
+	async function create({data, format, cataloger, noop, unique, correlationId}) {
 		try {
 			logger.log('debug', 'Sending a new record to queue');
 			const headers = {
@@ -67,11 +67,11 @@ export default async function () {
 				unique
 			};
 
-			pushToQueue({headers, qid, data});
+			pushToQueue({headers, correlationId, data});
 
 			const messages = {};
 			await new Promise((res, rej) => {
-				EMITTER.on(qid, reply => {
+				EMITTER.on(correlationId, reply => {
 					logger.log('debug', `Priority data: ${JSON.stringify(reply)}`);
 					messages.status = reply.status;
 
@@ -85,7 +85,7 @@ export default async function () {
 
 					res();
 				}).on('error', err => {
-					if (err.id === qid) {
+					if (err.id === correlationId) {
 						rej(err.error);
 					}
 				});
@@ -103,7 +103,7 @@ export default async function () {
 		}
 	}
 
-	async function update({id, data, format, cataloger, noop, qid}) {
+	async function update({id, data, format, cataloger, noop, correlationId}) {
 		// TODO: Move validation to validator
 		try {
 			logger.log('debug', `Sending updating task for record ${id} to queue`);
@@ -115,12 +115,12 @@ export default async function () {
 				noop
 			};
 
-			pushToQueue({headers, qid, data});
+			pushToQueue({headers, correlationId, data});
 
 			const messages = {};
-			logger.log('debug', `weiting response to id: ${qid}`);
+			logger.log('debug', `weiting response to id: ${correlationId}`);
 			await new Promise((res, rej) => {
-				EMITTER.on(qid, reply => {
+				EMITTER.on(correlationId, reply => {
 					logger.log('debug', `Priority data: ${JSON.stringify(reply)}`);
 					messages.id = reply.data;
 

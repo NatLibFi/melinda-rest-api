@@ -9,7 +9,7 @@ const {createLogger} = Utils;
 const {REQUESTS} = PRIO_IMPORT_QUEUES;
 const logger = createLogger(); // eslint-disable-line no-unused-vars
 
-export async function pushToQueue({headers, qid, data}) {
+export async function pushToQueue({headers, correlationId, data}) {
 	let connection;
 	let channel;
 
@@ -30,7 +30,7 @@ export async function pushToQueue({headers, qid, data}) {
 			{
 				persistent: true,
 				headers,
-				correlationId: qid
+				correlationId
 			}
 		);
 	} catch (err) {
