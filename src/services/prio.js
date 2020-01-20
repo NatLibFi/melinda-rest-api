@@ -31,7 +31,7 @@ import ServiceError, {Utils} from '@natlibfi/melinda-commons';
 import createSruClient from '@natlibfi/sru-client';
 import HttpStatus from 'http-status';
 import createConversionService, {ConversionError} from './conversion';
-import {pushToQueue} from './toQueue';
+import {pushToQueue} from '../interfaces/rabbit';
 import {SRU_URL_BIB} from '../config';
 import {EMITTER} from '../interfaces/reply';
 
