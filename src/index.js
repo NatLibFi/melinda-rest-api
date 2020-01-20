@@ -68,7 +68,7 @@ async function run() {
 	app.use(createExpressLogger());
 	app.use('/bulk', await createBulkRouter()); // Must be here to avoid bodyparser
 	app.use(bodyParser.text({limit: '5MB', type: '*/*'}));
-	app.use('/api', createApiDocRouter());
+	app.use('/apidoc', createApiDocRouter());
 	app.use('/', await createPrioRouter());
 	app.use(handleError);
 	app.use(passport.initialize());

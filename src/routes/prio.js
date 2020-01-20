@@ -88,15 +88,17 @@ export default async () => {
 
 			const unique = req.query.unique === undefined ? true : formatRequestBoolean(req.query.unique);
 			const noop = formatRequestBoolean(req.query.noop);
-			const {messages, id} = await Service.create({
-				format, unique, noop,
+			const messages = await Service.create({
+				format,
+				unique,
+				noop,
 				data: req.body,
 				cataloger: req.user,
 				correlationId
 			});
 
 			if (!noop) {
-				res.status(HttpStatus.CREATED).set('Record-ID', id);
+				res.status(HttpStatus.CREATED).set('Record-ID', messages.id);
 			}
 
 			res.type('application/json').send(messages);
@@ -124,7 +126,7 @@ export default async () => {
 				noop,
 				correlationId
 			});
-
+			res.status(HttpStatus.OK).set('Record-ID', messages.id);
 			res.type('application/json').json(messages);
 		} catch (err) {
 			next(err);

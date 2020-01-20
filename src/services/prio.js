@@ -31,7 +31,7 @@ import ServiceError, {Utils} from '@natlibfi/melinda-commons';
 import createSruClient from '@natlibfi/sru-client';
 import HttpStatus from 'http-status';
 import createConversionService, {ConversionError} from './conversion';
-import {pushToQueue} from '../interfaces/rabbit';
+import {pushToQueue} from '../interfaces/queue';
 import {SRU_URL_BIB} from '../config';
 import {EMITTER} from '../interfaces/reply';
 
@@ -69,21 +69,12 @@ export default async function () {
 
 			pushToQueue({headers, correlationId, data});
 
-			const messages = {};
-			await new Promise((res, rej) => {
+			const messages = await new Promise((res, rej) => {
+				// TODO: handle -> Reply can contain: id, validationResults, or error!
 				EMITTER.on(correlationId, reply => {
 					logger.log('debug', `Priority data: ${JSON.stringify(reply)}`);
-					messages.status = reply.status;
-
-					if (reply.metadata.ids) {
-						messages.id = reply.metadata.ids[0];
-					}
-
-					if (reply.metadata.failedRecords) {
-						rej(new ServiceError(HttpStatus.UNPROCESSABLE_ENTITY, reply.metadata.failedRecords));
-					}
-
-					res();
+					reply.data.status = 201;
+					res(reply.data);
 				}).on('error', err => {
 					if (err.id === correlationId) {
 						rej(err.error);
@@ -117,14 +108,12 @@ export default async function () {
 
 			pushToQueue({headers, correlationId, data});
 
-			const messages = {};
 			logger.log('debug', `weiting response to id: ${correlationId}`);
-			await new Promise((res, rej) => {
+			const messages = await new Promise((res, rej) => {
 				EMITTER.on(correlationId, reply => {
 					logger.log('debug', `Priority data: ${JSON.stringify(reply)}`);
-					messages.id = reply.data;
-
-					res();
+					reply.data.status = 200;
+					res(reply.data);
 				}).on('error', err => {
 					rej(err);
 				});

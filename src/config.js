@@ -33,7 +33,7 @@ const {readEnvironmentVariable} = Utils;
 export const HTTP_PORT = readEnvironmentVariable('HTTP_PORT', {defaultValue: '8080'});
 export const ENABLE_PROXY = readEnvironmentVariable('ENABLE_PROXY', '');
 
-export const AMQP_URL = JSON.parse(readEnvironmentVariable('AMQP_URL'));
+export const AMQP_URL = readEnvironmentVariable('AMQP_URL', {format: v => JSON.parse(v)});
 
 export const MONGO_URI = readEnvironmentVariable('MONGO_URI', {defaultValue: 'mongodb://localhost:27017/db'});
 

@@ -47,7 +47,7 @@ export default async () => {
 	return new Router()
 		.use(passport.authenticate('melinda', {session: false}))
 		.post('/:operation', create)
-		.get('/', doQuerry)
+		.get('/', doQuery)
 		.get('/:id', readContent)
 		.delete('/', remove)
 		.delete('/:id', removeContent)
@@ -89,7 +89,7 @@ export default async () => {
 		}
 	}
 
-	async function doQuerry(req, res, next) {
+	async function doQuery(req, res, next) {
 		try {
 			const response = await Service.doQuerry({cataloger: req.user.id, query: req.query});
 			res.json({request: req.query, result: response});
