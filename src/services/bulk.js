@@ -54,42 +54,42 @@ export default async function () {
 
 	return {create, doQuerry, readContent, remove, removeContent};
 
-	async function create(req, {contentType, operation, id, cataloger}) {
+	async function create(req, {contentType, operation, correlationId, cataloger}) {
 		try {
-			await mongoOperator.create({id, cataloger, operation, contentType, stream: req});
+			await mongoOperator.create({correlationId, cataloger, operation, contentType, stream: req});
 			console.log('Stream uploaded!');
-			return mongoOperator.setState({id, cataloger, operation, state: QUEUE_ITEM_STATE.PENDING_QUEUING});
+			return mongoOperator.setState({correlationId, cataloger, operation, state: QUEUE_ITEM_STATE.PENDING_QUEUING});
 		} catch (error) {
 			logError(error);
 		}
 	}
 
-	async function readContent({cataloger, id}) {
-		if (id) {
-			return mongoOperator.readContent({cataloger, id});
+	async function readContent({cataloger, correlationId}) {
+		if (correlationId) {
+			return mongoOperator.readContent({cataloger, correlationId});
 		}
 
 		throw new ServiceError(400);
 	}
 
-	async function remove({cataloger, id}) {
-		if (id) {
-			return mongoOperator.remove({cataloger, id});
+	async function remove({cataloger, correlationId}) {
+		if (correlationId) {
+			return mongoOperator.remove({cataloger, correlationId});
 		}
 
 		throw new ServiceError(400);
 	}
 
-	async function removeContent({cataloger, id}) {
-		if (id) {
-			return mongoOperator.removeContent({cataloger, id});
+	async function removeContent({cataloger, correlationId}) {
+		if (correlationId) {
+			return mongoOperator.removeContent({cataloger, correlationId});
 		}
 
 		throw new ServiceError(400);
 	}
 
 	async function doQuerry({cataloger, query}) {
-		// Query filters cataloger, id, operation, creationTime, modificationTime
+		// Query filters cataloger, correlationId, operation, creationTime, modificationTime
 		const params = await generateQuery();
 
 		logger.log('debug', `Queue blobs querried: ${params}`);
@@ -110,7 +110,7 @@ export default async function () {
 			}
 
 			if (query.id) {
-				doc.id = query.id;
+				doc.correlationId = query.id;
 			}
 
 			if (query.operation) {

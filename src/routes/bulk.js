@@ -65,7 +65,7 @@ export default async () => {
 			const params = {
 				contentType: req.headers['content-type'],
 				operation: req.params.operation,
-				id: req.query.id || uuid.v1(),
+				correlationId: req.query.id || uuid.v1(),
 				cataloger: req.user.id
 			};
 			logger.log('debug', 'Params done');
@@ -101,7 +101,7 @@ export default async () => {
 	/* Functions after this are here only to test purposes */
 	async function readContent(req, res, next) {
 		try {
-			const {contentType, readStream} = await Service.readContent({cataloger: req.user.id, id: req.params.id});
+			const {contentType, readStream} = await Service.readContent({cataloger: req.user.id, correlationId: req.params.id});
 			res.set('Content-Type', contentType);
 			readStream.pipe(res);
 		} catch (err) {
@@ -111,7 +111,7 @@ export default async () => {
 
 	async function remove(req, res, next) {
 		try {
-			const response = await Service.remove({cataloger: req.user.id, id: req.query.id});
+			const response = await Service.remove({cataloger: req.user.id, correlationId: req.query.id});
 			res.json({request: req.query, result: response});
 		} catch (err) {
 			next(err);
@@ -120,7 +120,7 @@ export default async () => {
 
 	async function removeContent(req, res, next) {
 		try {
-			await Service.removeContent({cataloger: req.user.id, id: req.params.id});
+			await Service.removeContent({cataloger: req.user.id, correlationId: req.params.id});
 			res.sendStatus(204);
 		} catch (err) {
 			next(err);

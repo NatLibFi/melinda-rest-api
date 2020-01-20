@@ -2,7 +2,7 @@
 
 /* QueueItem:
 	{
-		"id":"test",
+		"correlationId":"test",
 		"cataloger":"xxx0000",
 		"operation":"update",
 		"contentType":"application/json",
@@ -12,7 +12,7 @@
 	}
 */
 
-import {MongoClient, GridFSBucket, ObjectId} from 'mongodb';
+import {MongoClient, GridFSBucket} from 'mongodb';
 import moment from 'moment';
 import DatabaseError, {Utils} from '@natlibfi/melinda-commons';
 import {QUEUE_ITEM_STATE} from '@natlibfi/melinda-record-import-commons/dist/constants';
@@ -27,10 +27,10 @@ export default async function () {
 
 	return {create, setState, query, remove, readContent, removeContent};
 
-	async function create({id, cataloger, operation, contentType, stream}) {
+	async function create({correlationId, cataloger, operation, contentType, stream}) {
 		// Create QueueItem
 		const newQueueItem = {
-			id,
+			correlationId,
 			cataloger,
 			operation,
 			contentType,
@@ -50,13 +50,13 @@ export default async function () {
 		const gridFSBucket = new GridFSBucket(db, {bucketName: 'queueItems'});
 
 		return new Promise((resolve, reject) => {
-			const outputStream = gridFSBucket.openUploadStream(id);
+			const outputStream = gridFSBucket.openUploadStream(correlationId);
 
 			stream
 				.on('error', reject)
 				.on('data', chunk => outputStream.write(chunk))
 				.on('end', () => outputStream.end(undefined, undefined, () => {
-					resolve(id);
+					resolve(correlationId);
 				}));
 		});
 	}
@@ -64,7 +64,7 @@ export default async function () {
 	async function setState(params) {
 		await db.collection('queue-items').updateOne({
 			cataloger: params.cataloger,
-			id: params.id,
+			correlationId: params.correlationId,
 			operation: params.operation
 		}, {$set: {
 			queueItemState: params.state,
@@ -72,7 +72,7 @@ export default async function () {
 		}});
 		return db.collection('queue-items').findOne({
 			cataloger: params.cataloger,
-			id: params.id,
+			correlationId: params.correlationId,
 			operation: params.operation
 		}, {projection: {_id: 0}});
 	}
@@ -87,7 +87,7 @@ export default async function () {
 		const gridFSBucket = new GridFSBucket(db, {bucketName: 'queueItems'});
 
 		try {
-			await getFileMetadata({gridFSBucket, filename: params.id});
+			await getFileMetadata({gridFSBucket, filename: params.correlationId});
 			throw new DatabaseError(400);
 		} catch (err) {
 			if (!(err instanceof DatabaseError && err.status === 404)) {
@@ -105,11 +105,11 @@ export default async function () {
 
 		if (result) {
 			const gridFSBucket = new GridFSBucket(db, {bucketName: 'queueItems'});
-			await getFileMetadata({gridFSBucket, filename: params.id});
+			await getFileMetadata({gridFSBucket, filename: params.correlationId});
 			console.log(result);
 			return {
 				contentType: result.contentType,
-				readStream: gridFSBucket.openDownloadStreamByName(params.id)
+				readStream: gridFSBucket.openDownloadStreamByName(params.correlationId)
 			};
 		}
 
@@ -120,7 +120,7 @@ export default async function () {
 		const result = await db.collection('queue-items').findOne(params);
 		if (result) {
 			const gridFSBucket = new GridFSBucket(db, {bucketName: 'queueItems'});
-			const {_id: fileId} = await getFileMetadata({gridFSBucket, filename: params.id});
+			const {_id: fileId} = await getFileMetadata({gridFSBucket, filename: params.correlationId});
 			console.log(fileId);
 			await gridFSBucket.delete(fileId);
 			return true;
@@ -135,49 +135,4 @@ export default async function () {
 				.on('end', () => reject(new DatabaseError(404)));
 		});
 	}
-
-	/* To validator
-	async function addChunk({id, operation, cataloger, chunkNumber, numberOfRecords}) {
-		const updateInfo = {
-			modificationTime: moment(),
-			$push: {
-				queuedChunks: {
-					chunkNumber: chunkNumber,
-					numberOfRecords: numberOfRecords
-				}
-			}
-		};
-
-		// Updates Queue blob where id, operation and cataloger match
-		const {nModified} = await Mongoose.models.QueueItemModel.updateOne({id, operation, cataloger}, updateInfo);
-
-		if (nModified === 0) {
-			throw new DatabaseError(409);
-		}
-	}
-
-	async function updateChunk({id, chunkNumber, operation, cataloger, content}) {
-		const data = await Mongoose.models.QueueItemModel.findOne({id, operation, cataloger}).exec();
-		const chunkIndex = data.queuedChunks.findIndex(checkChunkNumber);
-		const marker = `queuedChunks.${chunkIndex}`;
-
-		data.queuedChunks[chunkIndex].chunkState = content.status;
-		if (content.status !== CHUNK_STATE.ERROR || content.metadata.failedRecords) {
-			// Pick failed records from content
-			data.queuedChunks[chunkIndex].failedRecords = content.metadata.failedRecords;
-		}
-
-		const update = {
-			modificationTime: moment(),
-			$set: {}
-		};
-		update.$set[marker] = data.queuedChunks[chunkIndex];
-		const {nModified} = await Mongoose.models.QueueItemModel.updateOne({id, operation, cataloger}, update);
-		logger.log('info', `${nModified} chunk/s received confirmation`);
-
-		function checkChunkNumber(chunk) {
-			return chunk.chunkNumber === chunkNumber;
-		}
-	}
-	*/
 }
