@@ -52,7 +52,7 @@ export default async function () {
 	const logger = createLogger(); // eslint-disable-line no-unused-vars
 	const mongoOperator = await mongoFactory();
 
-	return {create, doQuerry, readContent, remove, removeContent};
+	return {create, doQuery, readContent, remove, removeContent};
 
 	async function create(req, {correlationId, cataloger, operation, contentType}) {
 		try {
@@ -88,7 +88,7 @@ export default async function () {
 		throw new ServiceError(400);
 	}
 
-	async function doQuerry({cataloger, query}) {
+	async function doQuery({cataloger, query}) {
 		// Query filters cataloger, correlationId, operation, creationTime, modificationTime
 		const params = await generateQuery();
 

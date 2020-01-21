@@ -93,7 +93,7 @@ export default async () => {
 
 	async function doQuery(req, res, next) {
 		try {
-			const response = await Service.doQuerry({cataloger: req.user.id, query: req.query});
+			const response = await Service.doQuery({cataloger: req.user.id, query: req.query});
 			res.json({request: req.query, result: response});
 		} catch (err) {
 			next(err);
