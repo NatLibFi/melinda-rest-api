@@ -27,13 +27,14 @@ export default async function () {
 
 	return {create, setState, query, remove, readContent, removeContent};
 
-	async function create({correlationId, cataloger, operation, contentType, stream}) {
+	async function create({correlationId, cataloger, operation, contentType, recordLoadQueryParams, stream}) {
 		// Create QueueItem
 		const newQueueItem = {
 			correlationId,
 			cataloger,
 			operation,
 			contentType,
+			recordLoadQueryParams,
 			queueItemState: QUEUE_ITEM_STATE.UPLOADING,
 			creationTime: moment().toDate(),
 			modificationTime: moment().toDate()
