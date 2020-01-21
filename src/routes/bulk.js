@@ -62,23 +62,12 @@ export default async () => {
 	async function create(req, res, next) {
 		try {
 			logger.log('debug', 'Bulk job');
-			const recordLoadQueryParams = {
-				fixRoutine: req.query.fixRoutine || null,
-				indexing: req.query.fixRoutine || null,
-				updateAction: req.query.fixRoutine || null,
-				mode: req.query.fixRoutine || null,
-				charConversion: req.query.fixRoutine || null,
-				mergeRoutine: req.query.fixRoutine || null,
-				catalogerLevel: req.query.fixRoutine || null,
-				indexingPriority: req.query.fixRoutine || null
-			};
 
 			const params = {
 				correlationId: req.query.id || uuid.v1(),
 				cataloger: req.user.id,
 				operation: req.params.operation,
-				contentType: req.headers['content-type'],
-				recordLoadQueryParams
+				contentType: req.headers['content-type']
 			};
 
 			logger.log('debug', 'Params done');

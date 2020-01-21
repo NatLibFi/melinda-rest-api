@@ -54,9 +54,9 @@ export default async function () {
 
 	return {create, doQuerry, readContent, remove, removeContent};
 
-	async function create(req, {correlationId, cataloger, operation, contentType, recordLoadQueryParams}) {
+	async function create(req, {correlationId, cataloger, operation, contentType}) {
 		try {
-			await mongoOperator.create({correlationId, cataloger, operation, contentType, recordLoadQueryParams, stream: req});
+			await mongoOperator.create({correlationId, cataloger, operation, contentType, stream: req});
 			console.log('Stream uploaded!');
 			return mongoOperator.setState({correlationId, cataloger, operation, state: QUEUE_ITEM_STATE.PENDING_QUEUING});
 		} catch (error) {
