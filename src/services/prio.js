@@ -26,21 +26,27 @@
 *
 */
 
-import ServiceError, {Utils} from '@natlibfi/melinda-commons';
-import {MARCXML} from '@natlibfi/marc-record-serializers';
-import {conversion} from '@natlibfi/melinda-rest-api-commons';
-import createSruClient from '@natlibfi/sru-client';
+import {EventEmitter} from 'events';
 import HttpStatus from 'http-status';
-import {SRU_URL_BIB} from '../config';
-import {pushToQueue} from '../interfaces/queue';
-import {EMITTER} from '../interfaces/reply';
+import {promisify} from 'util';
+import ServiceError, {Utils} from '@natlibfi/melinda-commons';
+import {PRIO_IMPORT_QUEUES, amqpFactory, conversion} from '@natlibfi/melinda-rest-api-commons';
+import {MARCXML} from '@natlibfi/marc-record-serializers';
+import createSruClient from '@natlibfi/sru-client';
+import {SRU_URL_BIB, POLL_WAIT_TIME} from '../config';
 
+class ReplyEmitter extends EventEmitter {}
+
+const setTimeoutPromise = promisify(setTimeout);
+const {REPLY} = PRIO_IMPORT_QUEUES;
 const {createLogger} = Utils;
 
 export default async function () {
+	const replyEmitter = new ReplyEmitter();
 	const logger = createLogger();
-	const conversionService = conversion();
+	const amqpOperator = await amqpFactory();
 	const sruClient = createSruClient({serverUrl: SRU_URL_BIB, version: '2.0', maximumRecords: '1'});
+	check();
 
 	return {read, create, update};
 
@@ -50,7 +56,7 @@ export default async function () {
 			const record = await getRecord(id);
 
 			logger.log('debug', `Serializing record ${id}`);
-			return conversionService.serialize(record, format);
+			return conversion.serialize(record, format);
 		} catch (err) {
 			throw err;
 		}
@@ -67,14 +73,20 @@ export default async function () {
 				unique
 			};
 
-			pushToQueue({headers, correlationId, data});
+			// {queue, correlationId, headers, data}
+			await amqpOperator.sendToQueue({queue: 'REQUESTS', correlationId, headers, data});
 
 			const messages = await new Promise((res, rej) => {
 				// TODO: handle -> Reply can contain: id, validationResults, or error!
-				EMITTER.on(correlationId, reply => {
-					logger.log('debug', `Priority data: ${JSON.stringify(reply)}`);
-					reply.data.status = 201;
-					res(reply.data);
+				replyEmitter.on(correlationId, reply => {
+					const content = JSON.parse(reply.content.toString());
+					logger.log('debug', `Priority data: ${JSON.stringify(content.data)}`);
+
+					// Ack message
+					amqpOperator.ackMessages({queue: REPLY, datas: [reply]});
+
+					// Reply to http
+					res(content.data);
 				}).on('error', err => {
 					if (err.id === correlationId) {
 						rej(err.error);
@@ -106,14 +118,19 @@ export default async function () {
 				noop
 			};
 
-			pushToQueue({headers, correlationId, data});
+			// {queue, correlationId, headers, data}
+			await amqpOperator.sendToQueue({queue: 'REQUESTS', correlationId, headers, data});
 
 			logger.log('debug', `weiting response to id: ${correlationId}`);
 			const messages = await new Promise((res, rej) => {
-				EMITTER.on(correlationId, reply => {
-					logger.log('debug', `Priority data: ${JSON.stringify(reply)}`);
-					reply.data.status = 200;
-					res(reply.data);
+				replyEmitter.on(correlationId, reply => {
+					const content = JSON.parse(reply.content.toString());
+					logger.log('debug', `Priority data: ${JSON.stringify(content.data)}`);
+
+					// Ack message
+					amqpOperator.ackMessages({queue: REPLY, datas: [reply]});
+
+					res(content.data);
 				}).on('error', err => {
 					rej(err);
 				});
@@ -143,5 +160,19 @@ export default async function () {
 		});
 
 		return record;
+	}
+
+	async function check() {
+		// Check queue
+		const result = await amqpOperator.checkQueue(REPLY, 'raw', false);
+		if (result) {
+			// Work with results
+			replyEmitter.emit(result.properties.correlationId, result);
+		} else {
+			// Nothing in queue
+			await setTimeoutPromise(POLL_WAIT_TIME);
+		}
+
+		check();
 	}
 }

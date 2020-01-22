@@ -33,7 +33,6 @@ import bodyParser from 'body-parser';
 import passport from 'passport';
 import {MarcRecord} from '@natlibfi/marc-record';
 import ServiceError, {Authentication, Utils} from '@natlibfi/melinda-commons';
-import replyQueueFactory from './interfaces/reply';
 import {createPrioRouter, createBulkRouter, createApiDocRouter} from './routes';
 
 import {
@@ -74,8 +73,6 @@ async function run() {
 	app.use(passport.initialize());
 
 	app.listen(HTTP_PORT, () => logger.log('info', 'Started Melinda REST API'));
-	const replyQueueOperator = await replyQueueFactory();
-	replyQueueOperator.checkQueue(true, false);
 
 	function handleError(err, req, res, next) {
 		if (res.headersSent) {

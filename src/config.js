@@ -33,10 +33,6 @@ const {readEnvironmentVariable} = Utils;
 export const HTTP_PORT = readEnvironmentVariable('HTTP_PORT', {defaultValue: '8080'});
 export const ENABLE_PROXY = readEnvironmentVariable('ENABLE_PROXY', '');
 
-export const AMQP_URL = readEnvironmentVariable('AMQP_URL', {format: v => JSON.parse(v)});
-
-export const MONGO_URI = readEnvironmentVariable('MONGO_URI', {defaultValue: 'mongodb://localhost:27017/db'});
-
 export const ALEPH_X_SVC_URL = readEnvironmentVariable('ALEPH_X_SVC_URL');
 export const ALEPH_USER_LIBRARY = readEnvironmentVariable('ALEPH_USER_LIBRARY');
 
@@ -46,3 +42,5 @@ export const OWN_AUTHZ_URL = readEnvironmentVariable('OWN_AUTHZ_URL');
 export const OWN_AUTHZ_API_KEY = readEnvironmentVariable('OWN_AUTHZ_API_KEY');
 
 export const SRU_URL_BIB = readEnvironmentVariable('SRU_URL_BIB');
+
+export const POLL_WAIT_TIME = readEnvironmentVariable('POLL_WAIT_TIME', {defaultValue: 1000});
