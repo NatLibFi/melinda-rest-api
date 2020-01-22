@@ -26,20 +26,20 @@
 *
 */
 
-import {MARCXML} from '@natlibfi/marc-record-serializers';
 import ServiceError, {Utils} from '@natlibfi/melinda-commons';
+import {MARCXML} from '@natlibfi/marc-record-serializers';
+import {conversion} from '@natlibfi/melinda-rest-api-commons';
 import createSruClient from '@natlibfi/sru-client';
 import HttpStatus from 'http-status';
-import createConversionService, {ConversionError} from './conversion';
-import {pushToQueue} from '../interfaces/queue';
 import {SRU_URL_BIB} from '../config';
+import {pushToQueue} from '../interfaces/queue';
 import {EMITTER} from '../interfaces/reply';
 
 const {createLogger} = Utils;
 
 export default async function () {
 	const logger = createLogger();
-	const ConversionService = createConversionService();
+	const conversionService = conversion();
 	const sruClient = createSruClient({serverUrl: SRU_URL_BIB, version: '2.0', maximumRecords: '1'});
 
 	return {read, create, update};
@@ -50,7 +50,7 @@ export default async function () {
 			const record = await getRecord(id);
 
 			logger.log('debug', `Serializing record ${id}`);
-			return ConversionService.serialize(record, format);
+			return conversionService.serialize(record, format);
 		} catch (err) {
 			throw err;
 		}
@@ -84,7 +84,7 @@ export default async function () {
 
 			return messages;
 		} catch (err) {
-			if (err instanceof ConversionError) {
+			if (err.status === 400) {
 				throw new ServiceError(HttpStatus.BAD_REQUEST);
 			} else if (err.status === 403) {
 				throw new ServiceError(HttpStatus.FORBIDDEN);
@@ -121,7 +121,7 @@ export default async function () {
 
 			return messages;
 		} catch (err) {
-			if (err instanceof ConversionError) {
+			if (err.status === 400) {
 				throw new ServiceError(HttpStatus.BAD_REQUEST);
 			} else if (err.status === 403) {
 				throw new ServiceError(HttpStatus.FORBIDDEN);

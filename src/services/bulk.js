@@ -28,23 +28,10 @@
 *
 */
 
-/*
-Queues are single-threaded in RabbitMQ, and one queue can handle up to about 50 thousand messages.
-You will achieve better throughput on a multi-core system if you have multiple queues
-and consumers and if you have as many queues as cores on the underlying node(s).
-
-The RabbitMQ management interface collects and calculates metrics for every queue in the cluster.
-This might slow down the server if you have thousands upon thousands of active queues and consumers.
-The CPU and RAM usage may also be affected negatively if you have too many queues.
-https://www.cloudamqp.com/blog/2017-12-29-part1-rabbitmq-best-practice.html
-*/
-
-// COMMON
 import ServiceError, {Utils} from '@natlibfi/melinda-commons';
 import moment from 'moment';
 import {logError} from '../utils';
-import {mongoFactory} from '../interfaces';
-import {QUEUE_ITEM_STATE} from '@natlibfi/melinda-record-import-commons/dist/constants';
+import {mongoFactory, QUEUE_ITEM_STATE} from '@natlibfi/melinda-rest-api-commons';
 
 const {createLogger} = Utils;
 
@@ -57,7 +44,7 @@ export default async function () {
 	async function create(req, {correlationId, cataloger, operation, contentType}) {
 		try {
 			await mongoOperator.create({correlationId, cataloger, operation, contentType, stream: req});
-			console.log('Stream uploaded!');
+			logger.log('debug', 'Stream uploaded!');
 			return mongoOperator.setState({correlationId, cataloger, operation, state: QUEUE_ITEM_STATE.PENDING_QUEUING});
 		} catch (error) {
 			logError(error);
