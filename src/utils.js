@@ -40,11 +40,3 @@ export function formatRequestBoolean(value) {
 
 	return Boolean(Number(value));
 }
-
-export function logError(err) {
-	if (err === 'SIGINT') {
-		logger.log('error', err);
-	} else {
-		logger.log('error', 'stack' in err ? err.stack : err);
-	}
-}

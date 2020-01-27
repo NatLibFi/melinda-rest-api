@@ -28,13 +28,13 @@
 *
 */
 
-import ServiceError, {Utils} from '@natlibfi/melinda-commons';
 import {Router} from 'express';
-import passport from 'passport';
 import HttpStatus from 'http-status';
-import uuid from 'uuid';
-import createService from '../services/bulk';
-import {OPERATIONS} from '@natlibfi/melinda-record-import-commons';
+import passport from 'passport';
+import {v4 as uuid} from 'uuid';
+import ApiError, {Utils} from '@natlibfi/melinda-commons';
+import {OPERATIONS} from '@natlibfi/melinda-rest-api-commons';
+import createService from '../interfaces/bulk';
 
 const {createLogger} = Utils;
 const logger = createLogger(); // eslint-disable-line no-unused-vars
@@ -52,7 +52,7 @@ export default async () => {
 		.delete('/', remove)
 		.delete('/:id', removeContent)
 		.use((err, req, res, next) => {
-			if (err instanceof ServiceError) {
+			if (err instanceof ApiError) {
 				res.status(err.status).send(err.payload);
 			} else {
 				next(err);
@@ -64,23 +64,21 @@ export default async () => {
 			logger.log('debug', 'Bulk job');
 
 			const params = {
-				correlationId: req.query.id || uuid.v1(),
+				correlationId: req.query.id || uuid(),
 				cataloger: req.user.id,
-				operation: req.params.operation,
+				operation: req.params.operation.toUpperCase(),
 				contentType: req.headers['content-type']
 			};
 
 			logger.log('debug', 'Params done');
-
 			if (params.operation === undefined || !OPERATIONS.includes(params.operation)) {
 				logger.log('debug', 'Invalid operation');
-				throw new ServiceError(HttpStatus.BAD_REQUEST, 'Invalid operation');
+				throw new ApiError(HttpStatus.BAD_REQUEST, 'Invalid operation');
 			}
 
-			// Custom content-types? or just: application/text, application/json, application/marc & application/xml
 			if (params.contentType === undefined || !CONTENT_TYPES.includes(params.contentType)) {
 				logger.log('debug', 'Invalid content type');
-				throw new ServiceError(HttpStatus.BAD_REQUEST, 'Invalid content-type');
+				throw new ApiError(HttpStatus.BAD_REQUEST, 'Invalid content-type');
 			}
 
 			const response = await Service.create(req, params);

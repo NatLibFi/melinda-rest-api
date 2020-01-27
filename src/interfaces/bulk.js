@@ -28,16 +28,16 @@
 *
 */
 
-import ServiceError, {Utils} from '@natlibfi/melinda-commons';
 import moment from 'moment';
-import {logError} from '../utils';
-import {mongoFactory, QUEUE_ITEM_STATE} from '@natlibfi/melinda-rest-api-commons';
+import ApiError, {Utils} from '@natlibfi/melinda-commons';
+import {mongoFactory, logError, QUEUE_ITEM_STATE} from '@natlibfi/melinda-rest-api-commons';
+import {MONGO_URI} from '../config';
 
 const {createLogger} = Utils;
 
 export default async function () {
 	const logger = createLogger(); // eslint-disable-line no-unused-vars
-	const mongoOperator = await mongoFactory();
+	const mongoOperator = await mongoFactory(MONGO_URI);
 
 	return {create, doQuery, readContent, remove, removeContent};
 
@@ -56,7 +56,7 @@ export default async function () {
 			return mongoOperator.readContent({cataloger, correlationId});
 		}
 
-		throw new ServiceError(400);
+		throw new ApiError(400);
 	}
 
 	async function remove({cataloger, correlationId}) {
@@ -64,7 +64,7 @@ export default async function () {
 			return mongoOperator.remove({cataloger, correlationId});
 		}
 
-		throw new ServiceError(400);
+		throw new ApiError(400);
 	}
 
 	async function removeContent({cataloger, correlationId}) {
@@ -72,7 +72,7 @@ export default async function () {
 			return mongoOperator.removeContent({cataloger, correlationId});
 		}
 
-		throw new ServiceError(400);
+		throw new ApiError(400);
 	}
 
 	async function doQuery({cataloger, query}) {
@@ -85,7 +85,7 @@ export default async function () {
 			return mongoOperator.query(params);
 		}
 
-		throw new ServiceError(400);
+		throw new ApiError(400);
 
 		async function generateQuery() {
 			const doc = {};

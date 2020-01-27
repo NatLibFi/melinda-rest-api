@@ -43,4 +43,11 @@ export const OWN_AUTHZ_API_KEY = readEnvironmentVariable('OWN_AUTHZ_API_KEY');
 
 export const SRU_URL_BIB = readEnvironmentVariable('SRU_URL_BIB');
 
-export const POLL_WAIT_TIME = readEnvironmentVariable('POLL_WAIT_TIME', {defaultValue: 1000});
+// Amqp variables to priority
+export const AMQP_URL = readEnvironmentVariable('AMQP_URL', {format: v => JSON.parse(v)});
+
+// Mongo variables to bulk
+export const MONGO_URI = readEnvironmentVariable('MONGO_URI', {defaultValue: 'mongodb://localhost:27017/db'});
+
+export const POLL_WAIT_TIME = readEnvironmentVariable('POLL_WAIT_TIME', {defaultValue: 100});
+export const [OFFLINE_BEGIN, OFFLINE_DURATION] = readEnvironmentVariable('OFFLINE_PERIOD', {defaultValue: '0,0', format: v => v.split(',')});

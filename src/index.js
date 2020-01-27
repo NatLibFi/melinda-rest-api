@@ -40,7 +40,7 @@ import {
 	ALEPH_X_SVC_URL, ALEPH_USER_LIBRARY,
 	OWN_AUTHZ_URL, OWN_AUTHZ_API_KEY
 } from './config';
-import {logError} from './utils';
+import {logError} from '@natlibfi/melinda-rest-api-commons';
 
 const {createLogger, createExpressLogger, handleInterrupt} = Utils;
 
@@ -65,12 +65,12 @@ async function run() {
 	}));
 
 	app.use(createExpressLogger());
+	app.use(passport.initialize());
 	app.use('/bulk', await createBulkRouter()); // Must be here to avoid bodyparser
 	app.use(bodyParser.text({limit: '5MB', type: '*/*'}));
 	app.use('/apidoc', createApiDocRouter());
 	app.use('/', await createPrioRouter());
 	app.use(handleError);
-	app.use(passport.initialize());
 
 	app.listen(HTTP_PORT, () => logger.log('info', 'Started Melinda REST API'));
 
@@ -80,12 +80,11 @@ async function run() {
 		}
 
 		logError(err);
-		console.log(err);
 		if (err instanceof ServiceError) {
-			console.log('responding service');
+			logger.log('debug', 'Responding service');
 			res.status(err.status).send(err.payload).end();
 		} else {
-			console.log('responding internal');
+			logger.log('debug', 'Responding internal');
 			res.sendStatus(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}

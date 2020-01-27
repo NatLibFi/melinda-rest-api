@@ -29,18 +29,18 @@
 import {Router} from 'express';
 import passport from 'passport';
 import HttpStatus from 'http-status';
-import createService from '../services/prio';
-import {FORMATS} from '../services/conversion';
+import {v4 as uuid} from 'uuid';
+import ApiError from '@natlibfi/melinda-commons';
+import {conversionFormats, checkIfOfflineHours} from '@natlibfi/melinda-rest-api-commons';
+import {SRU_URL_BIB, OFFLINE_BEGIN, OFFLINE_DURATION} from '../config';
+import createService from '../interfaces/prio';
 import {formatRequestBoolean} from '../utils';
-import uuid from 'uuid';
-import {SRU_URL_BIB} from '../config';
-import ServiceError from '@natlibfi/melinda-commons';
 
 export default async () => {
 	const CONTENT_TYPES = {
-		'application/json': FORMATS.JSON,
-		'application/marc': FORMATS.ISO2709,
-		'application/xml': FORMATS.MARCXML
+		'application/json': conversionFormats.JSON,
+		'application/marc': conversionFormats.ISO2709,
+		'application/xml': conversionFormats.MARCXML
 	};
 
 	const Service = await createService({
@@ -49,11 +49,12 @@ export default async () => {
 
 	return new Router()
 		.use(passport.authenticate('melinda', {session: false}))
+		.use(checkOfflineHours)
 		.post('/', createResource)
 		.get('/:id', readResource)
 		.post('/:id', updateResource)
 		.use((err, req, res, next) => {
-			if (err instanceof ServiceError) {
+			if (err instanceof ApiError) {
 				res.status(err.status).send(err.payload);
 			} else {
 				next(err);
@@ -69,7 +70,7 @@ export default async () => {
 				const record = await Service.read({id: req.params.id, format});
 				res.type(type).status(HttpStatus.OK).send(record);
 			} else {
-				throw new ServiceError(HttpStatus.NOT_ACCEPTABLE);
+				throw new ApiError(HttpStatus.NOT_ACCEPTABLE);
 			}
 		} catch (err) {
 			next(err);
@@ -80,10 +81,10 @@ export default async () => {
 		try {
 			const type = req.headers['content-type'];
 			const format = CONTENT_TYPES[type];
-			const correlationId = uuid.v1();
+			const correlationId = uuid();
 
 			if (!format) {
-				throw new ServiceError(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+				throw new ApiError(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
 			}
 
 			const unique = req.query.unique === undefined ? true : formatRequestBoolean(req.query.unique);
@@ -111,10 +112,10 @@ export default async () => {
 		try {
 			const type = req.headers['content-type'];
 			const format = CONTENT_TYPES[type];
-			const correlationId = uuid.v1();
+			const correlationId = uuid();
 
 			if (!format) {
-				throw new ServiceError(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+				throw new ApiError(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
 			}
 
 			const noop = formatRequestBoolean(req.query.noop);
@@ -131,5 +132,13 @@ export default async () => {
 		} catch (err) {
 			next(err);
 		}
+	}
+
+	function checkOfflineHours(req, res, next) {
+		if (checkIfOfflineHours(OFFLINE_BEGIN, OFFLINE_DURATION)) {
+			throw new ApiError(HttpStatus.SERVICE_UNAVAILABLE, `${HttpStatus['503_MESSAGE']} Offline hours begin at ${OFFLINE_BEGIN} and will last next ${OFFLINE_DURATION} hours.`);
+		}
+
+		next();
 	}
 };

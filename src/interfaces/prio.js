@@ -26,27 +26,21 @@
 *
 */
 
-import {EventEmitter} from 'events';
 import HttpStatus from 'http-status';
 import {promisify} from 'util';
-import ServiceError, {Utils} from '@natlibfi/melinda-commons';
-import {PRIO_IMPORT_QUEUES, amqpFactory, conversion} from '@natlibfi/melinda-rest-api-commons';
+import ApiError, {Utils} from '@natlibfi/melinda-commons';
+import {amqpFactory, conversion} from '@natlibfi/melinda-rest-api-commons';
 import {MARCXML} from '@natlibfi/marc-record-serializers';
 import createSruClient from '@natlibfi/sru-client';
-import {SRU_URL_BIB, POLL_WAIT_TIME} from '../config';
-
-class ReplyEmitter extends EventEmitter {}
+import {SRU_URL_BIB, AMQP_URL, POLL_WAIT_TIME} from '../config';
 
 const setTimeoutPromise = promisify(setTimeout);
-const {REPLY} = PRIO_IMPORT_QUEUES;
 const {createLogger} = Utils;
 
 export default async function () {
-	const replyEmitter = new ReplyEmitter();
 	const logger = createLogger();
-	const amqpOperator = await amqpFactory();
+	const amqpOperator = await amqpFactory(AMQP_URL);
 	const sruClient = createSruClient({serverUrl: SRU_URL_BIB, version: '2.0', maximumRecords: '1'});
-	check();
 
 	return {read, create, update};
 
@@ -66,7 +60,7 @@ export default async function () {
 		try {
 			logger.log('debug', 'Sending a new record to queue');
 			const headers = {
-				operation: 'create',
+				operation: 'CREATE',
 				format,
 				cataloger,
 				noop,
@@ -76,30 +70,28 @@ export default async function () {
 			// {queue, correlationId, headers, data}
 			await amqpOperator.sendToQueue({queue: 'REQUESTS', correlationId, headers, data});
 
-			const messages = await new Promise((res, rej) => {
-				// TODO: handle -> Reply can contain: id, validationResults, or error!
-				replyEmitter.on(correlationId, reply => {
-					const content = JSON.parse(reply.content.toString());
-					logger.log('debug', `Priority data: ${JSON.stringify(content.data)}`);
+			logger.log('debug', `Waiting response to id: ${correlationId}`);
+			const response = await check(correlationId);
+			const responseData = response.content.data;
 
-					// Ack message
-					amqpOperator.ackMessages({queue: REPLY, datas: [reply]});
+			logger.log('debug', `Got response to id: ${correlationId}`);
+			logger.log('debug', `Priority data: ${JSON.stringify(responseData)}`);
 
-					// Reply to http
-					res(content.data);
-				}).on('error', err => {
-					if (err.id === correlationId) {
-						rej(err.error);
-					}
-				});
-			});
+			// Ack message
+			amqpOperator.ackMessages([response]);
+			amqpOperator.removeQueue(correlationId);
 
-			return messages;
+			if (responseData.status !== 'CREATED') {
+				throw new ApiError(responseData.status, response.payload || '');
+			}
+
+			// Reply to http
+			return responseData;
 		} catch (err) {
 			if (err.status === 400) {
-				throw new ServiceError(HttpStatus.BAD_REQUEST);
+				throw new ApiError(HttpStatus.BAD_REQUEST);
 			} else if (err.status === 403) {
-				throw new ServiceError(HttpStatus.FORBIDDEN);
+				throw new ApiError(HttpStatus.FORBIDDEN);
 			}
 
 			throw err;
@@ -107,11 +99,10 @@ export default async function () {
 	}
 
 	async function update({id, data, format, cataloger, noop, correlationId}) {
-		// TODO: Move validation to validator
 		try {
 			logger.log('debug', `Sending updating task for record ${id} to queue`);
 			const headers = {
-				operation: 'update',
+				operation: 'UPDATE',
 				id,
 				format,
 				cataloger,
@@ -121,27 +112,27 @@ export default async function () {
 			// {queue, correlationId, headers, data}
 			await amqpOperator.sendToQueue({queue: 'REQUESTS', correlationId, headers, data});
 
-			logger.log('debug', `weiting response to id: ${correlationId}`);
-			const messages = await new Promise((res, rej) => {
-				replyEmitter.on(correlationId, reply => {
-					const content = JSON.parse(reply.content.toString());
-					logger.log('debug', `Priority data: ${JSON.stringify(content.data)}`);
+			logger.log('debug', `Waiting response to id: ${correlationId}`);
+			const response = await check(correlationId);
+			const responseData = response.content.data;
+			logger.log('debug', `Got response to id: ${correlationId}`);
+			logger.log('debug', `Response data: ${JSON.stringify(responseData)}`);
 
-					// Ack message
-					amqpOperator.ackMessages({queue: REPLY, datas: [reply]});
+			// Ack message
+			await amqpOperator.ackMessages([response]);
+			await amqpOperator.removeQueue(correlationId);
 
-					res(content.data);
-				}).on('error', err => {
-					rej(err);
-				});
-			});
+			if (responseData.status !== 'UPDATED') {
+				throw new ApiError(responseData.status, response.payload || '');
+			}
 
-			return messages;
+			// Reply to http
+			return responseData;
 		} catch (err) {
 			if (err.status === 400) {
-				throw new ServiceError(HttpStatus.BAD_REQUEST);
+				throw new ApiError(HttpStatus.BAD_REQUEST);
 			} else if (err.status === 403) {
-				throw new ServiceError(HttpStatus.FORBIDDEN);
+				throw new ApiError(HttpStatus.FORBIDDEN);
 			}
 
 			throw err;
@@ -162,17 +153,18 @@ export default async function () {
 		return record;
 	}
 
-	async function check() {
+	async function check(queue) {
 		// Check queue
-		const result = await amqpOperator.checkQueue(REPLY, 'raw', false);
+		const result = await amqpOperator.checkQueue(queue, 'raw', false);
+
 		if (result) {
 			// Work with results
-			replyEmitter.emit(result.properties.correlationId, result);
-		} else {
-			// Nothing in queue
-			await setTimeoutPromise(POLL_WAIT_TIME);
+			result.content = JSON.parse(result.content.toString());
+			return result;
 		}
 
-		check();
+		// Nothing in queue
+		await setTimeoutPromise(POLL_WAIT_TIME);
+		return check(queue);
 	}
 }
