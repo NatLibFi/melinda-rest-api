@@ -35,6 +35,7 @@ import {
 } from '@natlibfi/marc-record-validators-melinda';
 
 export class ValidationError extends Error {
+	/* istanbul ignore next: Actual validation is currently not in use */
 	constructor(messages, ...params) {
 		super(params);
 		this.messages = messages;
@@ -51,14 +52,10 @@ export default async () => {
 	return async record => {
 		const results = await validate(record, {fix: true, validateFixes: true});
 
-		if (results.valid) {
-			return {
-				record: results.record,
-				failed: results.valid === false,
-				messages: results.report
-			};
-		}
-
-		throw new ValidationError(results.report);
+		return {
+			record: results.record,
+			failed: results.valid === false,
+			messages: results.report
+		};
 	};
 };
