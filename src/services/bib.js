@@ -92,9 +92,9 @@ export default async function ({sruURL, recordLoadURL, recordLoadApiKey, recordL
 			}
 
 			Logger.log('debug', 'Creating a new record in datastore');
-			const id = await DatastoreService.create({record, cataloger: user.id});
+			const id = await DatastoreService.create({record: validationResults.record, cataloger: user.id});
 
-			return {messages: validationResults, id};
+			return {messages: validationResults.messages, id};
 		} catch (err) {
 			if (err instanceof ConversionError) {
 				throw new ServiceError(HttpStatus.BAD_REQUEST);

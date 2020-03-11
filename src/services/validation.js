@@ -28,8 +28,11 @@
 *
 */
 
-// import validateFactory from '@natlibfi/marc-record-validate';
-// Import {} from '@natlibfi/marc-record-validators-melinda';
+/* eslint-disable new-cap */
+import validateFactory from '@natlibfi/marc-record-validate';
+import {
+	FieldExclusion, FieldsPresent
+} from '@natlibfi/marc-record-validators-melinda';
 
 export class ValidationError extends Error {
 	/* istanbul ignore next: Actual validation is currently not in use */
@@ -39,20 +42,24 @@ export class ValidationError extends Error {
 	}
 }
 
-export default async function () {
-//	Const validateFunc = await validateFactory([]);
+export default async () => {
+	const validate = await validateFactory([
+		await FieldExclusion([
+			{tag: /^003$/, value: /^(.(?<!FI-MELINDA))*?$/}
+		])
+	]);
 
-	return {validate};
-
-	async function validate(record) {
-		return [];
-		/* Const results = await validateFunc(record, {fix: true, validateFixes: true});
+	return async record => {
+		const results = await validate(record, {fix: true, validateFixes: true});
 
 		if (results.valid) {
-			return results.messages;
+			return {
+				record: results.record,
+				failed: results.valid === false,
+				messages: results.report
+			};
 		}
 
-		throw new ValidationError(results.messages);
-		*/
-	}
-}
+		throw new ValidationError(results.report);
+	};
+};

@@ -29,80 +29,27 @@
 import fs from 'fs';
 import path from 'path';
 import {expect} from 'chai';
-// Import chai, {expect} from 'chai';
-// import sinon from 'sinon';
-// import sinonChai from 'sinon-chai';
 import {MarcRecord} from '@natlibfi/marc-record';
-import * as testContext from './validation';
-
-// Chai.use(sinonChai);
+import createValidator from './validation';
 
 const FIXTURES_PATH = path.join(__dirname, '../../test-fixtures/validation');
 
-const inputRecord1 = fs.readFileSync(path.join(FIXTURES_PATH, 'inputRecord1'), 'utf8');
-const outputRecord1 = fs.readFileSync(path.join(FIXTURES_PATH, 'outputRecord1'), 'utf8');
+describe('services/validate', () => {
+	let validator;
 
-describe('services/validation', () => {
-	afterEach(() => {
-		// TestContext.default.__ResetDependency__('validateFactory');
+	before(async () => {
+		validator = await createValidator();
 	});
 
-	describe('factory', () => {
-		it('Should create the expected object', async () => {
-			// TestContext.default.__Rewire__('validateFactory', sinon.fake());
+	fs.readdirSync(path.join(FIXTURES_PATH, 'in')).forEach(file => {
+		it(file, async () => {
+			const record = new MarcRecord(JSON.parse(fs.readFileSync(path.join(FIXTURES_PATH, 'in', file), 'utf8')));
 
-			const service = await testContext.default();
-			expect(service).to.be.an('object').and.respondTo('validate');
-		});
+			const result = await validator(record, true, true);
+			const expectedPath = path.join(FIXTURES_PATH, 'out', file);
+			const stringResult = JSON.stringify({...result, record: result.record.toObject()}, undefined, 2);
 
-		describe('#validate', () => {
-			it('Should validate the record succesfully', async () => {
-				/*				TestContext.default.__Rewire__('validateFactory', sinon.fake.returns(
-					sinon.fake.resolves({valid: true})
-				)); */
-
-				const record = new MarcRecord(JSON.parse(inputRecord1));
-				const service = await testContext.default();
-				const results = await service.validate(record);
-
-				expect(results).to.have.lengthOf(0);
-				expect(record.toObject()).to.eql(JSON.parse(inputRecord1));
-			});
-
-			it.skip('Should validate and fix the record succesfully', async () => {
-				/* TestContext.default.__Rewire__('validateFactory', sinon.fake.returns(
-					sinon.fake(async r => {
-						const subfield = r.get(/^245$/)[0].subfields[0];
-						subfield.value = subfield.value.replace(/b/, ';b');
-						return {valid: true, messages: ['foo']};
-					})
-				)); */
-
-				const record = new MarcRecord(JSON.parse(inputRecord1));
-				const service = await testContext.default();
-				const results = await service.validate(record);
-
-				expect(results).to.eql(['foo']);
-				expect(record.toObject()).to.eql(JSON.parse(outputRecord1));
-			});
-
-			it.skip('Should fail to validate the record', async () => {
-				/* TestContext.default.__Rewire__('validateFactory', sinon.fake.returns(
-					sinon.fake.rejects(new testContext.ValidationError(['foo']))
-				)); */
-
-				const record = new MarcRecord(JSON.parse(inputRecord1));
-				const service = await testContext.default();
-
-				try {
-					await service.validate(record);
-					throw new Error('Should throw');
-				} catch (err) {
-					if (!(err instanceof testContext.ValidationError)) {
-						throw err;
-					}
-				}
-			});
+			expect(stringResult).to.eql(fs.readFileSync(expectedPath, 'utf8'));
 		});
 	});
 });
