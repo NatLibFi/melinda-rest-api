@@ -31,11 +31,10 @@
 /* eslint-disable new-cap */
 import validateFactory from '@natlibfi/marc-record-validate';
 import {
-	FieldExclusion, FieldsPresent
+	FieldExclusion
 } from '@natlibfi/marc-record-validators-melinda';
 
 export class ValidationError extends Error {
-	/* istanbul ignore next: Actual validation is currently not in use */
 	constructor(messages, ...params) {
 		super(params);
 		this.messages = messages;
@@ -43,7 +42,7 @@ export class ValidationError extends Error {
 }
 
 export default async () => {
-	const validate = await validateFactory([
+	const validate = validateFactory([
 		await FieldExclusion([
 			{tag: /^003$/, value: /^(.(?<!FI-MELINDA))*?$/}
 		])
