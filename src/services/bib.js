@@ -28,11 +28,11 @@
 
 import HttpStatus from 'http-status';
 import {RecordMatching, Datastore, OwnAuthorization} from '@natlibfi/melinda-commons';
-
 import createConversionService, {ConversionError} from './conversion';
 import createValidationService, {ValidationError} from './validation';
 import ServiceError from './error';
 import {Utils} from '@natlibfi/melinda-commons';
+import {BIB_FORMAT_SETTINGS} from '../utils';
 
 export {FORMATS} from './conversion';
 
@@ -85,7 +85,7 @@ export default async function ({sruURL, recordLoadURL, recordLoadApiKey, recordL
 			}
 
 			Logger.log('debug', 'Validating the record');
-			const validationResults = await ValidationService.validate(record);
+			const validationResults = await ValidationService.validate(record, BIB_FORMAT_SETTINGS);
 
 			if (noop) {
 				return validationResults;
@@ -126,7 +126,7 @@ export default async function ({sruURL, recordLoadURL, recordLoadApiKey, recordL
 			OwnAuthorization.validateChanges(user.authorization, record, existingRecord);
 
 			Logger.log('debug', 'Validating the record');
-			const validationResults = await ValidationService.validate(record);
+			const validationResults = await ValidationService.validate(record, BIB_FORMAT_SETTINGS);
 
 			if (noop) {
 				return validationResults;

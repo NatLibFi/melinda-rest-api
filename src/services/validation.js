@@ -29,6 +29,7 @@
 */
 
 /* eslint-disable new-cap */
+import {MarcRecord} from '@natlibfi/marc-record';
 import validateFactory from '@natlibfi/marc-record-validate';
 import {
 	FieldExclusion
@@ -49,13 +50,39 @@ export default async () => {
 		])
 	]);
 
-	return async record => {
+	return async (record, settings) => {
 		const results = await validate(record, {fix: true, validateFixes: true});
+		const formatedRecord = formatRecord(results.record, settings);
 
 		return {
-			record: results.record,
+			record: formatedRecord,
 			failed: results.valid === false,
 			messages: results.report
 		};
 	};
 };
+
+function formatRecord(record, settings) {
+	const newRecord = MarcRecord.clone(record);
+
+	settings.forEach(options => {
+		replacePrefixes(options);
+	});
+
+	return newRecord;
+
+	// Replace prefix in all specified subfields
+	function replacePrefixes(options) {
+		const {oldPrefix, newPrefix, prefixReplaceCodes} = options;
+		newRecord.getDatafields()
+			.forEach(field => {
+				field.subfields
+					.filter(({code}) => prefixReplaceCodes.includes(code))
+					.forEach(subfield => {
+						const pattern = `(${oldPrefix})`;
+						const replacement = `(${newPrefix})`;
+						subfield.value = subfield.value.replace(pattern, replacement);
+					});
+			});
+	}
+}

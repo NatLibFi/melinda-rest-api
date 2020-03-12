@@ -49,3 +49,18 @@ export function createWhitelistMiddleware(whitelist) {
 		res.sendStatus(HttpStatus.FORBIDDEN);
 	};
 }
+
+// If placed in config.js testing needs envs
+export const BIB_FORMAT_SETTINGS = [{
+	oldPrefix: 'FI-MELINDA',
+	newPrefix: 'FIN01',
+	prefixReplaceCodes: ['w']
+}, {
+	oldPrefix: 'FI-ASTERI-S',
+	newPrefix: 'FIN10',
+	prefixReplaceCodes: ['0']
+}, {
+	oldPrefix: 'FI-ASTERI-N',
+	newPrefix: 'FIN11',
+	prefixReplaceCodes: ['0']
+}];
