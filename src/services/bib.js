@@ -32,7 +32,7 @@ import createConversionService, {ConversionError} from './conversion';
 import createValidationService, {ValidationError} from './validation';
 import ServiceError from './error';
 import {Utils} from '@natlibfi/melinda-commons';
-import {BIB_FORMAT_SETTINGS} from '../utils';
+import {formatRecord, BIB_FORMAT_SETTINGS} from './format';
 
 export {FORMATS} from './conversion';
 
@@ -70,7 +70,7 @@ export default async function ({sruURL, recordLoadURL, recordLoadApiKey, recordL
 	async function create({data, format, user, noop, unique}) {
 		try {
 			Logger.log('debug', 'Unserializing record');
-			const record = ConversionService.unserialize(data, format);
+			const record = formatRecord(ConversionService.unserialize(data, format), BIB_FORMAT_SETTINGS);
 
 			Logger.log('debug', 'Checking LOW-tag authorization');
 			OwnAuthorization.validateChanges(user.authorization, record);
@@ -85,7 +85,7 @@ export default async function ({sruURL, recordLoadURL, recordLoadApiKey, recordL
 			}
 
 			Logger.log('debug', 'Validating the record');
-			const validationResults = await ValidationService.validate(record, BIB_FORMAT_SETTINGS);
+			const validationResults = await ValidationService.validate(record);
 
 			if (noop) {
 				return validationResults;
@@ -117,7 +117,7 @@ export default async function ({sruURL, recordLoadURL, recordLoadApiKey, recordL
 	async function update({id, data, format, user, noop}) {
 		try {
 			Logger.log('debug', 'Unserializing record');
-			const record = ConversionService.unserialize(data, format);
+			const record = formatRecord(ConversionService.unserialize(data, format), BIB_FORMAT_SETTINGS);
 
 			Logger.log('debug', `Reading record ${id} from datastore`);
 			const existingRecord = await DatastoreService.read(id);

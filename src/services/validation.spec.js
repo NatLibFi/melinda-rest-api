@@ -31,7 +31,6 @@ import path from 'path';
 import {expect} from 'chai';
 import {MarcRecord} from '@natlibfi/marc-record';
 import createValidator from './validation';
-import {BIB_FORMAT_SETTINGS} from '../utils';
 
 const FIXTURES_PATH = path.join(__dirname, '../../test-fixtures/validation');
 
@@ -46,7 +45,7 @@ describe('services/validate', () => {
 		it(file, async () => {
 			const record = new MarcRecord(JSON.parse(fs.readFileSync(path.join(FIXTURES_PATH, 'in', file), 'utf8')));
 
-			const result = await validator(record, BIB_FORMAT_SETTINGS);
+			const result = await validator(record);
 			const expectedPath = path.join(FIXTURES_PATH, 'out', file);
 			const stringResult = JSON.stringify({...result, record: result.record.toObject()}, undefined, 2);
 
