@@ -68,6 +68,7 @@ export default async () => {
       return next(err);
     });
 
+  // Read resource
   async function readResource(req, res, next) {
     try {
       const type = req.accepts(Object.keys(CONTENT_TYPES));
@@ -86,6 +87,7 @@ export default async () => {
     }
   }
 
+  // Create resource
   async function createResource(req, res, next) {
     try {
       const type = req.headers['content-type'];
@@ -114,6 +116,7 @@ export default async () => {
     }
   }
 
+  // Update resource
   async function updateResource(req, res, next) {
     try {
       const type = req.headers['content-type'];
