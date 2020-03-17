@@ -38,8 +38,7 @@ const {createLogger} = Utils;
 
 export default async function ({sruURL, recordLoadURL, recordLoadApiKey, recordLoadLibrary}) {
   const {DatastoreError} = Datastore;
-  const {OwnAuthorizationError} = OwnAuthorization;
-  const Logger = createLogger();
+  const logger = createLogger();
   const ConversionService = createConversionService();
   const ValidationService = await createValidationService();
 
@@ -50,23 +49,23 @@ export default async function ({sruURL, recordLoadURL, recordLoadApiKey, recordL
   return {read, create, update};
 
   async function read({id, format}) {
-    Logger.log('debug', `Reading record ${id} from datastore`);
+    logger.log('debug', `Reading record ${id} from datastore`);
     const record = await DatastoreService.read(id);
 
-    Logger.log('debug', `Serializing record ${id}`);
+    logger.log('debug', `Serializing record ${id}`);
     return ConversionService.serialize(record, format);
   }
 
   async function create({data, format, user, noop, unique}) {
     try {
-      Logger.log('debug', 'Unserializing record');
+      logger.log('debug', 'Unserializing record');
       const record = formatRecord(ConversionService.unserialize(data, format), BIB_FORMAT_SETTINGS);
 
-      Logger.log('debug', 'Checking LOW-tag authorization');
+      logger.log('debug', 'Checking LOW-tag authorization');
       OwnAuthorization.validateChanges(user.authorization, record);
 
       if (unique) {
-        Logger.log('debug', 'Attempting to find matching records in the datastore');
+        logger.log('debug', 'Attempting to find matching records in the datastore');
         const matchingIds = await RecordMatchingService.find(record);
 
         if (matchingIds.length > 0) { // eslint-disable-line functional/no-conditional-statement
@@ -74,15 +73,15 @@ export default async function ({sruURL, recordLoadURL, recordLoadApiKey, recordL
         }
       }
 
-      Logger.log('debug', 'Validating the record');
-      const validationResults = await ValidationService.validate(record);
+      logger.log('debug', 'Validating the record');
+      const validationResults = await ValidationService(record);
 
       if (noop) {
         return validationResults;
       }
 
       if (validationResults.valid) {
-        Logger.log('debug', 'Creating a new record in datastore');
+        logger.log('debug', 'Creating a new record in datastore');
         const id = await DatastoreService.create({record: validationResults.record, cataloger: user.id});
 
         return {messages: validationResults.messages, id};
@@ -91,11 +90,11 @@ export default async function ({sruURL, recordLoadURL, recordLoadApiKey, recordL
       throw new ApiError(HttpStatus.UNPROCESSABLE_ENTITY, validationResults.messages);
     } catch (err) {
       if (err instanceof ApiError || err instanceof DatastoreError) { // eslint-disable-line functional/no-conditional-statement
-        throw new ApiError(err.status);
-      }
+        if (err.status === 403) { // eslint-disable-line functional/no-conditional-statement
+          throw new ApiError(HttpStatus.FORBIDDEN); // Own auth forbidden
+        }
 
-      if (err instanceof OwnAuthorizationError) { // eslint-disable-line functional/no-conditional-statement
-        throw new ApiError(HttpStatus.FORBIDDEN);
+        throw new ApiError(err.status);
       }
 
       throw err;
@@ -104,33 +103,33 @@ export default async function ({sruURL, recordLoadURL, recordLoadApiKey, recordL
 
   async function update({id, data, format, user, noop}) {
     try {
-      Logger.log('debug', 'Unserializing record');
+      logger.log('debug', 'Unserializing record');
       const record = formatRecord(ConversionService.unserialize(data, format), BIB_FORMAT_SETTINGS);
 
-      Logger.log('debug', `Reading record ${id} from datastore`);
+      logger.log('debug', `Reading record ${id} from datastore`);
       const existingRecord = await DatastoreService.read(id);
 
-      Logger.log('debug', 'Checking LOW-tag authorization');
+      logger.log('debug', 'Checking LOW-tag authorization');
       OwnAuthorization.validateChanges(user.authorization, record, existingRecord);
 
-      Logger.log('debug', 'Validating the record');
-      const validationResults = await ValidationService.validate(record, BIB_FORMAT_SETTINGS);
+      logger.log('debug', 'Validating the record');
+      const validationResults = await ValidationService(record);
 
       if (noop) {
         return validationResults;
       }
 
-      Logger.log('debug', `Updating record ${id} in datastore`);
-      await DatastoreService.update({id, record, cataloger: user.id});
+      logger.log('debug', `Updating record ${id} in datastore`);
+      await DatastoreService.update({id, record: validationResults.record, cataloger: user.id});
 
       return validationResults;
     } catch (err) {
       if (err instanceof ApiError || err instanceof DatastoreError) { // eslint-disable-line functional/no-conditional-statement
-        throw new ApiError(err.status);
-      }
+        if (err.status === 403) { // eslint-disable-line functional/no-conditional-statement
+          throw new ApiError(HttpStatus.FORBIDDEN); // Own auth forbidden
+        }
 
-      if (err instanceof OwnAuthorizationError) { // eslint-disable-line functional/no-conditional-statement
-        throw new ApiError(HttpStatus.FORBIDDEN);
+        throw new ApiError(err.status);
       }
 
       throw err;
