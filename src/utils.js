@@ -31,21 +31,21 @@
 import HttpStatus from 'http-status';
 
 export function formatRequestBoolean(value) {
-	if (Number.isNaN(Number(value))) {
-		return value === 'true';
-	}
+  if (Number.isNaN(Number(value))) {
+    return value === 'true';
+  }
 
-	return Boolean(Number(value));
+  return Boolean(Number(value));
 }
 
 export function createWhitelistMiddleware(whitelist) {
-	return (req, res, next) => {
-		const ip = req.ip.split(/:/).pop();
+  return (req, res, next) => {
+    const ip = req.ip.split(/:/u).slice(-1);
 
-		if (whitelist.some(pattern => pattern.test(ip))) {
-			return next();
-		}
+    if (whitelist.some(pattern => pattern.test(ip))) {
+      return next();
+    }
 
-		res.sendStatus(HttpStatus.FORBIDDEN);
-	};
+    res.sendStatus(HttpStatus.FORBIDDEN);
+  };
 }

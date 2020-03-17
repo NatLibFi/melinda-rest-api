@@ -31,31 +31,19 @@
 /* eslint-disable new-cap */
 import validateFactory from '@natlibfi/marc-record-validate';
 import {
-	FieldExclusion
+  FieldExclusion
 } from '@natlibfi/marc-record-validators-melinda';
 
-export class ValidationError extends Error {
-	/* istanbul ignore next: Actual validation is currently in use but errors are moved to commons */
-	constructor(messages, ...params) {
-		super(params);
-		this.messages = messages;
-	}
-}
-
 export default async () => {
-	const validate = validateFactory([
-		await FieldExclusion([
-			{tag: /^003$/, value: /^(.(?<!FI-MELINDA))*?$/}
-		])
-	]);
+  const validate = validateFactory([await FieldExclusion([{tag: /^003$/u, value: /^(.(?<!FI-MELINDA))*?$/u}])]); // eslint-disable-line prefer-named-capture-group
 
-	return async unvalidRecord => {
-		const {record, valid, report} = await validate(unvalidRecord, {fix: true, validateFixes: true});
+  return async unvalidRecord => {
+    const {record, valid, report} = await validate(unvalidRecord, {fix: true, validateFixes: true});
 
-		return {
-			record,
-			failed: valid === false,
-			messages: report
-		};
-	};
+    return {
+      record,
+      failed: valid === false,
+      messages: report
+    };
+  };
 };

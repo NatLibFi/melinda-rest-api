@@ -35,21 +35,21 @@ import createValidator from './validation';
 const FIXTURES_PATH = path.join(__dirname, '../../test-fixtures/validation');
 
 describe('services/validate', () => {
-	let validator;
+  let validator; // eslint-disable-line functional/no-let
 
-	before(async () => {
-		validator = await createValidator();
-	});
+  before(async () => {
+    validator = await createValidator();
+  });
 
-	fs.readdirSync(path.join(FIXTURES_PATH, 'in')).forEach(file => {
-		it(file, async () => {
-			const record = new MarcRecord(JSON.parse(fs.readFileSync(path.join(FIXTURES_PATH, 'in', file), 'utf8')));
+  fs.readdirSync(path.join(FIXTURES_PATH, 'in')).forEach(file => {
+    it(file, async () => {
+      const record = new MarcRecord(JSON.parse(fs.readFileSync(path.join(FIXTURES_PATH, 'in', file), 'utf8')));
 
-			const result = await validator(record);
-			const expectedPath = path.join(FIXTURES_PATH, 'out', file);
-			const stringResult = JSON.stringify({...result, record: result.record.toObject()}, undefined, 2);
+      const result = await validator(record);
+      const expectedPath = path.join(FIXTURES_PATH, 'out', file);
+      const stringResult = JSON.stringify({...result, record: result.record.toObject()}, undefined, 2);
 
-			expect(stringResult).to.eql(fs.readFileSync(expectedPath, 'utf8'));
-		});
-	});
+      expect(stringResult).to.eql(fs.readFileSync(expectedPath, 'utf8'));
+    });
+  });
 });
