@@ -39,7 +39,7 @@ const {createLogger} = Utils;
 export default async function ({sruURL, recordLoadURL, recordLoadApiKey, recordLoadLibrary}) {
   const {DatastoreError} = Datastore;
   const logger = createLogger();
-  const ConversionService = createConversionService();
+  const conversionService = createConversionService();
   const validationService = await createValidationService();
 
   const RecordMatchingService = RecordMatching.createBibService({sruURL});
@@ -53,13 +53,13 @@ export default async function ({sruURL, recordLoadURL, recordLoadApiKey, recordL
     const record = await DatastoreService.read(id);
 
     logger.log('debug', `Serializing record ${id}`);
-    return ConversionService.serialize(record, format);
+    return conversionService.serialize(record, format);
   }
 
   async function create({data, format, user, noop, unique}) {
     try {
       logger.log('debug', 'Unserializing record');
-      const record = formatRecord(ConversionService.unserialize(data, format), BIB_FORMAT_SETTINGS);
+      const record = formatRecord(conversionService.unserialize(data, format), BIB_FORMAT_SETTINGS);
 
       logger.log('debug', 'Checking LOW-tag authorization');
       OwnAuthorization.validateChanges(user.authorization, record);
@@ -104,7 +104,7 @@ export default async function ({sruURL, recordLoadURL, recordLoadApiKey, recordL
   async function update({id, data, format, user, noop}) {
     try {
       logger.log('debug', 'Unserializing record');
-      const record = formatRecord(ConversionService.unserialize(data, format), BIB_FORMAT_SETTINGS);
+      const record = formatRecord(conversionService.unserialize(data, format), BIB_FORMAT_SETTINGS);
 
       logger.log('debug', `Reading record ${id} from datastore`);
       const existingRecord = await DatastoreService.read(id);
@@ -116,6 +116,10 @@ export default async function ({sruURL, recordLoadURL, recordLoadApiKey, recordL
       const validationResults = await validationService(record);
 
       if (noop) {
+        return validationResults;
+      }
+
+      if (validationResults.failed) {
         return validationResults;
       }
 

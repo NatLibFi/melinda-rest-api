@@ -26,24 +26,79 @@
 *
 */
 
-import fs from 'fs';
-import path from 'path';
 import {expect} from 'chai';
+import fixtureFactory from '@natlibfi/fixura';
 import {MarcRecord} from '@natlibfi/marc-record';
 import {formatRecord, BIB_FORMAT_SETTINGS} from './format';
 
-const FIXTURES_PATH = path.join(__dirname, '../../test-fixtures/format');
 
 describe('services/format', () => {
-  fs.readdirSync(path.join(FIXTURES_PATH, 'in')).forEach(file => {
-    it(file, () => {
-      const record = new MarcRecord(JSON.parse(fs.readFileSync(path.join(FIXTURES_PATH, 'in', file), 'utf8')));
+  const FIXTURES_PATH = [
+    __dirname,
+    '..',
+    '..',
+    'test-fixtures',
+    'format'
+  ];
+  const {getFixture} = fixtureFactory({root: FIXTURES_PATH});
 
+  describe('fiAsteriN0Fin11', () => {
+    it('Should succeed', () => {
+      const record = new MarcRecord(JSON.parse(getFixture({
+        components: [
+          'in',
+          'fiAsteriN0Fin11.json'
+        ]
+      })));
       const result = formatRecord(record.toObject(), BIB_FORMAT_SETTINGS);
-      const expectedPath = path.join(FIXTURES_PATH, 'out', file);
-      const stringResult = JSON.stringify(result, undefined, 2);
+      const expected = getFixture({
+        components: [
+          'out',
+          'fiAsteriN0Fin11.json'
+        ]
+      });
+      const stringResult = JSON.stringify({...result}, undefined, 2);
+      expect(stringResult).to.eql(expected);
+    });
+  });
 
-      expect(stringResult).to.eql(fs.readFileSync(expectedPath, 'utf8'));
+  describe('fiAsteriS0Fin10', () => {
+    it('Should succeed', () => {
+      const record = new MarcRecord(JSON.parse(getFixture({
+        components: [
+          'in',
+          'fiAsteriS0Fin10.json'
+        ]
+      })));
+      const result = formatRecord(record.toObject(), BIB_FORMAT_SETTINGS);
+      const expected = getFixture({
+        components: [
+          'out',
+          'fiAsteriS0Fin10.json'
+        ]
+      });
+      const stringResult = JSON.stringify({...result}, undefined, 2);
+      expect(stringResult).to.eql(expected);
+    });
+  });
+
+  describe('fiMelindaWFin01', () => {
+    it('Should succeed', () => {
+      const record = new MarcRecord(JSON.parse(getFixture({
+        components: [
+          'in',
+          'fiMelindaWFin01.json'
+        ]
+      })));
+      const result = formatRecord(record.toObject(), BIB_FORMAT_SETTINGS);
+      const expected = getFixture({
+        components: [
+          'out',
+          'fiMelindaWFin01.json'
+        ]
+      });
+      const stringResult = JSON.stringify({...result}, undefined, 2);
+      expect(stringResult).to.eql(expected);
     });
   });
 });

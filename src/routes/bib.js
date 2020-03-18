@@ -29,23 +29,22 @@
 import {Router} from 'express';
 import passport from 'passport';
 import HttpStatus from 'http-status';
-import {Error as ApiError} from '@natlibfi/melinda-commons';
+import {Error as ApiError, Utils} from '@natlibfi/melinda-commons';
 import createService, {FORMATS} from '../services/bib';
-import {formatRequestBoolean, createWhitelistMiddleware} from '../utils';
 
 import {
-  IP_FILTER_BIB, SRU_URL_BIB, ALEPH_LIBRARY_BIB,
+  SRU_URL_BIB, ALEPH_LIBRARY_BIB,
   RECORD_LOAD_URL, RECORD_LOAD_API_KEY
 } from '../config';
 
 export default async () => {
+  const {parseBoolean} = Utils;
   const CONTENT_TYPES = {
     'application/json': FORMATS.JSON,
     'application/marc': FORMATS.ISO2709,
     'application/xml': FORMATS.MARCXML
   };
 
-  const ipFilterList = JSON.parse(IP_FILTER_BIB).map(rule => new RegExp(rule)); // eslint-disable-line require-unicode-regexp
   const Service = await createService({
     sruURL: SRU_URL_BIB,
     recordLoadURL: RECORD_LOAD_URL,
@@ -54,7 +53,6 @@ export default async () => {
   });
 
   return new Router()
-    .use(createWhitelistMiddleware(ipFilterList))
     .use(passport.authenticate('melinda', {session: false}))
     .post('/', createResource)
     .get('/:id', readResource)
@@ -97,8 +95,8 @@ export default async () => {
         return res.sendStatus(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
       }
 
-      const unique = req.query.unique === undefined ? true : formatRequestBoolean(req.query.unique);
-      const noop = formatRequestBoolean(req.query.noop);
+      const unique = req.query.unique === undefined ? true : parseBoolean(req.query.unique);
+      const noop = parseBoolean(req.query.noop);
       const {messages, id} = await Service.create({
         format, unique, noop,
         data: req.body,
@@ -126,15 +124,21 @@ export default async () => {
         return res.sendStatus(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
       }
 
-      const noop = formatRequestBoolean(req.query.noop);
-      const messages = await Service.update({
+      const noop = parseBoolean(req.query.noop);
+      const {failed, messages} = await Service.update({
         format, noop,
         data: req.body,
         id: req.params.id,
         user: req.user
       });
 
-      res.type('application/json').send(messages);
+      if (failed) {
+        return res.status(HttpStatus.UNPROCESSABLE_ENTITY)
+          .type('application/json')
+          .send(messages);
+      }
+
+      return res.sendStatus(HttpStatus.OK);
     } catch (err) {
       return next(err);
     }

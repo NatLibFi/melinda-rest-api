@@ -26,101 +26,84 @@
 *
 */
 
-/* eslint-disable camelcase, max-nested-callbacks */
-
-import fs from 'fs';
-import path from 'path';
 import {expect} from 'chai';
+import fixtureFactory from '@natlibfi/fixura';
 import {MarcRecord} from '@natlibfi/marc-record';
 import {Error as ConversionError} from '@natlibfi/melinda-commons';
-import * as testContext from './conversion';
-
-const FIXTURES_PATH = path.join(__dirname, '../../test-fixtures/conversion');
-
-const marcxml1 = fs.readFileSync(path.join(FIXTURES_PATH, 'marcxml1'), 'utf8');
-const iso2709_1 = fs.readFileSync(path.join(FIXTURES_PATH, 'iso2709_1'), 'utf8');
-const json1 = fs.readFileSync(path.join(FIXTURES_PATH, 'json1'), 'utf8');
-
-const record1 = new MarcRecord(JSON.parse(json1));
+import createConversionService, {FORMATS} from './conversion';
 
 describe('services/conversion', () => {
-  afterEach(() => {
-    testContext.default.__ResetDependency__('MARCXML');
-    testContext.default.__ResetDependency__('AlephSequential');
-    testContext.default.__ResetDependency__('ISO2709');
-    testContext.default.__ResetDependency__('Json');
-  });
+  const {getFixture} = fixtureFactory({root: [
+    __dirname,
+    '..',
+    '..',
+    'test-fixtures',
+    'conversion'
+  ]});
+  const conversionService = createConversionService();
+
+  const marcRecord = new MarcRecord(JSON.parse(getFixture({components: ['json1']})));
+  const marcXml = getFixture({components: ['marcxml1']});
+  const iso2709 = getFixture({components: ['iso2709_1']});
+  const json = getFixture({components: ['json1']});
 
   describe('factory', () => {
     it('Should create the expected object', () => {
-      const service = testContext.default({});
+      const service = createConversionService();
       expect(service).to.be.an('object').and
         .respondTo('serialize')
         .respondTo('unserialize');
     });
+  });
 
-    describe('#serialize', () => {
-      it('Should throw because of unsupported format', () => {
-        const service = testContext.default();
-        expect(service.serialize).to.throw();
-      });
-
-      it('Should serialize to MARCXML', () => {
-        const service = testContext.default();
-        const data = service.serialize(record1, testContext.FORMATS.MARCXML);
-
-        expect(data).to.equal(marcxml1);
-      });
-
-      it('Should serialize to ISO2709', () => {
-        const service = testContext.default();
-        const data = service.serialize(record1, testContext.FORMATS.ISO2709);
-
-        expect(data).to.equal(iso2709_1);
-      });
-
-      it('Should serialize to JSON', () => {
-        const service = testContext.default();
-        const data = service.serialize(record1, testContext.FORMATS.JSON);
-
-        expect(data).to.equal(json1);
-      });
+  describe('#serialize', () => {
+    it('Should throw because of unsupported format', () => {
+      expect(conversionService.serialize).to.throw();
     });
 
-    describe('#unserialize', () => {
-      it('Should throw because of unsupported format', () => {
-        const service = testContext.default();
-        expect(service.unserialize).to.throw();
-      });
+    it('Should serialize to MARCXML', () => {
+      const data = conversionService.serialize(marcRecord, FORMATS.MARCXML);
+      expect(data).to.equal(marcXml);
+    });
 
-      it('Should unserialize from MARCXML', () => {
-        const service = testContext.default();
-        const record = service.unserialize(marcxml1, testContext.FORMATS.MARCXML);
+    it('Should serialize to ISO2709', () => {
+      const data = conversionService.serialize(marcRecord, FORMATS.ISO2709);
+      expect(data).to.equal(iso2709);
+    });
 
-        expect(record.equalsTo(record1)).to.equal(true);
-      });
+    it('Should serialize to JSON', () => {
+      const data = conversionService.serialize(marcRecord, FORMATS.JSON);
+      expect(data).to.equal(json);
+    });
+  });
 
-      it('Should unserialize from ISO2709', () => {
-        const service = testContext.default();
-        const record = service.unserialize(iso2709_1, testContext.FORMATS.ISO2709);
+  describe('#unserialize', () => {
+    it('Should throw because of unsupported format', () => {
+      expect(conversionService.unserialize).to.throw();
+    });
 
-        expect(record.equalsTo(record1)).to.equal(true);
-      });
+    it('Should unserialize from MARCXML', () => {
+      const record = conversionService.unserialize(marcXml, FORMATS.MARCXML);
 
-      it('Should unserialize from JSON', () => {
-        const service = testContext.default();
-        const record = service.unserialize(json1, testContext.FORMATS.JSON);
+      expect(record.equalsTo(marcRecord)).to.equal(true);
+    });
 
-        expect(record.equalsTo(record1)).to.equal(true);
-      });
+    it('Should unserialize from ISO2709', () => {
+      const record = conversionService.unserialize(iso2709, FORMATS.ISO2709);
 
-      it('Should throw because the record could not be unserialized', () => {
-        const service = testContext.default();
+      expect(record.equalsTo(marcRecord)).to.equal(true);
+    });
 
-        expect(() => {
-          service.unserialize('', testContext.FORMATS.JSON);
-        }).to.throw(ConversionError);
-      });
+    it('Should unserialize from JSON', () => {
+      const record = conversionService.unserialize(json, FORMATS.JSON);
+
+      expect(record.equalsTo(marcRecord)).to.equal(true);
+    });
+
+    it('Should throw because the record could not be unserialized', () => {
+      expect(() => {
+        conversionService.unserialize('', FORMATS.JSON);
+      }).to.throw(ConversionError);
     });
   });
 });

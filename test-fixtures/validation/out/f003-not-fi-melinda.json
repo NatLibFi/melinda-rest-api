@@ -1,5 +1,6 @@
 {
   "record": {
+    "_validationOptions": {},
     "leader": "00000nam a22004214i 4500",
     "fields": [
       {
@@ -8,7 +9,7 @@
       },
       {
         "tag": "003",
-        "value": "FI-MELINDA"
+        "value": "FI-BTJ"
       },
       {
         "tag": "005",
@@ -585,11 +586,11 @@
       }
     ]
   },
-  "failed": false,
+  "failed": true,
   "messages": [
     {
-      "description": "Checks that the record does not contain the configured fields",
-      "state": "valid"
+      "description": "Check whether the configured fields have valid structure",
+      "state": "invalid"
     }
   ]
 }

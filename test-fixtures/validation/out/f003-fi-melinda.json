@@ -1,10 +1,15 @@
 {
   "record": {
+    "_validationOptions": {},
     "leader": "00000nam a22004214i 4500",
     "fields": [
       {
         "tag": "001",
         "value": "9789522344977"
+      },
+      {
+        "tag": "003",
+        "value": "FI-MELINDA"
       },
       {
         "tag": "005",
@@ -584,8 +589,8 @@
   "failed": false,
   "messages": [
     {
-      "description": "Checks that the record does not contain the configured fields",
-      "state": "fixed"
+      "description": "Check whether the configured fields have valid structure",
+      "state": "valid"
     }
   ]
 }
