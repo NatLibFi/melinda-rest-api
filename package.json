@@ -79,9 +79,7 @@
 		"plugins": [
 			"import"
 		],
-		"extends": [
-			"@natlibfi/melinda-backend"
-		],
+		"extends": "@natlibfi/melinda-backend",
 		"rules": {
 			"prefer-arrow-callback": [
 				"error"

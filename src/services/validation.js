@@ -1,5 +1,3 @@
-/* eslint-disable no-unused-vars */
-
 /**
 *
 * @licstart  The following is the entire license notice for the JavaScript code in this file.
@@ -28,14 +26,13 @@
 *
 */
 
-
 import validateFactory from '@natlibfi/marc-record-validate';
 import {
-  FieldStructure // eslint-disable-line new-cap
+  FieldStructure as fieldStructure
 } from '@natlibfi/marc-record-validators-melinda';
 
 export default async () => {
-  const validate = validateFactory([await FieldStructure([{tag: /^003$/u, valuePattern: /^FI-MELINDA$/u}])]); // eslint-disable-line new-cap
+  const validate = validateFactory([await fieldStructure([{tag: /^003$/u, valuePattern: /^FI-MELINDA$/u}])]);
 
   return async unvalidRecord => {
     const {record, valid, report} = await validate(unvalidRecord, {fix: false, validateFixes: false});
