@@ -41,14 +41,10 @@ describe('services/validate', () => {
     'validation'
   ];
   const {getFixture} = fixtureFactory({root: FIXTURES_PATH});
-  let validator; // eslint-disable-line functional/no-let
-
-  before(async () => {
-    validator = await createValidator();
-  });
 
   describe('f003-fi-melinda', () => {
     it('Should have failed: false', async () => {
+      const validator = await createValidator();
       const record = new MarcRecord(JSON.parse(getFixture({
         components: [
           'in',
@@ -70,6 +66,7 @@ describe('services/validate', () => {
 
   describe('f003-not-fi-melinda', () => {
     it('Should have failed: true', async () => {
+      const validator = await createValidator();
       const record = new MarcRecord(JSON.parse(getFixture({
         components: [
           'in',

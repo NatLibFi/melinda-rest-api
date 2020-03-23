@@ -57,9 +57,7 @@
 		"@babel/node": "^7.8.7",
 		"@babel/preset-env": "^7.8.7",
 		"@babel/register": "^7.8.6",
-		"babel-eslint": "^10.1.0",
 		"babel-plugin-istanbul": "^6.0.0",
-		"babel-plugin-rewire": "^1.2.0",
 		"chai": "^4.2.0",
 		"chokidar-cli": "^2.1.0",
 		"cross-env": "^7.0.2",
@@ -75,19 +73,7 @@
 		"sinon-chai": "^3.5.0"
 	},
 	"eslintConfig": {
-		"parser": "babel-eslint",
-		"plugins": [
-			"import"
-		],
-		"extends": "@natlibfi/melinda-backend",
-		"rules": {
-			"prefer-arrow-callback": [
-				"error"
-			]
-		},
-		"env": {
-			"mocha": true
-		}
+		"extends": "@natlibfi/melinda-backend"
 	},
 	"babel": {
 		"presets": [
@@ -103,8 +89,7 @@
 		"env": {
 			"test": {
 				"plugins": [
-					"istanbul",
-					"rewire"
+					"istanbul"
 				]
 			}
 		}
