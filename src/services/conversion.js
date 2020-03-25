@@ -1,5 +1,3 @@
-/* eslint-disable no-unused-vars */
-
 /**
 *
 * @licstart  The following is the entire license notice for the JavaScript code in this file.
@@ -29,53 +27,52 @@
 */
 
 import {MARCXML, ISO2709, Json} from '@natlibfi/marc-record-serializers';
+import {Error as ConversionError} from '@natlibfi/melinda-commons';
+import HttpStatus from 'http-status';
 
 export const FORMATS = {
-	MARCXML: 1,
-	ISO2709: 2,
-	JSON: 3
+  MARCXML: 1,
+  ISO2709: 2,
+  JSON: 3
 };
 
-export class ConversionError extends Error {
-	constructor(status, ...params) {
-		super(params);
-		this.status = status;
-	}
-}
-
 export default function () {
-	return {serialize, unserialize};
+  return {serialize, unserialize};
 
-	function serialize(record, format) {
-		switch (format) {
-			case FORMATS.MARCXML:
-				return MARCXML.to(record);
-			case FORMATS.ISO2709:
-				return ISO2709.to(record);
-			case FORMATS.JSON:
-				return Json.to(record);
-			default:
-				throw new Error();
-		}
-	}
+  function serialize(record, format) {
+    if (format === FORMATS.MARCXML) {
+      return MARCXML.to(record);
+    }
 
-	function unserialize(data, format) {
-		try {
-			switch (format) {
-				case FORMATS.MARCXML:
-					return MARCXML.from(data);
-				case FORMATS.ISO2709:
-					return ISO2709.from(data);
-				case FORMATS.JSON:
-					return Json.from(data);
-				default:
-					break;
-			}
-		} catch (err) {
-			throw new ConversionError();
-		}
+    if (format === FORMATS.ISO2709) {
+      return ISO2709.to(record);
+    }
 
-		// No supported format found
-		throw new Error();
-	}
+    if (format === FORMATS.JSON) {
+      return Json.to(record);
+    }
+
+    throw new ConversionError(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+  }
+
+  function unserialize(data, format) {
+    try {
+
+      if (format === FORMATS.MARCXML) {
+        return MARCXML.from(data);
+      }
+
+      if (format === FORMATS.ISO2709) {
+        return ISO2709.from(data);
+      }
+
+      if (format === FORMATS.JSON) {
+        return Json.from(data);
+      }
+
+      throw new ConversionError(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+    } catch (err) {
+      throw new ConversionError(HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+  }
 }

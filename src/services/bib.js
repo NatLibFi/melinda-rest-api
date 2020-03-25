@@ -27,123 +27,116 @@
 */
 
 import HttpStatus from 'http-status';
-import {RecordMatching, Datastore, OwnAuthorization} from '@natlibfi/melinda-commons';
-
-import createConversionService, {ConversionError} from './conversion';
-import createValidationService, {ValidationError} from './validation';
-import ServiceError from './error';
-import {Utils} from '@natlibfi/melinda-commons';
+import {RecordMatching, Datastore, OwnAuthorization, Utils, Error as ApiError} from '@natlibfi/melinda-commons';
+import createConversionService from './conversion';
+import createValidationService from './validation';
+import {formatRecord, BIB_FORMAT_SETTINGS} from './format';
 
 export {FORMATS} from './conversion';
 
 const {createLogger} = Utils;
 
 export default async function ({sruURL, recordLoadURL, recordLoadApiKey, recordLoadLibrary}) {
-	const {DatastoreError} = Datastore;
-	const {OwnAuthorizationError} = OwnAuthorization;
-	const Logger = createLogger();
-	const ConversionService = createConversionService();
-	const ValidationService = await createValidationService();
+  const {DatastoreError} = Datastore;
+  const logger = createLogger();
+  const conversionService = createConversionService();
+  const validationService = await createValidationService();
 
-	const RecordMatchingService = RecordMatching.createBibService({sruURL});
+  const RecordMatchingService = RecordMatching.createBibService({sruURL});
 
-	const DatastoreService = Datastore.createService({sruURL, recordLoadURL, recordLoadApiKey, recordLoadLibrary});
+  const DatastoreService = Datastore.createService({sruURL, recordLoadURL, recordLoadApiKey, recordLoadLibrary});
 
-	return {read, create, update};
+  return {read, create, update};
 
-	async function read({id, format}) {
-		try {
-			Logger.log('debug', `Reading record ${id} from datastore`);
-			const record = await DatastoreService.read(id);
+  async function read({id, format}) {
+    logger.log('debug', `Reading record ${id} from datastore`);
+    const record = await DatastoreService.read(id);
 
-			Logger.log('debug', `Serializing record ${id}`);
-			return ConversionService.serialize(record, format);
-		} catch (err) {
-			if (err instanceof DatastoreError) {
-				throw new ServiceError(err.status);
-			}
+    logger.log('debug', `Serializing record ${id}`);
+    return conversionService.serialize(record, format);
+  }
 
-			throw err;
-		}
-	}
+  async function create({data, format, user, noop, unique}) {
+    try {
+      logger.log('debug', 'Unserializing record');
+      const record = formatRecord(conversionService.unserialize(data, format), BIB_FORMAT_SETTINGS);
 
-	async function create({data, format, user, noop, unique}) {
-		try {
-			Logger.log('debug', 'Unserializing record');
-			const record = ConversionService.unserialize(data, format);
+      logger.log('debug', 'Checking LOW-tag authorization');
+      OwnAuthorization.validateChanges(user.authorization, record);
 
-			Logger.log('debug', 'Checking LOW-tag authorization');
-			OwnAuthorization.validateChanges(user.authorization, record);
+      if (unique) {
+        logger.log('debug', 'Attempting to find matching records in the datastore');
+        const matchingIds = await RecordMatchingService.find(record);
 
-			if (unique) {
-				Logger.log('debug', 'Attempting to find matching records in the datastore');
-				const matchingIds = await RecordMatchingService.find(record);
+        if (matchingIds.length > 0) { // eslint-disable-line functional/no-conditional-statement
+          throw new ApiError(HttpStatus.CONFLICT, matchingIds);
+        }
+      }
 
-				if (matchingIds.length > 0) {
-					throw new ServiceError(HttpStatus.CONFLICT, matchingIds);
-				}
-			}
+      logger.log('debug', 'Validating the record');
+      const validationResults = await validationService(record);
 
-			Logger.log('debug', 'Validating the record');
-			const validationResults = await ValidationService.validate(record);
+      if (noop) {
+        return validationResults;
+      }
 
-			if (noop) {
-				return validationResults;
-			}
+      if (validationResults.valid) {
+        logger.log('debug', 'Creating a new record in datastore');
+        const id = await DatastoreService.create({record: validationResults.record, cataloger: user.id});
 
-			Logger.log('debug', 'Creating a new record in datastore');
-			const id = await DatastoreService.create({record, cataloger: user.id});
+        return {messages: validationResults.messages, id};
+      }
 
-			return {messages: validationResults, id};
-		} catch (err) {
-			if (err instanceof ConversionError) {
-				throw new ServiceError(HttpStatus.BAD_REQUEST);
-			} else if (err instanceof OwnAuthorizationError) {
-				throw new ServiceError(HttpStatus.FORBIDDEN);
-			} else if (err instanceof DatastoreError) {
-				throw new ServiceError(err.status);
-			} else if (err instanceof ValidationError) {
-				throw new ServiceError(HttpStatus.UNPROCESSABLE_ENTITY, err.messages);
-			}
+      throw new ApiError(HttpStatus.UNPROCESSABLE_ENTITY, validationResults.messages);
+    } catch (err) {
+      if (err instanceof ApiError || err instanceof DatastoreError) { // eslint-disable-line functional/no-conditional-statement
+        if (err.status === 403) { // eslint-disable-line functional/no-conditional-statement
+          throw new ApiError(HttpStatus.FORBIDDEN); // Own auth forbidden
+        }
 
-			throw err;
-		}
-	}
+        throw new ApiError(err.status);
+      }
 
-	async function update({id, data, format, user, noop}) {
-		try {
-			Logger.log('debug', 'Unserializing record');
-			const record = ConversionService.unserialize(data, format);
+      throw err;
+    }
+  }
 
-			Logger.log('debug', `Reading record ${id} from datastore`);
-			const existingRecord = await DatastoreService.read(id);
+  async function update({id, data, format, user, noop}) {
+    try {
+      logger.log('debug', 'Unserializing record');
+      const record = formatRecord(conversionService.unserialize(data, format), BIB_FORMAT_SETTINGS);
 
-			Logger.log('debug', 'Checking LOW-tag authorization');
-			OwnAuthorization.validateChanges(user.authorization, record, existingRecord);
+      logger.log('debug', `Reading record ${id} from datastore`);
+      const existingRecord = await DatastoreService.read(id);
 
-			Logger.log('debug', 'Validating the record');
-			const validationResults = await ValidationService.validate(record);
+      logger.log('debug', 'Checking LOW-tag authorization');
+      OwnAuthorization.validateChanges(user.authorization, record, existingRecord);
 
-			if (noop) {
-				return validationResults;
-			}
+      logger.log('debug', 'Validating the record');
+      const validationResults = await validationService(record);
 
-			Logger.log('debug', `Updating record ${id} in datastore`);
-			await DatastoreService.update({id, record, cataloger: user.id});
+      if (noop) {
+        return validationResults;
+      }
 
-			return validationResults;
-		} catch (err) {
-			if (err instanceof ConversionError) {
-				throw new ServiceError(HttpStatus.BAD_REQUEST);
-			} else if (err instanceof OwnAuthorizationError) {
-				throw new ServiceError(HttpStatus.FORBIDDEN);
-			} else if (err instanceof DatastoreError) {
-				throw new ServiceError(err.status);
-			} else if (err instanceof ValidationError) {
-				throw new ServiceError(HttpStatus.UNPROCESSABLE_ENTITY, err.messages);
-			}
+      if (validationResults.failed) {
+        return validationResults;
+      }
 
-			throw err;
-		}
-	}
+      logger.log('debug', `Updating record ${id} in datastore`);
+      await DatastoreService.update({id, record: validationResults.record, cataloger: user.id});
+
+      return validationResults;
+    } catch (err) {
+      if (err instanceof ApiError || err instanceof DatastoreError) { // eslint-disable-line functional/no-conditional-statement
+        if (err.status === 403) { // eslint-disable-line functional/no-conditional-statement
+          throw new ApiError(HttpStatus.FORBIDDEN); // Own auth forbidden
+        }
+
+        throw new ApiError(err.status);
+      }
+
+      throw err;
+    }
+  }
 }

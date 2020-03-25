@@ -29,60 +29,76 @@
 import {expect} from 'chai';
 import fixtureFactory from '@natlibfi/fixura';
 import {MarcRecord} from '@natlibfi/marc-record';
-import createValidator from './validation';
+import {formatRecord, BIB_FORMAT_SETTINGS} from './format';
 
 
-describe('services/validate', () => {
+describe('services/format', () => {
   const FIXTURES_PATH = [
     __dirname,
     '..',
     '..',
     'test-fixtures',
-    'validation'
+    'format'
   ];
   const {getFixture} = fixtureFactory({root: FIXTURES_PATH});
 
-  describe('f003-fi-melinda', () => {
-    it('Should have failed: false', async () => {
-      const validator = await createValidator();
+  describe('fiAsteriN0Fin11', () => {
+    it('Should succeed', () => {
       const record = new MarcRecord(JSON.parse(getFixture({
         components: [
           'in',
-          'f003-fi-melinda.json'
+          'fiAsteriN0Fin11.json'
         ]
       })));
-      const result = await validator(record.toObject());
+      const result = formatRecord(record.toObject(), BIB_FORMAT_SETTINGS);
       const expected = getFixture({
         components: [
           'out',
-          'f003-fi-melinda.json'
+          'fiAsteriN0Fin11.json'
         ]
       });
       const stringResult = JSON.stringify({...result}, undefined, 2);
       expect(stringResult).to.eql(expected);
-      expect(result.failed).to.equal(false);
     });
   });
 
-  describe('f003-not-fi-melinda', () => {
-    it('Should have failed: true', async () => {
-      const validator = await createValidator();
+  describe('fiAsteriS0Fin10', () => {
+    it('Should succeed', () => {
       const record = new MarcRecord(JSON.parse(getFixture({
         components: [
           'in',
-          'f003-not-fi-melinda.json'
+          'fiAsteriS0Fin10.json'
         ]
       })));
-      const result = await validator(record.toObject());
+      const result = formatRecord(record.toObject(), BIB_FORMAT_SETTINGS);
       const expected = getFixture({
         components: [
           'out',
-          'f003-not-fi-melinda.json'
+          'fiAsteriS0Fin10.json'
         ]
       });
       const stringResult = JSON.stringify({...result}, undefined, 2);
       expect(stringResult).to.eql(expected);
-      expect(result.failed).to.equal(true);
+    });
+  });
+
+  describe('fiMelindaWFin01', () => {
+    it('Should succeed', () => {
+      const record = new MarcRecord(JSON.parse(getFixture({
+        components: [
+          'in',
+          'fiMelindaWFin01.json'
+        ]
+      })));
+      const result = formatRecord(record.toObject(), BIB_FORMAT_SETTINGS);
+      const expected = getFixture({
+        components: [
+          'out',
+          'fiMelindaWFin01.json'
+        ]
+      });
+      const stringResult = JSON.stringify({...result}, undefined, 2);
+      expect(stringResult).to.eql(expected);
     });
   });
 });

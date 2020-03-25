@@ -36,9 +36,9 @@ import {Authentication, Utils} from '@natlibfi/melinda-commons';
 import {createBibRouter, createApiDocRouter} from './routes';
 
 import {
-	HTTP_PORT, ENABLE_PROXY,
-	ALEPH_X_SVC_URL, ALEPH_USER_LIBRARY,
-	OWN_AUTHZ_URL, OWN_AUTHZ_API_KEY
+  HTTP_PORT, ENABLE_PROXY,
+  ALEPH_X_SVC_URL, ALEPH_USER_LIBRARY,
+  OWN_AUTHZ_URL, OWN_AUTHZ_API_KEY
 } from './config';
 
 const {createLogger, createExpressLogger} = Utils;
@@ -47,40 +47,38 @@ const {createLogger, createExpressLogger} = Utils;
 MarcRecord.setValidationOptions({subfieldValues: false});
 
 process.on('SIGINT', () => {
-	process.exit(1);
+  process.exit(1); // eslint-disable-line no-process-exit
 });
 
 run();
 
 async function run() {
-	const Logger = createLogger();
-	const app = express();
+  const logger = createLogger();
+  const app = express();
 
-	if (ENABLE_PROXY) {
-		app.enable('trust proxy', true);
-	}
+  app.enable('trust proxy', Boolean(ENABLE_PROXY));
 
-	passport.use(new Authentication.Aleph.AlephStrategy({
-		xServiceURL: ALEPH_X_SVC_URL, userLibrary: ALEPH_USER_LIBRARY,
-		ownAuthzURL: OWN_AUTHZ_URL, ownAuthzApiKey: OWN_AUTHZ_API_KEY
-	}));
+  passport.use(new Authentication.Aleph.AlephStrategy({
+    xServiceURL: ALEPH_X_SVC_URL, userLibrary: ALEPH_USER_LIBRARY,
+    ownAuthzURL: OWN_AUTHZ_URL, ownAuthzApiKey: OWN_AUTHZ_API_KEY
+  }));
 
-	app.use(createExpressLogger());
-	app.use(bodyParser.text({limit: '5MB', type: '*/*'}));
-	app.use(passport.initialize());
+  app.use(createExpressLogger());
+  app.use(bodyParser.text({limit: '5MB', type: '*/*'}));
+  app.use(passport.initialize());
 
-	app.use('/', createApiDocRouter());
-	app.use('/bib', await createBibRouter());
-	app.use(handleError);
+  app.use('/', createApiDocRouter());
+  app.use('/bib', await createBibRouter());
+  app.use(handleError);
 
-	app.listen(HTTP_PORT, () => Logger.log('info', 'Started Melinda REST API'));
+  app.listen(HTTP_PORT, () => logger.log('info', 'Started Melinda REST API'));
 
-	function handleError(err, req, res, next) {
-		if (res.headersSent) {
-			return next(err);
-		}
+  function handleError(err, req, res, next) {
+    if (res.headersSent) {
+      return next(err);
+    }
 
-		console.log(err.stack);
-		res.sendStatus(HttpStatus.INTERNAL_SERVER_ERROR);
-	}
+    logger.log('error', err.stack);
+    res.sendStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+  }
 }

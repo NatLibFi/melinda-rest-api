@@ -1,5 +1,3 @@
-/* eslint-disable no-unused-vars */
-
 /**
 *
 * @licstart  The following is the entire license notice for the JavaScript code in this file.
@@ -28,31 +26,21 @@
 *
 */
 
-// import validateFactory from '@natlibfi/marc-record-validate';
-// Import {} from '@natlibfi/marc-record-validators-melinda';
+import validateFactory from '@natlibfi/marc-record-validate';
+import {
+  FieldStructure as fieldStructure
+} from '@natlibfi/marc-record-validators-melinda';
 
-export class ValidationError extends Error {
-	/* istanbul ignore next: Actual validation is currently not in use */
-	constructor(messages, ...params) {
-		super(params);
-		this.messages = messages;
-	}
-}
+export default async () => {
+  const validate = validateFactory([await fieldStructure([{tag: /^003$/u, valuePattern: /^FI-MELINDA$/u}])]);
 
-export default async function () {
-//	Const validateFunc = await validateFactory([]);
+  return async unvalidRecord => {
+    const {record, valid, report} = await validate(unvalidRecord, {fix: false, validateFixes: false});
 
-	return {validate};
-
-	async function validate(record) {
-		return [];
-		/* Const results = await validateFunc(record, {fix: true, validateFixes: true});
-
-		if (results.valid) {
-			return results.messages;
-		}
-
-		throw new ValidationError(results.messages);
-		*/
-	}
-}
+    return {
+      record,
+      failed: valid === false,
+      messages: report
+    };
+  };
+};

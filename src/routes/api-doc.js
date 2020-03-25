@@ -31,11 +31,11 @@ import path from 'path';
 import {Router} from 'express';
 
 export default function () {
-	const apiDoc = fs.readFileSync(path.join(__dirname, '..', 'api.json'), 'utf8');
+  const apiDoc = fs.readFileSync(path.join(__dirname, '..', 'api.json'), 'utf8');
 
-	return new Router()
-		.get('/', (req, res) => {
-			res.set('Content-Type', 'application/json');
-			res.send(apiDoc);
-		});
+  return new Router()
+    .get('/', (req, res) => {
+      res.set('Content-Type', 'application/json');
+      res.send(apiDoc);
+    });
 }

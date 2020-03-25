@@ -1,0 +1,587 @@
+{
+  "_validationOptions": {},
+  "leader": "00000nam a22004214i 4500",
+  "fields": [
+    {
+      "tag": "001",
+      "value": "9789522344977"
+    },
+    {
+      "tag": "003",
+      "value": "FI-BTJ"
+    },
+    {
+      "tag": "005",
+      "value": "20181008034640.2"
+    },
+    {
+      "tag": "008",
+      "value": "190626t20182018fi |||| ^     |0| 0bfin|c"
+    },
+    {
+      "tag": "020",
+      "ind1": " ",
+      "ind2": " ",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "978-952-234-497-7"
+        },
+        {
+          "code": "q",
+          "value": "sidottu"
+        },
+        {
+          "code": "z",
+          "value": "978-952-234-385-7"
+        }
+      ]
+    },
+    {
+      "tag": "040",
+      "ind1": " ",
+      "ind2": " ",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "FI-S"
+        },
+        {
+          "code": "b",
+          "value": "fin"
+        },
+        {
+          "code": "e",
+          "value": "rda"
+        },
+        {
+          "code": "d",
+          "value": "FI-BTJ"
+        }
+      ]
+    },
+    {
+      "tag": "041",
+      "ind1": "0",
+      "ind2": " ",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "fin"
+        }
+      ]
+    },
+    {
+      "tag": "080",
+      "ind1": "1",
+      "ind2": " ",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "929 Kivi"
+        },
+        {
+          "code": "2",
+          "value": "1974/fin/fennica"
+        }
+      ]
+    },
+    {
+      "tag": "084",
+      "ind1": " ",
+      "ind2": " ",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "86.2"
+        },
+        {
+          "code": "2",
+          "value": "ykl"
+        }
+      ]
+    },
+    {
+      "tag": "091",
+      "ind1": " ",
+      "ind2": " ",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "94"
+        }
+      ]
+    },
+    {
+      "tag": "092",
+      "ind1": " ",
+      "ind2": " ",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "86.2"
+        }
+      ]
+    },
+    {
+      "tag": "093",
+      "ind1": " ",
+      "ind2": " ",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "86.2"
+        }
+      ]
+    },
+    {
+      "tag": "094",
+      "ind1": " ",
+      "ind2": " ",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "86.2"
+        }
+      ]
+    },
+    {
+      "tag": "095",
+      "ind1": " ",
+      "ind2": " ",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "811"
+        }
+      ]
+    },
+    {
+      "tag": "100",
+      "ind1": "1",
+      "ind2": " ",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "Keskisarja, Teemu,"
+        },
+        {
+          "code": "e",
+          "value": "kirjoittaja."
+        }
+      ]
+    },
+    {
+      "tag": "245",
+      "ind1": "1",
+      "ind2": "0",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "Saapasnahka-torni :"
+        },
+        {
+          "code": "b",
+          "value": "Aleksis Kiven elämänkertomus /"
+        },
+        {
+          "code": "c",
+          "value": "Teemu Keskisarja."
+        }
+      ]
+    },
+    {
+      "tag": "246",
+      "ind1": "3",
+      "ind2": "0",
+      "subfields": [
+        {
+          "code": "0",
+          "value": "(FIN10)"
+        }
+      ]
+    },
+    {
+      "tag": "246",
+      "ind1": "3",
+      "ind2": "0",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "Aleksis Kiven elämänkertomus"
+        }
+      ]
+    },
+    {
+      "tag": "264",
+      "ind1": " ",
+      "ind2": "1",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "Helsinki :"
+        },
+        {
+          "code": "b",
+          "value": "Kustannusosakeyhtiö Siltala,"
+        },
+        {
+          "code": "c",
+          "value": "[2018]"
+        }
+      ]
+    },
+    {
+      "tag": "264",
+      "ind1": " ",
+      "ind2": "3",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "Latvia :"
+        },
+        {
+          "code": "b",
+          "value": "Livonia Print"
+        }
+      ]
+    },
+    {
+      "tag": "264",
+      "ind1": " ",
+      "ind2": "4",
+      "subfields": [
+        {
+          "code": "c",
+          "value": "©2018"
+        }
+      ]
+    },
+    {
+      "tag": "300",
+      "ind1": " ",
+      "ind2": " ",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "272 sivua :"
+        },
+        {
+          "code": "b",
+          "value": "kuvitettu, karttoja ;"
+        },
+        {
+          "code": "c",
+          "value": "24 cm"
+        }
+      ]
+    },
+    {
+      "tag": "336",
+      "ind1": " ",
+      "ind2": " ",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "teksti"
+        },
+        {
+          "code": "b",
+          "value": "txt"
+        },
+        {
+          "code": "2",
+          "value": "rdacontent"
+        }
+      ]
+    },
+    {
+      "tag": "337",
+      "ind1": " ",
+      "ind2": " ",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "käytettävissä ilman laitetta"
+        },
+        {
+          "code": "b",
+          "value": "n"
+        },
+        {
+          "code": "2",
+          "value": "rdamedia"
+        }
+      ]
+    },
+    {
+      "tag": "338",
+      "ind1": " ",
+      "ind2": " ",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "nide"
+        },
+        {
+          "code": "b",
+          "value": "nc"
+        },
+        {
+          "code": "2",
+          "value": "rdacarrier"
+        }
+      ]
+    },
+    {
+      "tag": "530",
+      "ind1": " ",
+      "ind2": " ",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "Myös e-kirjana"
+        }
+      ]
+    },
+    {
+      "tag": "546",
+      "ind1": " ",
+      "ind2": " ",
+      "subfields": [
+        {
+          "code": "0",
+          "value": "(FIN10)"
+        }
+      ]
+    },
+    {
+      "tag": "574",
+      "ind1": " ",
+      "ind2": " ",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "LK"
+        }
+      ]
+    },
+    {
+      "tag": "599",
+      "ind1": " ",
+      "ind2": " ",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "KIRJA / BOK"
+        }
+      ]
+    },
+    {
+      "tag": "600",
+      "ind1": "1",
+      "ind2": "4",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "Kivi, Aleksis."
+        }
+      ]
+    },
+    {
+      "tag": "650",
+      "ind1": " ",
+      "ind2": "7",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "henkilöhistoria"
+        },
+        {
+          "code": "2",
+          "value": "ysa"
+        }
+      ]
+    },
+    {
+      "tag": "650",
+      "ind1": " ",
+      "ind2": "7",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "kirjailijat"
+        },
+        {
+          "code": "2",
+          "value": "ysa"
+        }
+      ]
+    },
+    {
+      "tag": "650",
+      "ind1": " ",
+      "ind2": "7",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "kirjallisuus"
+        },
+        {
+          "code": "2",
+          "value": "ysa"
+        }
+      ]
+    },
+    {
+      "tag": "650",
+      "ind1": " ",
+      "ind2": "7",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "suomen kieli"
+        },
+        {
+          "code": "0",
+          "value": "(FIN10)"
+        }
+      ]
+    },
+    {
+      "tag": "650",
+      "ind1": " ",
+      "ind2": "7",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "kertomakirjallisuus"
+        },
+        {
+          "code": "2",
+          "value": "ysa"
+        }
+      ]
+    },
+    {
+      "tag": "650",
+      "ind1": " ",
+      "ind2": "7",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "suomalaisuus"
+        },
+        {
+          "code": "2",
+          "value": "ysa"
+        }
+      ]
+    },
+    {
+      "tag": "650",
+      "ind1": " ",
+      "ind2": "7",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "fennomania"
+        },
+        {
+          "code": "2",
+          "value": "ysa"
+        }
+      ]
+    },
+    {
+      "tag": "650",
+      "ind1": " ",
+      "ind2": "7",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "historia"
+        },
+        {
+          "code": "2",
+          "value": "ysa"
+        }
+      ]
+    },
+    {
+      "tag": "651",
+      "ind1": " ",
+      "ind2": "7",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "Suomi"
+        },
+        {
+          "code": "2",
+          "value": "ysa"
+        }
+      ]
+    },
+    {
+      "tag": "655",
+      "ind1": " ",
+      "ind2": "7",
+      "subfields": [
+        {
+          "code": "a",
+          "value": "elämäkerrat"
+        },
+        {
+          "code": "2",
+          "value": "ysa"
+        }
+      ]
+    },
+    {
+      "tag": "776",
+      "ind1": "0",
+      "ind2": "8",
+      "subfields": [
+        {
+          "code": "i",
+          "value": "Verkkoaineisto:"
+        },
+        {
+          "code": "z",
+          "value": "9789522345578"
+        }
+      ]
+    },
+    {
+      "tag": "856",
+      "ind1": "4",
+      "ind2": "1",
+      "subfields": [
+        {
+          "code": "u",
+          "value": "https://www.ellibslibrary.com/helmet/9789522345578"
+        },
+        {
+          "code": "y",
+          "value": "Linkki e-kirjaan"
+        }
+      ]
+    },
+    {
+      "tag": "SID",
+      "subfields": [
+        {
+          "code": "c",
+          "value": "2314156"
+        },
+        {
+          "code": "b",
+          "value": "helme"
+        }
+      ],
+      "ind1": " ",
+      "ind2": " "
+    }
+  ]
+}
