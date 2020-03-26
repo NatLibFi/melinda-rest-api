@@ -591,6 +591,10 @@
     {
       "description": "Check whether the configured fields have valid structure",
       "state": "invalid"
+    },
+    {
+      "description": "Checks that the record does not contain the configured fields",
+      "state": "valid"
     }
   ]
 }

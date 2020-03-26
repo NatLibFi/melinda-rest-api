@@ -85,4 +85,26 @@ describe('services/validate', () => {
       expect(result.failed).to.equal(true);
     });
   });
+
+  describe('fSTA-DELETED', () => {
+    it('Should have failed: true', async () => {
+      const validator = await createValidator();
+      const record = new MarcRecord(JSON.parse(getFixture({
+        components: [
+          'in',
+          'fSTA-DELETED.json'
+        ]
+      })));
+      const result = await validator(record.toObject());
+      const expected = getFixture({
+        components: [
+          'out',
+          'fSTA-DELETED.json'
+        ]
+      });
+      const stringResult = JSON.stringify({...result}, undefined, 2);
+      expect(stringResult).to.eql(expected);
+      expect(result.failed).to.equal(true);
+    });
+  });
 });
