@@ -583,10 +583,21 @@
         ],
         "ind1": " ",
         "ind2": " "
+      },
+      {
+        "tag": "STA",
+        "ind1": " ",
+        "ind2": " ",
+        "subfields": [
+          {
+            "code": "a",
+            "value": "DELETED"
+          }
+        ]
       }
     ]
   },
-  "failed": false,
+  "failed": true,
   "messages": [
     {
       "description": "Check whether the configured fields have valid structure",
@@ -594,7 +605,7 @@
     },
     {
       "description": "Checks that the record does not contain the configured fields",
-      "state": "valid"
+      "state": "invalid"
     }
   ]
 }
