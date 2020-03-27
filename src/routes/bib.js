@@ -58,7 +58,6 @@ export default async () => {
     .get('/:id', readResource)
     .post('/:id', updateResource)
     .use((err, req, res, next) => {
-      console.log(err);
       if (err instanceof ApiError) {
         res.status(err.status).send(err.payload);
         return;
