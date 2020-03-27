@@ -28,19 +28,11 @@
 
 import validateFactory from '@natlibfi/marc-record-validate';
 import {
-  FieldStructure as fieldStructure,
-  FieldExclusion as fieldExclusion
+  FieldStructure as fieldStructure
 } from '@natlibfi/marc-record-validators-melinda';
 
 export default async () => {
-  const validate = validateFactory([
-    await fieldStructure([{tag: /^003$/u, valuePattern: /^FI-MELINDA$/u}]),
-    await fieldExclusion([
-      {
-        tag: /^STA$/u, subfields: [{code: /a/u, value: /^DELETED$/u}]
-      }
-    ])
-  ]);
+  const validate = validateFactory([await fieldStructure([{tag: /^003$/u, valuePattern: /^FI-MELINDA$/u}])]);
 
   return async unvalidRecord => {
     const {record, valid, report} = await validate(unvalidRecord, {fix: false, validateFixes: false});

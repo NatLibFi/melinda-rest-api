@@ -94,7 +94,7 @@ export default async function ({sruURL, recordLoadURL, recordLoadApiKey, recordL
           throw new ApiError(HttpStatus.FORBIDDEN); // Own auth forbidden
         }
 
-        throw new ApiError(err.status);
+        throw new ApiError(err.status, err.payload);
       }
 
       throw err;
@@ -108,6 +108,13 @@ export default async function ({sruURL, recordLoadURL, recordLoadApiKey, recordL
 
       logger.log('debug', `Reading record ${id} from datastore`);
       const existingRecord = await DatastoreService.read(id);
+
+      const staDeletedFields = existingRecord.getFields('STA', [{code: 'a', value: 'DELETED'}]);
+
+      if (staDeletedFields.length > 0) { // eslint-disable-line functional/no-conditional-statement
+        const message = 'Record is deleted';
+        throw new ApiError(HttpStatus.GONE, message);
+      }
 
       logger.log('debug', 'Checking LOW-tag authorization');
       OwnAuthorization.validateChanges(user.authorization, record, existingRecord);
@@ -133,7 +140,7 @@ export default async function ({sruURL, recordLoadURL, recordLoadApiKey, recordL
           throw new ApiError(HttpStatus.FORBIDDEN); // Own auth forbidden
         }
 
-        throw new ApiError(err.status);
+        throw new ApiError(err.status, err.payload);
       }
 
       throw err;
