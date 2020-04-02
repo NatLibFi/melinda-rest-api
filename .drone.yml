@@ -25,3 +25,12 @@ steps:
   when:
     branch: [master, test]
 event: [push, tag]
+---
+kind: secret
+name: docker_username
+data: U31NfaEMe08+2v9XKQoMSHsquDU5aYAWgre6sfLoD3vMGzGxPnEW+4JzZ6AErQFlkmA=
+---
+kind: secret
+name: docker_password
+data: 1YF3FpvcOsaWtP9s9gtuHuqhvUy0zdygDWeniRX92K2kVwnxJSezoKdBJE5MlX4dsvXFF3x/HqMX0EWn6G+ZvJsLmrPvzLKVGj9INfjn4N90dBhGA8DHz0XHySM=
+
