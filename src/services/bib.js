@@ -75,12 +75,13 @@ export default async function ({sruURL, recordLoadURL, recordLoadApiKey, recordL
 
       logger.log('debug', 'Validating the record');
       const validationResults = await validationService(record);
+      logger.log('debug', JSON.stringify(validationResults));
 
       if (noop) {
         return validationResults;
       }
 
-      if (validationResults.valid) {
+      if (!validationResults.failed) {
         logger.log('debug', 'Creating a new record in datastore');
         const id = await DatastoreService.create({record: validationResults.record, cataloger: user.id});
 
@@ -122,6 +123,7 @@ export default async function ({sruURL, recordLoadURL, recordLoadApiKey, recordL
       logger.log('debug', 'Validating the record');
       const validationResults = await validationService(record);
 
+      logger.log('debug', JSON.stringify(validationResults));
       if (noop) {
         return validationResults;
       }
