@@ -39,7 +39,7 @@
 		"@natlibfi/marc-record-serializers": "^5.0.1",
 		"@natlibfi/marc-record-validate": "^5.0.1",
 		"@natlibfi/marc-record-validators-melinda": "^8.2.2",
-		"@natlibfi/melinda-commons": "^7.3.3",
+		"@natlibfi/melinda-commons": "^8.0.0",
 		"body-parser": "^1.19.0",
 		"deep-eql": "^4.0.0",
 		"express": "^4.17.1",
