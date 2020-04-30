@@ -88,11 +88,13 @@ export default async function ({sruURL, recordLoadURL, recordLoadApiKey, recordL
 			const validationResults = await ValidationService.validate(record);
 
 			if (noop) {
-				return validationResults;
+				return {messages: validationResults};
 			}
 
 			Logger.log('debug', 'Creating a new record in datastore');
 			const id = await DatastoreService.create({record, cataloger: user.id});
+
+			Logger.log('debug', `Got id: ${id}`);
 
 			return {messages: validationResults, id};
 		} catch (err) {

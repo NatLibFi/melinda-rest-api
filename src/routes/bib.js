@@ -100,8 +100,9 @@ export default async () => {
 				user: req.user
 			});
 
-			if (!noop) {
-				res.status(HttpStatus.CREATED).set('Record-ID', id);
+			if (!noop || noop === undefined) {
+				res.status(HttpStatus.CREATED).type('application/json').send({'Record-ID': id});
+				return;
 			}
 
 			res.type('application/json').send(messages);
