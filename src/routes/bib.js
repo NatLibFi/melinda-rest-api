@@ -104,7 +104,7 @@ export default async () => {
       });
 
       if (!noop) {
-        res.status(HttpStatus.CREATED).set('Record-ID', id);
+        res.set('Record-ID', id).sendStatus(HttpStatus.CREATED);
         return;
       }
 
