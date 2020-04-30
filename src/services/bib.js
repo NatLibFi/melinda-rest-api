@@ -78,12 +78,14 @@ export default async function ({sruURL, recordLoadURL, recordLoadApiKey, recordL
       logger.log('debug', JSON.stringify(validationResults));
 
       if (noop) {
-        return validationResults;
+        return {messages: validationResults.messages};
       }
 
       if (!validationResults.failed) {
         logger.log('debug', 'Creating a new record in datastore');
         const id = await DatastoreService.create({record: validationResults.record, cataloger: user.id});
+
+		logger.log('debug', `Got response: ${id}`);
 
         return {messages: validationResults.messages, id};
       }
