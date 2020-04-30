@@ -104,7 +104,8 @@ export default async () => {
       });
 
       if (!noop) {
-        res.status(HttpStatus.CREATED).type('application/json').send({'Record-ID': id});
+        res.status(HttpStatus.CREATED).type('application/json')
+          .send({'Record-ID': id});
         return;
       }
 
