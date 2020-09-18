@@ -1,6 +1,12 @@
-# Melinda REST API for ILS integration [![Build Status](https://travis-ci.org/NatLibFi/melinda-rest-api.svg)](https://travis-ci.org/NatLibFi/melinda-rest-api) [![Test Coverage](https://codeclimate.com/github/NatLibFi/melinda-rest-api/badges/coverage.svg)](https://codeclimate.com/github/NatLibFi/melinda-rest-api/coverage)
+# Melinda REST API for ILS integration
 
 Melinda REST API for ILS integration
+
+* [Melinda-rest-api-http](https://github.com/NatLibFi/melinda-rest-api-http)
+* [Melinda-rest-api-validator](https://github.com/NatLibFi/melinda-rest-api-validator)
+* [Melinda-rest-api-importer](https://github.com/NatLibFi/melinda-rest-api-importer)
+
+![Alt text](media/UML-melinda-rest-api.png?raw=true "UML picture of melinda rest api")
 
 ## License and copyright
 
