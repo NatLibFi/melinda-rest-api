@@ -1,0 +1,226 @@
+<mxfile host="Electron" modified="2024-01-08T13:59:45.087Z" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.6.8 Chrome/114.0.5735.289 Electron/25.5.0 Safari/537.36" etag="vhlpX0BmDKBnb5HycZdO" version="21.6.8" type="device">
+  <diagram name="Page-1" id="f4XsKgk8v-2smnATjEEg">
+    <mxGraphModel dx="2924" dy="1133" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="_TiTC27LbHoOyILAj4AG-73" value="" style="rounded=0;whiteSpace=wrap;html=1;fillStyle=hatch;fillColor=#008a00;fontColor=#ffffff;strokeColor=#005700;" vertex="1" parent="1">
+          <mxGeometry y="160" width="850" height="360" as="geometry" />
+        </mxCell>
+        <mxCell id="_TiTC27LbHoOyILAj4AG-1" value="Melinda-rest-api-http" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="-640" y="280" width="160" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="_TiTC27LbHoOyILAj4AG-2" value="Melinda-rest-api-validator&lt;br&gt;Priority" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="-400" y="160" width="160" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="_TiTC27LbHoOyILAj4AG-3" value="Melinda-rest-api-validator&lt;br&gt;&lt;div&gt;Bulk&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="-400" y="440" width="160" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="_TiTC27LbHoOyILAj4AG-4" value="Melinda-rest-api-importer&lt;br&gt;Create" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="880" y="160" width="160" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="_TiTC27LbHoOyILAj4AG-5" value="Melinda-rest-api-importer&lt;br&gt;Update" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="880" y="440" width="160" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="_TiTC27LbHoOyILAj4AG-24" value="Node-aleph-record-load-api" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="280" width="160" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="_TiTC27LbHoOyILAj4AG-32" value="Aleph" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1320" y="280" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="_TiTC27LbHoOyILAj4AG-33" value="" style="endArrow=classic;startArrow=classic;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="_TiTC27LbHoOyILAj4AG-32" target="_TiTC27LbHoOyILAj4AG-24">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="1060" y="570" as="sourcePoint" />
+            <mxPoint x="1110" y="520" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_TiTC27LbHoOyILAj4AG-34" value="WEB" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="-800" y="280" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="_TiTC27LbHoOyILAj4AG-35" value="" style="endArrow=classic;startArrow=classic;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="_TiTC27LbHoOyILAj4AG-34" target="_TiTC27LbHoOyILAj4AG-1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="-810" y="370" as="sourcePoint" />
+            <mxPoint x="-760" y="320" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_TiTC27LbHoOyILAj4AG-37" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="_TiTC27LbHoOyILAj4AG-5" target="_TiTC27LbHoOyILAj4AG-24">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="810" y="620" as="sourcePoint" />
+            <mxPoint x="860" y="570" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1080" y="480" />
+              <mxPoint x="1080" y="320" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_TiTC27LbHoOyILAj4AG-38" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="_TiTC27LbHoOyILAj4AG-1" target="_TiTC27LbHoOyILAj4AG-3">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="-450" y="310" as="sourcePoint" />
+            <mxPoint x="-380" y="470" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="-440" y="320" />
+              <mxPoint x="-440" y="480" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_TiTC27LbHoOyILAj4AG-39" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="_TiTC27LbHoOyILAj4AG-1" target="_TiTC27LbHoOyILAj4AG-2">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="10" y="740" as="sourcePoint" />
+            <mxPoint x="60" y="690" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="-440" y="320" />
+              <mxPoint x="-440" y="200" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_TiTC27LbHoOyILAj4AG-40" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="_TiTC27LbHoOyILAj4AG-4" target="_TiTC27LbHoOyILAj4AG-24">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="680" y="740" as="sourcePoint" />
+            <mxPoint x="730" y="690" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1080" y="200" />
+              <mxPoint x="1080" y="320" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_TiTC27LbHoOyILAj4AG-41" value="melinda-record-matching" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="360" width="160" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="_TiTC27LbHoOyILAj4AG-43" value="melinda-record-match-validator" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="280" y="360" width="160" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="_TiTC27LbHoOyILAj4AG-45" value="Merge" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="600" y="360" width="160" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="_TiTC27LbHoOyILAj4AG-46" value="melinda-marc-record-merge-reducers" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="600" y="240" width="160" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="_TiTC27LbHoOyILAj4AG-48" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.25;exitY=0;exitDx=0;exitDy=0;" edge="1" parent="1" source="_TiTC27LbHoOyILAj4AG-41">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="320" y="-440" as="sourcePoint" />
+            <mxPoint x="80" y="330" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_TiTC27LbHoOyILAj4AG-50" value="SRU matches" style="endArrow=classic;html=1;rounded=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" target="_TiTC27LbHoOyILAj4AG-41">
+          <mxGeometry x="-0.3333" y="40" width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="160" y="330" as="sourcePoint" />
+            <mxPoint x="400" y="-440" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_TiTC27LbHoOyILAj4AG-51" value="Merge = 1" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.75;exitDx=0;exitDy=0;entryX=0;entryY=0.75;entryDx=0;entryDy=0;" edge="1" parent="1" source="_TiTC27LbHoOyILAj4AG-41" target="_TiTC27LbHoOyILAj4AG-43">
+          <mxGeometry y="-10" width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="510" y="-310" as="sourcePoint" />
+            <mxPoint x="560" y="-360" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_TiTC27LbHoOyILAj4AG-56" value="Merge recommendations" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="_TiTC27LbHoOyILAj4AG-43" target="_TiTC27LbHoOyILAj4AG-45">
+          <mxGeometry y="10" width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="860" y="-330" as="sourcePoint" />
+            <mxPoint x="910" y="-380" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_TiTC27LbHoOyILAj4AG-58" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.25;exitY=0;exitDx=0;exitDy=0;entryX=0.25;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="_TiTC27LbHoOyILAj4AG-45" target="_TiTC27LbHoOyILAj4AG-46">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="1560" y="-440" as="sourcePoint" />
+            <mxPoint x="1630" y="-280" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_TiTC27LbHoOyILAj4AG-60" value="Set of merge &lt;br&gt;functions" style="endArrow=classic;html=1;rounded=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;exitX=0.75;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="_TiTC27LbHoOyILAj4AG-46" target="_TiTC27LbHoOyILAj4AG-45">
+          <mxGeometry y="50" width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="1080" y="296" as="sourcePoint" />
+            <mxPoint x="1640" y="-440" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_TiTC27LbHoOyILAj4AG-61" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;" edge="1" parent="1" source="_TiTC27LbHoOyILAj4AG-45" target="_TiTC27LbHoOyILAj4AG-5">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="1250" y="520" as="sourcePoint" />
+            <mxPoint x="1300" y="470" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="840" y="400" />
+              <mxPoint x="840" y="460" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_TiTC27LbHoOyILAj4AG-63" value="" style="endArrow=oval;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;endFill=1;" edge="1" parent="1" source="_TiTC27LbHoOyILAj4AG-2">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="620" y="460" as="sourcePoint" />
+            <mxPoint x="-120" y="480" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="-120" y="200" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_TiTC27LbHoOyILAj4AG-64" value="Unique = 1" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="_TiTC27LbHoOyILAj4AG-3" target="_TiTC27LbHoOyILAj4AG-41">
+          <mxGeometry x="-0.1111" y="10" width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="550" y="330" as="sourcePoint" />
+            <mxPoint x="600" y="280" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="-40" y="480" />
+              <mxPoint x="-40" y="400" />
+            </Array>
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_TiTC27LbHoOyILAj4AG-65" value="Update" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.75;exitDx=0;exitDy=0;entryX=0;entryY=0.75;entryDx=0;entryDy=0;" edge="1" parent="1" source="_TiTC27LbHoOyILAj4AG-3" target="_TiTC27LbHoOyILAj4AG-5">
+          <mxGeometry y="10" width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="650" y="330" as="sourcePoint" />
+            <mxPoint x="700" y="280" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_TiTC27LbHoOyILAj4AG-67" value="Merge = 0" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.75;entryDx=0;entryDy=0;exitX=1;exitY=0.25;exitDx=0;exitDy=0;" edge="1" parent="1" source="_TiTC27LbHoOyILAj4AG-41" target="_TiTC27LbHoOyILAj4AG-4">
+          <mxGeometry x="-0.9048" y="-10" width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="890" y="60" as="sourcePoint" />
+            <mxPoint x="990" y="230" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="240" y="380" />
+              <mxPoint x="240" y="220" />
+            </Array>
+            <mxPoint x="-10" y="10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_TiTC27LbHoOyILAj4AG-68" value="" style="endArrow=oval;html=1;rounded=0;exitX=1;exitY=0.25;exitDx=0;exitDy=0;endFill=1;" edge="1" parent="1" source="_TiTC27LbHoOyILAj4AG-3">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="730" y="330" as="sourcePoint" />
+            <mxPoint x="-200" y="180" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="-200" y="460" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_TiTC27LbHoOyILAj4AG-69" value="" style="endArrow=oval;html=1;rounded=0;exitX=1;exitY=0.75;exitDx=0;exitDy=0;endFill=1;" edge="1" parent="1" source="_TiTC27LbHoOyILAj4AG-2">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="580" y="190" as="sourcePoint" />
+            <mxPoint x="-160" y="500" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="-160" y="220" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_TiTC27LbHoOyILAj4AG-70" value="Unique = 0" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;" edge="1" parent="1" source="_TiTC27LbHoOyILAj4AG-2" target="_TiTC27LbHoOyILAj4AG-4">
+          <mxGeometry x="-0.7143" y="10" width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="660" y="410" as="sourcePoint" />
+            <mxPoint x="710" y="360" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_TiTC27LbHoOyILAj4AG-72" value="SRU" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="240" width="160" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="_TiTC27LbHoOyILAj4AG-77" value="&lt;h1&gt;melinda-record-matching&lt;br&gt;&lt;/h1&gt;&lt;p&gt;Finds if record allready exists in melinda system. If multiple matches are found, tryes to find best match&lt;br&gt;&lt;/p&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;" vertex="1" parent="1">
+          <mxGeometry y="560" width="850" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="_TiTC27LbHoOyILAj4AG-80" value="&lt;h1&gt;melinda-record-match-validator&lt;/h1&gt;&lt;p&gt;Validates if 2 records matched by melinda-record-matching can be merged and sets merge priority.&lt;br&gt;&lt;/p&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;" vertex="1" parent="1">
+          <mxGeometry y="640" width="840" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="_TiTC27LbHoOyILAj4AG-81" value="&lt;h1&gt;melinda-marc-record-merge-reducers&lt;/h1&gt;&lt;p&gt;Contains functions to handle merge situations on field level&lt;br&gt;&lt;/p&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;" vertex="1" parent="1">
+          <mxGeometry y="720" width="850" height="80" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
